@@ -1,4 +1,4 @@
-package com.gntcyouthbe.common.auth.configuration;
+package com.gntcyouthbe.common.security.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

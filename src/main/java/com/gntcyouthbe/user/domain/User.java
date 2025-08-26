@@ -1,13 +1,20 @@
 package com.gntcyouthbe.user.domain;
 
+import com.gntcyouthbe.church.domain.Church;
+import com.gntcyouthbe.church.domain.ChurchId;
 import com.gntcyouthbe.common.jpa.domain.BaseEntity;
 import jakarta.persistence.Column;
+import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
@@ -45,4 +52,16 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Role role;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "church_id", referencedColumnName = "id", foreignKey =  @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    private Church church;
+
+    public String getRoleName() {
+        return "ROLE_" + this.role.name();
+    }
+
+    public ChurchId getChurchId() {
+        return church.getId();
+    }
 }
