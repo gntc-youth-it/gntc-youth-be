@@ -8,13 +8,16 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 @AllArgsConstructor
-public class UserPrincipal implements UserDetails, Serializable {
+public class UserPrincipal implements UserDetails, OAuth2User, Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -44,8 +47,13 @@ public class UserPrincipal implements UserDetails, Serializable {
     }
 
     @Override
+    public Map<String, Object> getAttributes() {
+        return Map.of();
+    }
+
+    @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        return authorities;
     }
 
     @Override
@@ -55,6 +63,11 @@ public class UserPrincipal implements UserDetails, Serializable {
 
     @Override
     public String getUsername() {
-        return null;
+        return String.valueOf(userId);
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 }

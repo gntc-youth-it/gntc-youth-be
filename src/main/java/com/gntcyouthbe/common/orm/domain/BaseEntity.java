@@ -1,4 +1,4 @@
-package com.gntcyouthbe.common.jpa.domain;
+package com.gntcyouthbe.common.orm.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

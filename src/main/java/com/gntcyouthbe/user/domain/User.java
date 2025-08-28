@@ -2,7 +2,7 @@ package com.gntcyouthbe.user.domain;
 
 import com.gntcyouthbe.church.domain.Church;
 import com.gntcyouthbe.church.domain.ChurchId;
-import com.gntcyouthbe.common.jpa.domain.BaseEntity;
+import com.gntcyouthbe.common.orm.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
@@ -20,6 +20,7 @@ import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 @Entity
 @Table(name = "app_user",
@@ -53,9 +54,21 @@ public class User extends BaseEntity {
     @Column(nullable = false, length = 20)
     private Role role;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "church_id", referencedColumnName = "id", foreignKey =  @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Church church;
+
+    public User(String email, String name, AuthProvider provider, String providerUserId, Role role) {
+        this.email = email;
+        this.name = name;
+        this.provider = provider;
+        this.providerUserId = providerUserId;
+        this.role = role;
+    }
+
+    public User(String email, String name, AuthProvider provider, String providerUserId) {
+        this(email, name, provider, providerUserId, Role.USER);
+    }
 
     public String getRoleName() {
         return "ROLE_" + this.role.name();

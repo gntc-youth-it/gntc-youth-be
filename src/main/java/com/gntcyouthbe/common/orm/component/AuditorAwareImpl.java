@@ -1,4 +1,4 @@
-package com.gntcyouthbe.common.jpa.component;
+package com.gntcyouthbe.common.orm.component;
 
 import java.util.Optional;
 import lombok.NonNull;
