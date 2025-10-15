@@ -2,9 +2,7 @@ package com.gntcyouthbe.common.security.configuration;
 
 import lombok.Getter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
-@Component
 @ConfigurationProperties(prefix = "app.frontend")
 @Getter
 public class FrontendProperties {
