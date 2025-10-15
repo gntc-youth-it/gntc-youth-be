@@ -42,7 +42,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private String extractProviderId(OAuth2User oAuth2User, AuthProvider authProvider) {
         return switch (authProvider) {
-            case KAKAO -> String.valueOf(oAuth2User.getAttribute("id"));
+            case KAKAO -> {
+                Long id = oAuth2User.getAttribute("id");
+                yield id != null ? String.valueOf(id) : null;
+            }
             default -> throw new IllegalArgumentException("Unsupported auth provider: " + authProvider);
         };
     }
