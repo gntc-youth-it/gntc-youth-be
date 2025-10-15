@@ -43,3 +43,6 @@ app:
     issuer: church-app
     access-ttl-seconds: 900
     refresh-ttl-seconds: 1209600
+  frontend:
+    url: ${FRONTEND_URL:https://gntc-youth.com}
+    oauth2-redirect-path: /auth/callback
