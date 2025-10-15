@@ -42,7 +42,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private String extractProviderId(OAuth2User oAuth2User, AuthProvider authProvider) {
         return switch (authProvider) {
-            case KAKAO -> oAuth2User.getAttribute("providerUserId");
+            case KAKAO -> String.valueOf(oAuth2User.getAttribute("id"));
             default -> throw new IllegalArgumentException("Unsupported auth provider: " + authProvider);
         };
     }
@@ -59,14 +59,24 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private String extractEmail(OAuth2User oAuth2User, AuthProvider authProvider) {
         return switch (authProvider) {
-            case KAKAO -> oAuth2User.getAttribute("email");
+            case KAKAO -> {
+                var kakaoAccount = (java.util.Map<String, Object>) oAuth2User.getAttribute("kakao_account");
+                yield kakaoAccount != null ? (String) kakaoAccount.get("email") : null;
+            }
             default -> throw new IllegalArgumentException("Unsupported auth provider: " + authProvider);
         };
     }
 
     private String extractName(OAuth2User oAuth2User, AuthProvider authProvider) {
         return switch (authProvider) {
-            case KAKAO -> oAuth2User.getAttribute("name");
+            case KAKAO -> {
+                var kakaoAccount = (java.util.Map<String, Object>) oAuth2User.getAttribute("kakao_account");
+                if (kakaoAccount != null) {
+                    var profile = (java.util.Map<String, Object>) kakaoAccount.get("profile");
+                    yield profile != null ? (String) profile.get("nickname") : null;
+                }
+                yield null;
+            }
             default -> throw new IllegalArgumentException("Unsupported auth provider: " + authProvider);
         };
     }

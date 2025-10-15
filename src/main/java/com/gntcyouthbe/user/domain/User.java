@@ -20,7 +20,6 @@ import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 
 @Entity
 @Table(name = "app_user",
@@ -75,6 +74,6 @@ public class User extends BaseEntity {
     }
 
     public ChurchId getChurchId() {
-        return church.getId();
+        return church != null ? church.getId() : null;
     }
 }

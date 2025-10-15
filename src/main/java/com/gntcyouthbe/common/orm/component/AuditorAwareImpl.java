@@ -1,5 +1,6 @@
 package com.gntcyouthbe.common.orm.component;
 
+import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import java.util.Optional;
 import lombok.NonNull;
 import org.springframework.data.domain.AuditorAware;
@@ -15,14 +16,15 @@ public class AuditorAwareImpl implements AuditorAware<Long> {
     public Optional<Long> getCurrentAuditor() {
         Authentication auth = SecurityContextHolder.getContext()
                 .getAuthentication();
-        if (isValidAuthentication(auth)) {
+        if (isInvalidAuthentication(auth)) {
             return Optional.empty();
         }
-//        return Optional.ofNullable(auth);
-        return Optional.of(1L);
+        Object p = auth.getPrincipal();
+        if (p instanceof UserPrincipal up) return Optional.of(up.getUserId());
+        return Optional.empty();
     }
 
-    private boolean isValidAuthentication(Authentication auth) {
+    private boolean isInvalidAuthentication(Authentication auth) {
         return auth == null || !auth.isAuthenticated() || auth.getPrincipal()
                 .equals("anonymousUser");
     }
