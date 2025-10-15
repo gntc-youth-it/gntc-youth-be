@@ -24,8 +24,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(reg -> reg
-                        .requestMatchers("/auth/**", "/public/**").permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()  // 기본적으로 모든 요청 허용
                 )
                 .oauth2Login(oauth -> oauth
                         .userInfoEndpoint(u -> u.userService(oAuth2UserService))
