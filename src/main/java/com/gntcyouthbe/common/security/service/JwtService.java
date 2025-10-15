@@ -46,9 +46,12 @@ public class JwtService {
                 .subject(String.valueOf(userId))
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(exp))
-                .claim("email", email)
                 .claim("name", name)
                 .claim("role", role.name());
+
+        if (email != null) {
+            builder.claim("email", email);
+        }
 
         if (church != null) {
             builder.claim("church", church.name());
