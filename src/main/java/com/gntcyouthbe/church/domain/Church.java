@@ -16,7 +16,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Church extends BaseEntity {
-
     @Id
     @Enumerated(EnumType.STRING)
     @Column(length = 30)
