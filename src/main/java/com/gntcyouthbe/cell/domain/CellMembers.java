@@ -14,4 +14,8 @@ public class CellMembers {
                 .map(CellMember::getUser)
                 .toList();
     }
+
+    public int getMemberCount() {
+        return members.size();
+    }
 }

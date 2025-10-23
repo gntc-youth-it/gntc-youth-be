@@ -1,5 +1,8 @@
 package com.gntcyouthbe.cell.domain;
 
+import lombok.Getter;
+
+@Getter
 public class CellGoalStats {
     private final double progress;
 
@@ -8,7 +11,7 @@ public class CellGoalStats {
             this.progress = 0.0;
             return;
         }
-        long completedCopiesCount = members.getCompletedCopiesCountForGoal(goal);
-        this.progress = (double) completedCopiesCount / totalCopiesCount * 100;
+        final long goalCopiesCount =  (long) goal.getTotalVerses() * members.getMemberCount();
+        this.progress = (double) totalCopiesCount / goalCopiesCount;
     }
 }

@@ -1,5 +1,6 @@
 package com.gntcyouthbe.cell.controller;
 
+import com.gntcyouthbe.cell.model.response.CellGoalStatsResponse;
 import com.gntcyouthbe.cell.service.CellGoalService;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class CellGoalController {
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<CellGoalStatResponse> getCellGoal(
+    public ResponseEntity<CellGoalStatsResponse> getCellGoal(
             @AuthenticationPrincipal final UserPrincipal userPrincipal
     ) {
         return ResponseEntity.ok(goalService.getGoalStats(userPrincipal));
