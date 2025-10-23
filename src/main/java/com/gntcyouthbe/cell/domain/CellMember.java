@@ -1,5 +1,6 @@
 package com.gntcyouthbe.cell.domain;
 
+import com.gntcyouthbe.common.orm.domain.BaseEntity;
 import com.gntcyouthbe.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.ConstraintMode;
@@ -24,7 +25,7 @@ import lombok.NoArgsConstructor;
         uniqueConstraints=@UniqueConstraint(name="uk_cell_user", columnNames={"cell_id","user_id"}))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class CellMember {
+public class CellMember extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
