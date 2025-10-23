@@ -3,6 +3,7 @@ package com.gntcyouthbe.common.exception.handler;
 import com.gntcyouthbe.common.exception.EntityNotFoundException;
 import com.gntcyouthbe.common.exception.model.ExceptionCode;
 import com.gntcyouthbe.common.exception.model.ExceptionResponse;
+import io.sentry.Sentry;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,6 +54,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ExceptionResponse> handleException(final Exception e) {
         log.error(e.getMessage(), e);
+        Sentry.captureException(e);
         return ResponseEntity.internalServerError()
                 .body(new ExceptionResponse(
                         INTERNAL_SERVER_ERROR.getCode(),

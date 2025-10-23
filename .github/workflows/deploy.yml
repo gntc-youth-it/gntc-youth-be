@@ -23,7 +23,15 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with Gradle
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: ./gradlew build -x test
+
+      - name: Download Sentry OpenTelemetry Agent
+        run: |
+          AGENT_VERSION=8.24.0
+          curl -L -o sentry-opentelemetry-agent.jar \
+            "https://repo1.maven.org/maven2/io/sentry/sentry-opentelemetry-agent/$AGENT_VERSION/sentry-opentelemetry-agent-$AGENT_VERSION.jar"
 
       - name: Get artifact name
         id: artifact
@@ -39,6 +47,15 @@ jobs:
           source: "build/libs/*.jar"
           target: "/home/ubuntu/app"
           strip_components: 2
+
+      - name: Copy Sentry Agent to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "sentry-opentelemetry-agent.jar"
+          target: "/home/ubuntu/app"
 
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
@@ -63,10 +80,11 @@ jobs:
             # Find JAR file
             JAR_FILE=$(ls -t *.jar | grep -v plain | head -1)
 
-            # Start application
-            nohup java -jar \
+            # Start application with Sentry OpenTelemetry Agent
+            SENTRY_AUTO_INIT=false nohup java \
+              -javaagent:sentry-opentelemetry-agent.jar \
               -Dspring.profiles.active=prod \
-              $JAR_FILE > app.log 2>&1 &
+              -jar $JAR_FILE > app.log 2>&1 &
 
             echo $! > app.pid
 
