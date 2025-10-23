@@ -29,4 +29,16 @@ public class CellGoal {
 
     @Column(length=100, nullable=false)
     private String title;
+
+    public int getStartSequence() {
+        return startVerse.getSequence();
+    }
+
+    public int getEndSequence() {
+        return endVerse.getSequence();
+    }
+
+    public int getTotalVerses() {
+        return getEndSequence() - getStartSequence() + 1;
+    }
 }

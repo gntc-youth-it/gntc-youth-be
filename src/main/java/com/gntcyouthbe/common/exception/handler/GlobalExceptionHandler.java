@@ -1,11 +1,13 @@
 package com.gntcyouthbe.common.exception.handler;
 
+import com.gntcyouthbe.common.exception.EntityNotFoundException;
 import com.gntcyouthbe.common.exception.model.ExceptionCode;
 import com.gntcyouthbe.common.exception.model.ExceptionResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
@@ -39,6 +41,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         final String errorMessage = Objects.requireNonNull(e.getBindingResult().getFieldError()).getDefaultMessage();
         return ResponseEntity.badRequest()
                 .body(new ExceptionResponse(INVALID_REQUEST.getCode(), errorMessage));
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ExceptionResponse> handleEntityNotFoundException(final EntityNotFoundException e) {
+        log.warn(e.getMessage(), e);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ExceptionResponse(e.getCode(), e.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
