@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/auth/test")
 @RequiredArgsConstructor
-@Profile({"dev", "local"})
+@Profile({"dev", "local", "prod"})
 public class TestAuthController {
 
     private final UserRepository userRepository;
