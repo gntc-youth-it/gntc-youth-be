@@ -74,13 +74,14 @@ jobs:
             JAR_FILE=$(ls -t *.jar | grep -v plain | head -1)
             echo "Starting application with JAR: $JAR_FILE"
 
-            # Start application
-            nohup java -jar \
+            # Start application (detach from current shell completely)
+            setsid java -jar \
               -Dspring.profiles.active=prod \
-              $JAR_FILE > app.log 2>&1 &
+              $JAR_FILE > app.log 2>&1 < /dev/null &
 
             NEW_PID=$!
             echo $NEW_PID > app.pid
+            disown
 
             echo "Application deployment initiated!"
             echo "New PID: $NEW_PID"
