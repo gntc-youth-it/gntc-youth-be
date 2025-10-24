@@ -51,50 +51,26 @@ jobs:
           script: |
             cd /home/ubuntu/app
 
+            # Stop existing application
+            if [ -f app.pid ]; then
+              kill $(cat app.pid) || true
+              rm app.pid
+            fi
+
             # Load environment variables
             if [ -f .env ]; then
               export $(cat .env | grep -v '^#' | xargs)
             fi
 
-            # Find and deploy JAR
+            # Find JAR file
             JAR_FILE=$(ls -t *.jar | grep -v plain | head -1)
-            echo "Deploying: $JAR_FILE"
 
-            # Simple restart: kill old, start new
-            pkill -f "gntc-youth-be" || true
-            sleep 2
+            # Start application
+            nohup java -jar \
+              -Dspring.profiles.active=prod \
+              $JAR_FILE > app.log 2>&1 &
 
-            # Create a detached script that will survive SSH disconnect
-            cat > start_app.sh << 'SCRIPT_EOF'
-            #!/bin/bash
-            cd /home/ubuntu/app
-            if [ -f .env ]; then
-              export $(cat .env | grep -v '^#' | xargs)
-            fi
-            JAR_FILE=$(ls -t *.jar | grep -v plain | head -1)
-            nohup java -jar -Dspring.profiles.active=prod $JAR_FILE > app.log 2>&1 &
             echo $! > app.pid
-            SCRIPT_EOF
 
-            chmod +x start_app.sh
-
-            # Run in background, completely detached from this SSH session
-            nohup ./start_app.sh > /dev/null 2>&1 &
-
-            sleep 3
-
-            echo "Application deployment initiated"
-            echo "Checking if process started..."
-
-            if [ -f app.pid ]; then
-              PID=$(cat app.pid)
-              if ps -p $PID > /dev/null 2>&1; then
-                echo "Success! Process is running with PID: $PID"
-              else
-                echo "Warning: PID file exists but process not found"
-              fi
-            else
-              echo "Warning: PID file not created yet"
-            fi
-
-            echo "Check logs: tail -f /home/ubuntu/app/app.log"
+            echo "Application deployed successfully!"
+            echo "PID: $(cat app.pid)"
