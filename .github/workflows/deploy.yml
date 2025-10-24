@@ -75,13 +75,12 @@ jobs:
             echo "Starting application with JAR: $JAR_FILE"
 
             # Start application (detach from current shell completely)
-            setsid java -jar \
-              -Dspring.profiles.active=prod \
-              $JAR_FILE > app.log 2>&1 < /dev/null &
+            # Use bash -c to run in a subshell that won't receive SIGHUP
+            bash -c "setsid java -jar -Dspring.profiles.active=prod $JAR_FILE > app.log 2>&1 < /dev/null & echo \$! > app.pid" &
 
-            NEW_PID=$!
-            echo $NEW_PID > app.pid
-            disown
+            # Wait for PID file to be written
+            sleep 1
+            NEW_PID=$(cat app.pid 2>/dev/null || echo "unknown")
 
             echo "Application deployment initiated!"
             echo "New PID: $NEW_PID"
