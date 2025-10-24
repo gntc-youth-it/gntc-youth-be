@@ -107,6 +107,18 @@ public class JwtService {
         return parseAllClaims(token).getPayload();
     }
 
+    public Long getUserIdFromRefreshToken(String refreshToken) {
+        Map<String, Object> claims = getClaims(refreshToken);
+
+        // Refresh Token 타입 검증
+        if (!"refresh".equals(claims.get("type"))) {
+            throw new JwtException("Invalid token type. Expected refresh token.");
+        }
+
+        String subject = (String) claims.get("sub");
+        return Long.parseLong(subject);
+    }
+
     private Jws<Claims> parseAllClaims(String token) {
         return Jwts.parser()
                 .requireIssuer(properties.getIssuer())

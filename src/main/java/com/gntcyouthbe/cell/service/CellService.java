@@ -4,7 +4,6 @@ import static com.gntcyouthbe.common.exception.model.ExceptionCode.CELL_NOT_FOUN
 import static com.gntcyouthbe.common.exception.model.ExceptionCode.USER_NOT_FOUND;
 
 import com.gntcyouthbe.cell.domain.Cell;
-import com.gntcyouthbe.cell.domain.CellMember;
 import com.gntcyouthbe.cell.model.response.CellListResponse;
 import com.gntcyouthbe.cell.repository.CellMemberRepository;
 import com.gntcyouthbe.cell.repository.CellRepository;

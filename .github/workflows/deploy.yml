@@ -52,10 +52,18 @@ jobs:
             cd /home/ubuntu/app
 
             # Stop existing application
+            echo "Stopping existing application..."
             if [ -f app.pid ]; then
-              kill $(cat app.pid) || true
+              OLD_PID=$(cat app.pid)
+              kill $OLD_PID 2>/dev/null || echo "Process $OLD_PID not found"
               rm app.pid
             fi
+
+            # Kill any remaining Java processes (safety measure)
+            pkill -f "java -jar.*gntc-youth-be" || echo "No running Java process found"
+
+            # Wait for port to be released
+            sleep 3
 
             # Load environment variables
             if [ -f .env ]; then
@@ -64,13 +72,25 @@ jobs:
 
             # Find JAR file
             JAR_FILE=$(ls -t *.jar | grep -v plain | head -1)
+            echo "Starting application with JAR: $JAR_FILE"
 
             # Start application
             nohup java -jar \
               -Dspring.profiles.active=prod \
               $JAR_FILE > app.log 2>&1 &
 
-            echo $! > app.pid
+            NEW_PID=$!
+            echo $NEW_PID > app.pid
 
             echo "Application deployed successfully!"
-            echo "PID: $(cat app.pid)"
+            echo "New PID: $NEW_PID"
+
+            # Wait and verify startup
+            sleep 5
+            if ps -p $NEW_PID > /dev/null; then
+              echo "Application is running!"
+            else
+              echo "ERROR: Application failed to start. Check app.log"
+              tail -20 app.log
+              exit 1
+            fi
