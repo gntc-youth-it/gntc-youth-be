@@ -1,6 +1,7 @@
 package com.gntcyouthbe.common.exception.handler;
 
 import com.gntcyouthbe.common.exception.EntityNotFoundException;
+import com.gntcyouthbe.common.exception.UserNotFoundException;
 import com.gntcyouthbe.common.exception.model.ExceptionCode;
 import com.gntcyouthbe.common.exception.model.ExceptionResponse;
 import io.sentry.Sentry;
@@ -42,6 +43,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         final String errorMessage = Objects.requireNonNull(e.getBindingResult().getFieldError()).getDefaultMessage();
         return ResponseEntity.badRequest()
                 .body(new ExceptionResponse(INVALID_REQUEST.getCode(), errorMessage));
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ExceptionResponse> handleUserNotFoundException(final UserNotFoundException e) {
+        log.error(e.getMessage(), e);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ExceptionResponse(e.getCode(), e.getMessage()));
     }
 
     @ExceptionHandler(EntityNotFoundException.class)

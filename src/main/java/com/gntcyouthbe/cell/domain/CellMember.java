@@ -44,4 +44,10 @@ public class CellMember extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(length=20)
     private CellRole role;
+
+    public CellMember(final Cell cell, final User user) {
+        this.cell = cell;
+        this.user = user;
+        this.role = CellRole.MEMBER;
+    }
 }

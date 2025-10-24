@@ -1,5 +1,6 @@
 package com.gntcyouthbe.cell.domain;
 
+import com.gntcyouthbe.user.domain.User;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,4 +27,10 @@ public class Cell {
 
     @OneToMany(mappedBy = "cell", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CellMember> members = new HashSet<>();
+
+    public CellMember join(final User user) {
+        CellMember newMember = new CellMember(this, user);
+        this.members.add(newMember);
+        return newMember;
+    }
 }
