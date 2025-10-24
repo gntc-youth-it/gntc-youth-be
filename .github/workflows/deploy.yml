@@ -64,20 +64,37 @@ jobs:
             pkill -f "gntc-youth-be" || true
             sleep 2
 
+            # Create a detached script that will survive SSH disconnect
+            cat > start_app.sh << 'SCRIPT_EOF'
+            #!/bin/bash
+            cd /home/ubuntu/app
+            if [ -f .env ]; then
+              export $(cat .env | grep -v '^#' | xargs)
+            fi
+            JAR_FILE=$(ls -t *.jar | grep -v plain | head -1)
             nohup java -jar -Dspring.profiles.active=prod $JAR_FILE > app.log 2>&1 &
             echo $! > app.pid
+            SCRIPT_EOF
 
-            echo "Application started. Waiting for port 8080..."
+            chmod +x start_app.sh
 
-            # Wait for port to be ready (max 30 seconds)
-            for i in {1..30}; do
-              if nc -z localhost 8080 2>/dev/null; then
-                echo "Success! Application is ready on port 8080"
-                exit 0
+            # Run in background, completely detached from this SSH session
+            nohup ./start_app.sh > /dev/null 2>&1 &
+
+            sleep 3
+
+            echo "Application deployment initiated"
+            echo "Checking if process started..."
+
+            if [ -f app.pid ]; then
+              PID=$(cat app.pid)
+              if ps -p $PID > /dev/null 2>&1; then
+                echo "Success! Process is running with PID: $PID"
+              else
+                echo "Warning: PID file exists but process not found"
               fi
-              sleep 1
-            done
+            else
+              echo "Warning: PID file not created yet"
+            fi
 
-            echo "Deployment completed, but port check timed out"
-            echo "Check status: curl http://localhost:8080/actuator/health"
-            exit 0
+            echo "Check logs: tail -f /home/ubuntu/app/app.log"
