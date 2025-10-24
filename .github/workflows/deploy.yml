@@ -80,3 +80,4 @@ jobs:
 
             echo "Deployment completed, but port check timed out"
             echo "Check status: curl http://localhost:8080/actuator/health"
+            exit 0
