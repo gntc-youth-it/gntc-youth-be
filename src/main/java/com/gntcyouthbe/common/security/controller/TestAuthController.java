@@ -5,6 +5,8 @@ import com.gntcyouthbe.common.security.dto.TestLoginResponse;
 import com.gntcyouthbe.common.security.service.JwtService;
 import com.gntcyouthbe.user.domain.User;
 import com.gntcyouthbe.user.repository.UserRepository;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +25,9 @@ public class TestAuthController {
     private final JwtService jwtService;
 
     @PostMapping("/login")
-    public ResponseEntity<TestLoginResponse> testLogin(@RequestBody TestLoginRequest request) {
+    public ResponseEntity<TestLoginResponse> testLogin(
+            @RequestBody TestLoginRequest request,
+            HttpServletResponse httpResponse) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + request.getEmail()));
 
@@ -38,9 +42,12 @@ public class TestAuthController {
 
         String refreshToken = jwtService.createRefreshToken(user.getId());
 
+        // HttpOnly Cookie로 Refresh Token 설정
+        setRefreshTokenCookie(httpResponse, refreshToken);
+
+        // Access Token만 응답 본문에 포함
         TestLoginResponse response = TestLoginResponse.builder()
                 .accessToken(accessToken)
-                .refreshToken(refreshToken)
                 .userId(user.getId())
                 .email(user.getEmail())
                 .name(user.getName())
@@ -48,5 +55,15 @@ public class TestAuthController {
                 .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+        Cookie cookie = new Cookie("refreshToken", refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true); // HTTPS 환경에서만 전송
+        cookie.setPath("/");
+        cookie.setMaxAge(14 * 24 * 60 * 60); // 14일 (초 단위)
+        cookie.setAttribute("SameSite", "Lax");
+        response.addCookie(cookie);
     }
 }

@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class TestLoginResponse {
     private String accessToken;
-    private String refreshToken;
     private Long userId;
     private String email;
     private String name;

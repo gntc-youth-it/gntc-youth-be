@@ -1,15 +1,16 @@
 package com.gntcyouthbe.common.security.controller;
 
-import com.gntcyouthbe.common.security.dto.TokenRefreshRequest;
 import com.gntcyouthbe.common.security.dto.TokenRefreshResponse;
 import com.gntcyouthbe.common.security.service.JwtService;
 import com.gntcyouthbe.user.domain.User;
 import com.gntcyouthbe.user.repository.UserRepository;
 import io.jsonwebtoken.JwtException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,10 +23,18 @@ public class AuthController {
     private final UserRepository userRepository;
 
     @PostMapping("/refresh")
-    public ResponseEntity<TokenRefreshResponse> refreshToken(@RequestBody TokenRefreshRequest request) {
+    public ResponseEntity<TokenRefreshResponse> refreshToken(
+            HttpServletRequest request,
+            HttpServletResponse response) {
         try {
+            // HttpOnly Cookie에서 Refresh Token 추출
+            String refreshToken = extractRefreshTokenFromCookie(request);
+            if (refreshToken == null) {
+                return ResponseEntity.status(401).build();
+            }
+
             // Refresh Token 검증 및 userId 추출
-            Long userId = jwtService.getUserIdFromRefreshToken(request.getRefreshToken());
+            Long userId = jwtService.getUserIdFromRefreshToken(refreshToken);
 
             // 사용자 조회
             User user = userRepository.findById(userId)
@@ -42,15 +51,17 @@ public class AuthController {
             );
 
             // 새 Refresh Token 생성 (Rotating Refresh Token 전략)
-            // 보안 강화: 매번 새로운 Refresh Token 발급
             String newRefreshToken = jwtService.createRefreshToken(user.getId());
 
-            TokenRefreshResponse response = TokenRefreshResponse.builder()
+            // HttpOnly Cookie로 새 Refresh Token 설정
+            setRefreshTokenCookie(response, newRefreshToken);
+
+            // Access Token만 응답 본문에 포함
+            TokenRefreshResponse tokenResponse = TokenRefreshResponse.builder()
                     .accessToken(newAccessToken)
-                    .refreshToken(newRefreshToken)
                     .build();
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(tokenResponse);
 
         } catch (JwtException e) {
             // Refresh Token이 유효하지 않거나 만료됨
@@ -59,5 +70,27 @@ public class AuthController {
             // 기타 에러
             return ResponseEntity.status(500).build();
         }
+    }
+
+    private String extractRefreshTokenFromCookie(HttpServletRequest request) {
+        if (request.getCookies() == null) {
+            return null;
+        }
+        for (Cookie cookie : request.getCookies()) {
+            if ("refreshToken".equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return null;
+    }
+
+    private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+        Cookie cookie = new Cookie("refreshToken", refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true); // HTTPS 환경에서만 전송
+        cookie.setPath("/");
+        cookie.setMaxAge(14 * 24 * 60 * 60); // 14일 (초 단위)
+        cookie.setAttribute("SameSite", "Lax");
+        response.addCookie(cookie);
     }
 }
