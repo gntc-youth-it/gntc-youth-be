@@ -82,15 +82,26 @@ jobs:
             NEW_PID=$!
             echo $NEW_PID > app.pid
 
-            echo "Application deployed successfully!"
+            echo "Application deployment initiated!"
             echo "New PID: $NEW_PID"
 
-            # Wait and verify startup
-            sleep 5
-            if ps -p $NEW_PID > /dev/null; then
-              echo "Application is running!"
-            else
-              echo "ERROR: Application failed to start. Check app.log"
-              tail -20 app.log
-              exit 1
-            fi
+            # Wait and verify startup (increased timeout for Spring Boot)
+            echo "Waiting for application to start (this may take 10-15 seconds)..."
+            for i in {1..30}; do
+              if ps -p $NEW_PID > /dev/null 2>&1; then
+                if grep -q "Started GntcYouthBeApplication" app.log 2>/dev/null; then
+                  echo "Application started successfully!"
+                  exit 0
+                fi
+                echo "Startup in progress... ($i/30)"
+                sleep 1
+              else
+                echo "ERROR: Application process died during startup"
+                tail -30 app.log
+                exit 1
+              fi
+            done
+
+            echo "WARNING: Startup verification timed out, but process is still running"
+            echo "Check logs with: tail -f /home/ubuntu/app/app.log"
+            tail -20 app.log
