@@ -101,10 +101,11 @@ jobs:
                 exit 1
               fi
 
-              # Check if application started successfully
-              if grep -q "Started GntcYouthBeApplication" app.log 2>/dev/null; then
+              # Check if application started successfully (check port 8080)
+              if nc -z localhost 8080 2>/dev/null; then
                 echo "Application started successfully!"
                 echo "Process is running with PID: $NEW_PID"
+                echo "Port 8080 is open and listening"
                 exit 0
               fi
 
