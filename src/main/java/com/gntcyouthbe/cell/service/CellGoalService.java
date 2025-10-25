@@ -35,7 +35,7 @@ public class CellGoalService {
         final CellMembers members = getCellMembers(cell);
         final long totalCopiesCount = countTotalCopies(goal, members);
         final CellGoalStats stats = new CellGoalStats(goal, members , totalCopiesCount);
-        return new CellGoalStatsResponse(cell, goal, stats, members.getMemberCount(), totalCopiesCount);
+        return new CellGoalStatsResponse(cell, goal, stats);
     }
 
     private Cell getCellByUserPrincipal(final UserPrincipal userPrincipal) {
