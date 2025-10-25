@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -23,6 +24,7 @@ import java.util.Objects;
 
 import static com.gntcyouthbe.common.exception.model.ExceptionCode.INVALID_REQUEST;
 import static com.gntcyouthbe.common.exception.model.ExceptionCode.INTERNAL_SERVER_ERROR;
+import static com.gntcyouthbe.common.exception.model.ExceptionCode.UNAUTHORIZED;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
@@ -43,6 +45,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         final String errorMessage = Objects.requireNonNull(e.getBindingResult().getFieldError()).getDefaultMessage();
         return ResponseEntity.badRequest()
                 .body(new ExceptionResponse(INVALID_REQUEST.getCode(), errorMessage));
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ExceptionResponse> handleAuthorizationDeniedException(final AuthorizationDeniedException e) {
+        log.warn(e.getMessage(), e);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ExceptionResponse(UNAUTHORIZED.getCode(), UNAUTHORIZED.getMessage()));
     }
 
     @ExceptionHandler(UserNotFoundException.class)

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 public enum ExceptionCode {
 
     INVALID_REQUEST(1001, "잘못된 요청입니다."),
+    UNAUTHORIZED(1002, "인증이 필요합니다."),
 
     // 11xx: 회원 관련 예외
     USER_NOT_FOUND(1101, "해당 사용자가 존재하지 않습니다."),
