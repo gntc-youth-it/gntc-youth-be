@@ -19,10 +19,22 @@ public class CellGoalStatsResponse {
 
     private final double progress;
 
-    public CellGoalStatsResponse(Cell cell, CellGoal goal, CellGoalStats stats) {
+    private final int totalVerses;
+
+    private final int memberCount;
+
+    private final long totalCopies;
+
+    private final long goalCopies;
+
+    public CellGoalStatsResponse(Cell cell, CellGoal goal, CellGoalStats stats, int memberCount, long totalCopies) {
         this.cellId = cell.getId();
         this.cellName = cell.getName();
         this.title = goal.getTitle();
         this.progress = stats.getProgress();
+        this.totalVerses = goal.getTotalVerses();
+        this.memberCount = memberCount;
+        this.totalCopies = totalCopies;
+        this.goalCopies = (long) goal.getTotalVerses() * memberCount;
     }
 }
