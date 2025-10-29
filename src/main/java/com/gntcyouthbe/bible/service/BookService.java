@@ -1,9 +1,13 @@
 package com.gntcyouthbe.bible.service;
 
+import com.gntcyouthbe.bible.domain.Book;
+import com.gntcyouthbe.bible.domain.BookName;
 import com.gntcyouthbe.bible.domain.Verse;
 import com.gntcyouthbe.bible.domain.VerseCopy;
 import com.gntcyouthbe.bible.model.response.BookListResponse;
+import com.gntcyouthbe.bible.model.response.ChapterListResponse;
 import com.gntcyouthbe.bible.model.response.RecentChapterResponse;
+import com.gntcyouthbe.bible.repository.BookRepository;
 import com.gntcyouthbe.bible.repository.VerseCopyRepository;
 import com.gntcyouthbe.bible.repository.VerseRepository;
 import com.gntcyouthbe.cell.domain.Cell;
@@ -27,18 +31,19 @@ public class BookService {
 
     private final CellMemberRepository memberRepository;
     private final CellGoalRepository goalRepository;
+    private final BookRepository bookRepository;
     private final VerseRepository verseRepository;
     private final VerseCopyRepository copyRepository;
 
     @Transactional(readOnly = true)
     public BookListResponse getBookList(final UserPrincipal userPrincipal) {
-        CellGoal goal = getCellGoal(userPrincipal);
+        final CellGoal goal = getCellGoal(userPrincipal);
         return new BookListResponse(goal);
     }
 
     private CellGoal getCellGoal(final UserPrincipal userPrincipal) {
-        CellMember member = getCellMember(userPrincipal);
-        Cell cell = member.getCell();
+        final CellMember member = getCellMember(userPrincipal);
+        final Cell cell = member.getCell();
         return getCellGoal(cell);
     }
 
@@ -50,6 +55,12 @@ public class BookService {
     private CellGoal getCellGoal(final Cell cell) {
         return goalRepository.findByCell(cell)
                 .orElseThrow(() -> new EntityNotFoundException(CELL_GOAL_NOT_FOUND));
+    }
+
+    @Transactional(readOnly = true)
+    public ChapterListResponse getChapterList(final UserPrincipal userPrincipal, final BookName bookName) {
+        final CellGoal goal = getCellGoal(userPrincipal);
+        return new ChapterListResponse(goal, bookName);
     }
 
     @Transactional(readOnly = true)

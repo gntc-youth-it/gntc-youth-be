@@ -38,12 +38,20 @@ public class CellGoal {
         return startVerse.getBookOrder();
     }
 
+    public int getStartChapter() {
+        return startVerse.getChapter();
+    }
+
     public int getEndSequence() {
         return endVerse.getSequence();
     }
 
     public int getEndBookOrder() {
         return endVerse.getBookOrder();
+    }
+
+    public int getEndChapter() {
+        return endVerse.getChapter();
     }
 
     public int getTotalVerses() {
