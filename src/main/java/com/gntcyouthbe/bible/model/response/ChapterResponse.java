@@ -40,6 +40,7 @@ public class ChapterResponse {
     }
 
     @Getter
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class VerseItem {
         private final Long verseId;
 
