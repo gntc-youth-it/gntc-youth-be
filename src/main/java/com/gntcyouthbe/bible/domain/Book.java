@@ -18,6 +18,10 @@ public class Book {
     @Column(name = "canon_order", nullable = false)
     private Integer order;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "book_name", nullable = false, unique = true, length = 30)
+    private BookName bookName;
+
     @Column(length = 50, nullable = false)
     private String name;
 }
