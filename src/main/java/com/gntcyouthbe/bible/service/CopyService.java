@@ -41,7 +41,7 @@ public class CopyService {
     }
 
     private VerseCopy getLatestVerseCopy(final UserPrincipal userPrincipal) {
-        return copyRepository.findFirstByUserIdOrderByCreatedAtDesc(userPrincipal.getUserId())
+        return copyRepository.findLatestCopiedVerse(userPrincipal.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException(VERSE_COPY_NOT_FOUND));
     }
 
