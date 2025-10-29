@@ -27,4 +27,8 @@ public class Verse {
 
     @Column(nullable = false, unique = true)
     private Integer sequence;
+
+    public BookName getBookName() {
+        return book.getBookName();
+    }
 }

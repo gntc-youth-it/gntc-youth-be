@@ -1,5 +1,6 @@
 package com.gntcyouthbe.bible.controller;
 
+import com.gntcyouthbe.bible.model.response.RecentChapterResponse;
 import com.gntcyouthbe.bible.service.BookService;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import lombok.RequiredArgsConstructor;
