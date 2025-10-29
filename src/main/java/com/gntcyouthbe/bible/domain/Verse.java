@@ -31,4 +31,8 @@ public class Verse {
     public BookName getBookName() {
         return book.getBookName();
     }
+
+    public int getBookOrder() {
+        return book.getOrder();
+    }
 }

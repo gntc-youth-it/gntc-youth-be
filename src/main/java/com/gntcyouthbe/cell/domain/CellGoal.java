@@ -34,8 +34,16 @@ public class CellGoal {
         return startVerse.getSequence();
     }
 
+    public int getStartBookOrder() {
+        return startVerse.getBookOrder();
+    }
+
     public int getEndSequence() {
         return endVerse.getSequence();
+    }
+
+    public int getEndBookOrder() {
+        return endVerse.getBookOrder();
     }
 
     public int getTotalVerses() {
