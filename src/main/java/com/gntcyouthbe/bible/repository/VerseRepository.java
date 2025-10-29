@@ -9,5 +9,5 @@ import java.util.Optional;
 
 public interface VerseRepository extends JpaRepository<Verse, Long> {
 
-    List<Verse> findAllByBook(Book book);
+    List<Verse> findAllByBookAndChapter(Book book, int chapter);
 }
