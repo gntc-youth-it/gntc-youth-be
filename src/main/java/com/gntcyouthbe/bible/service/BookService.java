@@ -48,7 +48,7 @@ public class BookService {
     }
 
     private CellGoal getCellGoal(final Cell cell) {
-        goalRepository.findByCell(cell)
+        return goalRepository.findByCell(cell)
                 .orElseThrow(() -> new EntityNotFoundException(CELL_GOAL_NOT_FOUND));
     }
 
