@@ -94,29 +94,4 @@ public class BookService {
                 verses.getVerseIds()
         );
     }
-
-    @Transactional(readOnly = true)
-    public RecentChapterResponse getRecentChapter(final UserPrincipal userPrincipal) {
-        Verse recentVerse = getLatestCopiedVerse(userPrincipal);
-        return new RecentChapterResponse(recentVerse);
-    }
-
-    private Verse getLatestCopiedVerse(final UserPrincipal userPrincipal) {
-        try {
-            VerseCopy latestCopy = getLatestVerseCopy(userPrincipal);
-            return latestCopy.getVerse();
-        } catch (EntityNotFoundException _) {
-            return getFirstVerse();
-        }
-    }
-
-    private VerseCopy getLatestVerseCopy(final UserPrincipal userPrincipal) {
-        return copyRepository.findFirstByUserIdOrderByCreatedAtDesc(userPrincipal.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException(VERSE_COPY_NOT_FOUND));
-    }
-
-    private Verse getFirstVerse() {
-        return verseRepository.findById(1L)
-                .orElseThrow(() -> new EntityNotFoundException(VERSE_NOT_FOUND));
-    }
 }

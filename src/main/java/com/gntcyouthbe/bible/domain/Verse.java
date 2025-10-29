@@ -1,5 +1,7 @@
 package com.gntcyouthbe.bible.domain;
 
+import com.gntcyouthbe.common.security.domain.UserPrincipal;
+import com.gntcyouthbe.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -34,5 +36,9 @@ public class Verse {
 
     public int getBookOrder() {
         return book.getOrder();
+    }
+
+    public VerseCopy copy(User user) {
+        return new VerseCopy(this, user);
     }
 }

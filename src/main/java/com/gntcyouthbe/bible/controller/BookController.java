@@ -52,12 +52,4 @@ public class BookController {
     ) {
         return ResponseEntity.ok(bookService.getChapterVerses(userPrincipal, bookName, chapter));
     }
-
-    @GetMapping("/copy/recent")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<RecentChapterResponse> getRecentChapter(
-            @AuthenticationPrincipal UserPrincipal userPrincipal
-    ) {
-        return ResponseEntity.ok(bookService.getRecentChapter(userPrincipal));
-    }
 }
