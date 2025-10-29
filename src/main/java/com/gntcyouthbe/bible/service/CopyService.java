@@ -54,7 +54,7 @@ public class CopyService {
         final User user = getUser(userPrincipal);
         final Verse verse = getVerse(verseId);
         final VerseCopy copy = verse.copy(user);
-        copyRepository.save(verseCopy);
+        copyRepository.save(copy);
     }
 
     private User getUser(final UserPrincipal userPrincipal) {
