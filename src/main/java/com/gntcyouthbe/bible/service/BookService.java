@@ -75,8 +75,8 @@ public class BookService {
         final Book book = getBook(bookName);
         final ChapterVerse verses = getVerses(book, chapter);
         final CellGoal goal = getCellGoal(userPrincipal);
-        final List<Long> copiedIds = getCopiedVerseIds(userPrincipal, verses);
-        return new ChapterResponse(verses, goal, copiedIds);
+        final List<VerseCopy> copies = getCopiedVerses(userPrincipal, verses);
+        return new ChapterResponse(verses, goal, copies);
     }
 
     private Book getBook(final BookName bookName) {
@@ -88,8 +88,8 @@ public class BookService {
         return new ChapterVerse(verseRepository.findAllByBookAndChapter(book, chapter));
     }
 
-    private List<Long> getCopiedVerseIds(final UserPrincipal userPrincipal, final ChapterVerse verses) {
-        return copyRepository.findIdsByUserIdAndVerseIdIn(
+    private List<VerseCopy> getCopiedVerses(final UserPrincipal userPrincipal, final ChapterVerse verses) {
+        return copyRepository.findAllByUserIdAndVerseIdIn(
                 userPrincipal.getUserId(),
                 verses.getVerseIds()
         );

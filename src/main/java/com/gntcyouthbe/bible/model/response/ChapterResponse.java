@@ -5,8 +5,10 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.gntcyouthbe.bible.domain.ChapterVerse;
 import com.gntcyouthbe.bible.domain.Verse;
+import com.gntcyouthbe.bible.domain.VerseCopy;
 import com.gntcyouthbe.cell.domain.CellGoal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import lombok.Getter;
 
@@ -15,18 +17,26 @@ import lombok.Getter;
 public class ChapterResponse {
     private final List<VerseItem> verses;
 
-    public ChapterResponse(final ChapterVerse verses, final CellGoal goal, final List<Long> copiedIds) {
+    public ChapterResponse(final ChapterVerse verses, final CellGoal goal, final List<VerseCopy> copies) {
         final int startSequence = goal.getStartSequence();
-        final int endSequence = goal.getEndSequence();;
-        final var copiedSet = new java.util.HashSet<>(copiedIds);
+        final int endSequence = goal.getEndSequence();
+        final var copiedSet = new HashSet<>(getVerses(copies));
 
         final List<VerseItem> tmp = new ArrayList<>(verses.size());
         for (Verse v : verses.getVerses()) {
             final boolean isMission = v.getSequence() >= startSequence && v.getSequence() <= endSequence;
-            final boolean isCopied  = copiedSet.contains(v.getId());
+            final boolean isCopied  = copiedSet.contains(v);
             tmp.add(new VerseItem(v.getId(), v.getNumber(), v.getContent(), isMission, isCopied));
         }
         this.verses = tmp;
+    }
+
+    private List<Verse> getVerses(List<VerseCopy> copies) {
+        List<Verse> verses = new ArrayList<>();
+        for (VerseCopy copy : copies) {
+            verses.add(copy.getVerse());
+        }
+        return verses;
     }
 
     @Getter

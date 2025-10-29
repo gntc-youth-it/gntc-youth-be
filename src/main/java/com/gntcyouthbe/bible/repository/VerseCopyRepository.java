@@ -11,7 +11,7 @@ import java.util.Collection;
 public interface VerseCopyRepository extends JpaRepository<VerseCopy, Long> {
     Optional<VerseCopy> findFirstByUserIdOrderByCreatedAtDesc(Long userId);
 
-    List<Long> findIdsByUserIdAndVerseIdIn(Long userId, List<Long> verseIds);
+    List<VerseCopy> findAllByUserIdAndVerseIdIn(Long userId, List<Long> verseIds);
 
     long countByUserInAndVerse_SequenceBetween(Collection<User> users, int startSeq, int endSeq);
 }

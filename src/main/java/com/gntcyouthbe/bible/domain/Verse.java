@@ -1,8 +1,8 @@
 package com.gntcyouthbe.bible.domain;
 
-import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.user.domain.User;
 import jakarta.persistence.*;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -43,5 +43,20 @@ public class Verse {
 
     public VerseCopy copy(User user) {
         return new VerseCopy(this, user);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Verse verse = (Verse) o;
+        return Objects.equals(id, verse.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 }
