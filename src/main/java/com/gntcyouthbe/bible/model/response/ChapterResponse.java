@@ -24,7 +24,7 @@ public class ChapterResponse {
         for (Verse v : verses.getVerses()) {
             final boolean isMission = v.getSequence() >= startSequence && v.getSequence() <= endSequence;
             final boolean isCopied  = copiedSet.contains(v.getId());
-            tmp.add(new VerseItem(v.getId(), v.getNumber(), isMission, isCopied));
+            tmp.add(new VerseItem(v.getId(), v.getNumber(), v.getContent(), isMission, isCopied));
         }
         this.verses = tmp;
     }
@@ -35,15 +35,18 @@ public class ChapterResponse {
 
         private final int verseNumber;
 
+        private final String content;
+
         @JsonProperty("is_mission")
         private final boolean mission;
 
         @JsonProperty("is_copied")
         private final boolean copied;
 
-        public VerseItem(Long verseId, int verseNumber, boolean mission, boolean copied) {
+        public VerseItem(Long verseId, int verseNumber, String content, boolean mission, boolean copied) {
             this.verseId = verseId;
             this.verseNumber = verseNumber;
+            this.content = content;
             this.mission = mission;
             this.copied = copied;
         }

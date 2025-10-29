@@ -27,6 +27,9 @@ public class Verse {
     @Column(name = "verse", nullable = false)
     private Integer number;
 
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
+    private String content;
+
     @Column(nullable = false, unique = true)
     private Integer sequence;
 
