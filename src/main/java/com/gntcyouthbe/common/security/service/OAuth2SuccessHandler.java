@@ -22,7 +22,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final JwtService jwtService;
     private final FrontendProperties frontendProperties;
 
-    private static final String REFRESH_COOKIE = "refresh_token";
+    private static final String REFRESH_COOKIE = "refreshToken";
     private static final int REFRESH_COOKIE_MAX_AGE = 60 * 60 * 24 * 14;
 
     @Override
