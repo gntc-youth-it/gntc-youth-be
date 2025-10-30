@@ -1,12 +1,13 @@
 package com.gntcyouthbe.bible.model.response;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.gntcyouthbe.bible.domain.BookName;
 import com.gntcyouthbe.bible.domain.Verse;
 import lombok.Getter;
 
 @Getter
-@JsonNaming
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class RecentChapterResponse {
 
     private final BookName book;

@@ -1,9 +1,15 @@
 package com.gntcyouthbe.bible.service;
 
+import com.gntcyouthbe.bible.domain.Book;
+import com.gntcyouthbe.bible.domain.BookName;
+import com.gntcyouthbe.bible.domain.ChapterVerse;
 import com.gntcyouthbe.bible.domain.Verse;
 import com.gntcyouthbe.bible.domain.VerseCopy;
 import com.gntcyouthbe.bible.model.response.BookListResponse;
+import com.gntcyouthbe.bible.model.response.ChapterListResponse;
+import com.gntcyouthbe.bible.model.response.ChapterResponse;
 import com.gntcyouthbe.bible.model.response.RecentChapterResponse;
+import com.gntcyouthbe.bible.repository.BookRepository;
 import com.gntcyouthbe.bible.repository.VerseCopyRepository;
 import com.gntcyouthbe.bible.repository.VerseRepository;
 import com.gntcyouthbe.cell.domain.Cell;
@@ -14,6 +20,7 @@ import com.gntcyouthbe.cell.repository.CellMemberRepository;
 import com.gntcyouthbe.common.exception.EntityNotFoundException;
 import com.gntcyouthbe.common.exception.model.ExceptionCode;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,18 +34,19 @@ public class BookService {
 
     private final CellMemberRepository memberRepository;
     private final CellGoalRepository goalRepository;
+    private final BookRepository bookRepository;
     private final VerseRepository verseRepository;
     private final VerseCopyRepository copyRepository;
 
     @Transactional(readOnly = true)
     public BookListResponse getBookList(final UserPrincipal userPrincipal) {
-        CellGoal goal = getCellGoal(userPrincipal);
+        final CellGoal goal = getCellGoal(userPrincipal);
         return new BookListResponse(goal);
     }
 
     private CellGoal getCellGoal(final UserPrincipal userPrincipal) {
-        CellMember member = getCellMember(userPrincipal);
-        Cell cell = member.getCell();
+        final CellMember member = getCellMember(userPrincipal);
+        final Cell cell = member.getCell();
         return getCellGoal(cell);
     }
 
@@ -53,27 +61,37 @@ public class BookService {
     }
 
     @Transactional(readOnly = true)
-    public RecentChapterResponse getRecentChapter(final UserPrincipal userPrincipal) {
-        Verse recentVerse = getLatestCopiedVerse(userPrincipal);
-        return new RecentChapterResponse(recentVerse);
+    public ChapterListResponse getChapterList(final UserPrincipal userPrincipal, final BookName bookName) {
+        final CellGoal goal = getCellGoal(userPrincipal);
+        return new ChapterListResponse(goal, bookName);
     }
 
-    private Verse getLatestCopiedVerse(final UserPrincipal userPrincipal) {
-        try {
-            VerseCopy latestCopy = getLatestVerseCopy(userPrincipal);
-            return latestCopy.getVerse();
-        } catch (EntityNotFoundException _) {
-            return getFirstVerse();
-        }
+    @Transactional(readOnly = true)
+    public ChapterResponse getChapterVerses(
+            final UserPrincipal userPrincipal,
+            final BookName bookName,
+            final int chapter
+    ) {
+        final Book book = getBook(bookName);
+        final ChapterVerse verses = getVerses(book, chapter);
+        final CellGoal goal = getCellGoal(userPrincipal);
+        final List<VerseCopy> copies = getCopiedVerses(userPrincipal, verses);
+        return new ChapterResponse(verses, goal, copies);
     }
 
-    private VerseCopy getLatestVerseCopy(final UserPrincipal userPrincipal) {
-        return copyRepository.findFirstByUserIdOrderByCreatedAtDesc(userPrincipal.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException(VERSE_COPY_NOT_FOUND));
+    private Book getBook(final BookName bookName) {
+        return bookRepository.findByBookName(bookName)
+                .orElseThrow(() -> new EntityNotFoundException(BOOK_NOT_FOUND));
     }
 
-    private Verse getFirstVerse() {
-        return verseRepository.findById(1L)
-                .orElseThrow(() -> new EntityNotFoundException(VERSE_NOT_FOUND));
+    private ChapterVerse getVerses(final Book book, final int chapter) {
+        return new ChapterVerse(verseRepository.findAllByBookAndChapter(book, chapter));
+    }
+
+    private List<VerseCopy> getCopiedVerses(final UserPrincipal userPrincipal, final ChapterVerse verses) {
+        return copyRepository.findAllByUserIdAndVerseIdIn(
+                userPrincipal.getUserId(),
+                verses.getVerseIds()
+        );
     }
 }

@@ -1,6 +1,8 @@
 package com.gntcyouthbe.bible.domain;
 
+import com.gntcyouthbe.user.domain.User;
 import jakarta.persistence.*;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,6 +27,9 @@ public class Verse {
     @Column(name = "verse", nullable = false)
     private Integer number;
 
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
+    private String content;
+
     @Column(nullable = false, unique = true)
     private Integer sequence;
 
@@ -34,5 +39,24 @@ public class Verse {
 
     public int getBookOrder() {
         return book.getOrder();
+    }
+
+    public VerseCopy copy(User user) {
+        return new VerseCopy(this, user);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Verse verse = (Verse) o;
+        return Objects.equals(id, verse.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 }

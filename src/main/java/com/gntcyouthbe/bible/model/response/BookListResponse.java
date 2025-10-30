@@ -32,6 +32,7 @@ public class BookListResponse {
 
     @Getter
     @RequiredArgsConstructor
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class BookListItem {
 
         private final String bookCode;
