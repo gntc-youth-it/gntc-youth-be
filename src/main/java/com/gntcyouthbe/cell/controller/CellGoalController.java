@@ -1,5 +1,6 @@
 package com.gntcyouthbe.cell.controller;
 
+import com.gntcyouthbe.cell.model.response.CellGoalStatListResponse;
 import com.gntcyouthbe.cell.model.response.CellGoalStatsResponse;
 import com.gntcyouthbe.cell.service.CellGoalService;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
@@ -24,5 +25,13 @@ public class CellGoalController {
             @AuthenticationPrincipal final UserPrincipal userPrincipal
     ) {
         return ResponseEntity.ok(goalService.getGoalStats(userPrincipal));
+    }
+
+    @GetMapping
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<CellGoalStatListResponse> getCellGoalList(
+            @AuthenticationPrincipal final UserPrincipal userPrincipal
+    ) {
+        return ResponseEntity.ok(goalService.getGoalStatList(userPrincipal));
     }
 }

@@ -6,15 +6,18 @@ import com.gntcyouthbe.cell.domain.CellGoal;
 import com.gntcyouthbe.cell.domain.CellGoalStats;
 import com.gntcyouthbe.cell.domain.CellMember;
 import com.gntcyouthbe.cell.domain.CellMembers;
+import com.gntcyouthbe.cell.model.response.CellGoalStatListResponse;
 import com.gntcyouthbe.cell.model.response.CellGoalStatsResponse;
 import com.gntcyouthbe.cell.repository.CellGoalRepository;
 import com.gntcyouthbe.cell.repository.CellMemberRepository;
+import com.gntcyouthbe.cell.repository.CellRepository;
 import com.gntcyouthbe.common.exception.EntityNotFoundException;
 import com.gntcyouthbe.common.exception.model.ExceptionCode;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +28,7 @@ import static com.gntcyouthbe.common.exception.model.ExceptionCode.CELL_MEMBER_N
 public class CellGoalService {
 
     private final CellGoalRepository goalRepository;
+    private final CellRepository cellRepository;
     private final CellMemberRepository memberRepository;
     private final VerseCopyRepository copyRepository;
 
@@ -59,5 +63,26 @@ public class CellGoalService {
 
     private long countTotalCopies(final CellGoal goal, final CellMembers members) {
         return copyRepository.countByUserInAndVerse_SequenceBetween(members.getUsers(), goal.getStartSequence(), goal.getEndSequence());
+    }
+
+    @Transactional(readOnly = true)
+    public CellGoalStatListResponse getGoalStatList(final UserPrincipal userPrincipal) {
+        final Cell userCell = getCellByUserPrincipal(userPrincipal);
+        final List<CellGoalStatsResponse> stats = getCellGoalStats();
+        return new CellGoalStatListResponse(userCell, stats);
+    }
+
+    private List<CellGoalStatsResponse> getCellGoalStats() {
+        return cellRepository.findAll()
+                .stream()
+                .map(cell -> {
+                    final CellGoal goal = getCellGoal(cell);
+                    final CellMembers members = getCellMembers(cell);
+                    final long totalCopiesCount = countTotalCopies(goal, members);
+                    final var stats = new CellGoalStats(goal, members , totalCopiesCount);
+                    return new CellGoalStatsResponse(cell, goal, stats);
+                })
+                .sorted(Comparator.comparing(CellGoalStatsResponse::getProgress).reversed())
+                .toList();
     }
 }
