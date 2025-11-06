@@ -1,21 +1,25 @@
 package com.gntcyouthbe.bible.service;
 
-import static com.gntcyouthbe.common.exception.model.ExceptionCode.USER_NOT_FOUND;
-import static com.gntcyouthbe.common.exception.model.ExceptionCode.VERSE_COPY_NOT_FOUND;
-import static com.gntcyouthbe.common.exception.model.ExceptionCode.VERSE_NOT_FOUND;
-
 import com.gntcyouthbe.bible.domain.Verse;
 import com.gntcyouthbe.bible.domain.VerseCopy;
 import com.gntcyouthbe.bible.model.response.RecentChapterResponse;
 import com.gntcyouthbe.bible.repository.VerseCopyRepository;
 import com.gntcyouthbe.bible.repository.VerseRepository;
+import com.gntcyouthbe.cell.domain.Cell;
+import com.gntcyouthbe.cell.domain.CellGoal;
+import com.gntcyouthbe.cell.domain.CellMember;
+import com.gntcyouthbe.cell.repository.CellGoalRepository;
+import com.gntcyouthbe.cell.repository.CellMemberRepository;
 import com.gntcyouthbe.common.exception.EntityNotFoundException;
+import com.gntcyouthbe.common.exception.model.ExceptionCode;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.user.domain.User;
 import com.gntcyouthbe.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.gntcyouthbe.common.exception.model.ExceptionCode.*;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +28,8 @@ public class CopyService {
     private final VerseRepository verseRepository;
     private final VerseCopyRepository copyRepository;
     private final UserRepository userRepository;
+    private final CellMemberRepository memberRepository;
+    private final CellGoalRepository goalRepository;
 
     @Transactional(readOnly = true)
     public RecentChapterResponse getRecentChapter(final UserPrincipal userPrincipal) {
@@ -36,7 +42,7 @@ public class CopyService {
             VerseCopy latestCopy = getLatestVerseCopy(userPrincipal);
             return latestCopy.getVerse();
         } catch (EntityNotFoundException _) {
-            return getFirstVerse();
+            return getCellGoalStartVerse(userPrincipal);
         }
     }
 
@@ -45,9 +51,25 @@ public class CopyService {
                 .orElseThrow(() -> new EntityNotFoundException(VERSE_COPY_NOT_FOUND));
     }
 
-    private Verse getFirstVerse() {
-        return verseRepository.findById(1L)
-                .orElseThrow(() -> new EntityNotFoundException(VERSE_NOT_FOUND));
+    private Verse getCellGoalStartVerse(final UserPrincipal userPrincipal) {
+        final Cell cell = getCellByUserPrincipal(userPrincipal);
+        final CellGoal goal = getCellGoal(cell);
+        return goal.getStartVerse();
+    }
+
+    private Cell getCellByUserPrincipal(final UserPrincipal userPrincipal) {
+        final CellMember member = getCellMember(userPrincipal);
+        return member.getCell();
+    }
+
+    private CellMember getCellMember(final UserPrincipal userPrincipal) {
+        return memberRepository.findByUserId(userPrincipal.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.CELL_MEMBER_NOT_FOUND));
+    }
+
+    private CellGoal getCellGoal(final Cell cell) {
+        return goalRepository.findByCell(cell)
+                .orElseThrow(() -> new EntityNotFoundException(CELL_MEMBER_NOT_FOUND));
     }
 
     public void copyVerse(final UserPrincipal userPrincipal, final Long verseId) {
