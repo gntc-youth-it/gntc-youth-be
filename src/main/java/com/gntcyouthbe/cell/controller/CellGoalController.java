@@ -27,7 +27,7 @@ public class CellGoalController {
         return ResponseEntity.ok(goalService.getGoalStats(userPrincipal));
     }
 
-    @GetMapping
+    @GetMapping("/list")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CellGoalStatListResponse> getCellGoalList(
             @AuthenticationPrincipal final UserPrincipal userPrincipal
