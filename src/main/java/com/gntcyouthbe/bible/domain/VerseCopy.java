@@ -29,4 +29,12 @@ public class VerseCopy extends BaseEntity {
         this.verse = verse;
         this.user = user;
     }
+
+    public String getUserName() {
+        return user.getName();
+    }
+
+    public String getVerseName() {
+        return verse.getFullName();
+    }
 }

@@ -41,6 +41,10 @@ public class Verse {
         return book.getOrder();
     }
 
+    public String getFullName() {
+        return book.getName() + " " + chapter + ":" + number;
+    }
+
     public VerseCopy copy(User user) {
         return new VerseCopy(this, user);
     }

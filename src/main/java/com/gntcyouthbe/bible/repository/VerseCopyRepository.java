@@ -4,6 +4,8 @@ import com.gntcyouthbe.bible.domain.VerseCopy;
 import com.gntcyouthbe.user.domain.User;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Collection;
@@ -16,6 +18,26 @@ public interface VerseCopyRepository extends JpaRepository<VerseCopy, Long> {
     Optional<VerseCopy> findLatestCopiedVerse(@Param("userId") Long userId);
 
     List<VerseCopy> findAllByUserIdAndVerseIdIn(Long userId, List<Long> verseIds);
+
+    @EntityGraph(attributePaths = {"user", "verse"})
+    @Query("""
+        select vc
+        from VerseCopy vc
+        where vc.createdAt = (
+            select max(v2.createdAt)
+            from VerseCopy v2
+            where v2.user = vc.user
+        )
+        and vc.id = (
+            select max(v3.id)
+            from VerseCopy v3
+            where v3.user = vc.user
+              and v3.createdAt = vc.createdAt
+        )
+        order by vc.createdAt desc, vc.id desc
+        """)
+    List<VerseCopy> findLatestPerUserOrderByCreatedAtDescLimited();
+
 
     long countByUserInAndVerse_SequenceBetween(Collection<User> users, int startSeq, int endSeq);
 }
