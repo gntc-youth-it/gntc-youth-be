@@ -2,6 +2,8 @@ package com.gntcyouthbe.bible.repository;
 
 import com.gntcyouthbe.bible.domain.VerseCopy;
 import com.gntcyouthbe.user.domain.User;
+
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,6 +40,28 @@ public interface VerseCopyRepository extends JpaRepository<VerseCopy, Long> {
         """)
     List<VerseCopy> findLatestPerUserOrderByCreatedAtDescLimited();
 
-
     long countByUserInAndVerse_SequenceBetween(Collection<User> users, int startSeq, int endSeq);
+
+    interface TopRow {
+        Long getUserId();
+        String getUserName();
+        long getCopyCount();
+    }
+
+    @Query(value = """
+        SELECT u.id AS userId,
+               u.name AS userName,
+               COUNT(*) AS copyCount
+        FROM verse_copy vc
+        JOIN "user" u ON u.id = vc.user_id
+        WHERE vc.created_at >= :startUtc
+          AND vc.created_at <  :endUtc
+        GROUP BY u.id, u.name
+        ORDER BY copyCount DESC, MAX(vc.created_at) DESC
+        LIMIT 5
+        """, nativeQuery = true)
+    List<TopRow> findTop5UsersByCopiesBetween(
+            @Param("startUtc") Instant startUtc,
+            @Param("endUtc") Instant endUtc
+    );
 }
