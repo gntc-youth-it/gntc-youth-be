@@ -64,4 +64,40 @@ public interface VerseCopyRepository extends JpaRepository<VerseCopy, Long> {
             @Param("startUtc") Instant startUtc,
             @Param("endUtc") Instant endUtc
     );
+
+    interface UserPeriodRankRow {
+        Long getCount();
+        Integer getRank();
+        Long getTotalContributors();
+    }
+
+    @Query(value = """
+        WITH agg AS (
+          SELECT vc.user_id, COUNT(*) AS cnt, MAX(vc.created_at) AS last_at
+          FROM verse_copy vc
+          WHERE vc.created_at >= :startUtc AND vc.created_at < :endUtc
+          GROUP BY vc.user_id
+        ),
+        ranked AS (
+          SELECT user_id, cnt, last_at,
+                 RANK() OVER (ORDER BY cnt DESC, last_at DESC, user_id ASC) AS rnk
+          FROM agg
+        )
+        SELECT r.cnt   AS count,
+               r.rnk   AS rank,
+               (SELECT COUNT(*) FROM agg) AS totalContributors
+        FROM ranked r
+        WHERE r.user_id = :userId
+        """, nativeQuery = true)
+    Optional<UserPeriodRankRow> findUserRankBetween(@Param("userId") Long userId,
+                                                    @Param("startUtc") Instant startUtc,
+                                                    @Param("endUtc") Instant endUtc);
+
+    @Query(value = """
+        SELECT COUNT(DISTINCT vc.user_id)
+        FROM verse_copy vc
+        WHERE vc.created_at >= :startUtc AND vc.created_at < :endUtc
+        """, nativeQuery = true)
+    long countDistinctUsersBetween(@Param("startUtc") Instant startUtc,
+                                   @Param("endUtc") Instant endUtc);
 }
