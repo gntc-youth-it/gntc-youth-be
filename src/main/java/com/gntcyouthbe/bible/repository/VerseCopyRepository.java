@@ -53,7 +53,7 @@ public interface VerseCopyRepository extends JpaRepository<VerseCopy, Long> {
                u.name AS userName,
                COUNT(*) AS copyCount
         FROM verse_copy vc
-        JOIN "user" u ON u.id = vc.user_id
+        JOIN app_user u ON u.id = vc.user_id
         WHERE vc.created_at >= :startUtc
           AND vc.created_at <  :endUtc
         GROUP BY u.id, u.name
