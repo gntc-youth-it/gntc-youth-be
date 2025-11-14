@@ -3,6 +3,7 @@ package com.gntcyouthbe.user.domain;
 import com.gntcyouthbe.church.domain.Church;
 import com.gntcyouthbe.church.domain.ChurchId;
 import com.gntcyouthbe.common.orm.domain.BaseEntity;
+import com.gntcyouthbe.user.model.request.UserNameUpdateRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
@@ -75,5 +76,9 @@ public class User extends BaseEntity {
 
     public ChurchId getChurchId() {
         return church != null ? church.getId() : null;
+    }
+
+    public void updateName(UserNameUpdateRequest request) {
+        this.name = request.getNewName();
     }
 }
