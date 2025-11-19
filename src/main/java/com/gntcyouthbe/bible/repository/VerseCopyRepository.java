@@ -21,8 +21,7 @@ public interface VerseCopyRepository extends JpaRepository<VerseCopy, Long> {
 
     List<VerseCopy> findAllByUserIdAndVerseIdIn(Long userId, List<Long> verseIds);
 
-    @EntityGraph(attributePaths = {"user", "verse"})
-    @Query("""
+    @Query(value = """
         select vc
         from VerseCopy vc
         where vc.createdAt = (
@@ -37,7 +36,8 @@ public interface VerseCopyRepository extends JpaRepository<VerseCopy, Long> {
               and v3.createdAt = vc.createdAt
         )
         order by vc.createdAt desc, vc.id desc
-        """)
+        limit 10
+        """, nativeQuery = true)
     List<VerseCopy> findLatestPerUserOrderByCreatedAtDescLimited();
 
     long countByUserInAndVerse_SequenceBetween(Collection<User> users, int startSeq, int endSeq);
