@@ -100,4 +100,20 @@ public interface VerseCopyRepository extends JpaRepository<VerseCopy, Long> {
         """, nativeQuery = true)
     long countDistinctUsersBetween(@Param("startUtc") Instant startUtc,
                                    @Param("endUtc") Instant endUtc);
+
+    @Query(value = """
+        select v.chapter
+        from verses v
+        left join verse_copy vc
+            on vc.verse_id = v.id
+           and vc.user_id = :userId
+        where v.book_id = :bookId
+        group by v.chapter
+        having count(distinct v.id) = count(distinct vc.verse_id)
+        order by v.chapter
+        """, nativeQuery = true)
+    List<Integer> findCompletedChaptersByUserAndBook(
+            @Param("userId") Long userId,
+            @Param("bookId") Long bookId
+    );
 }

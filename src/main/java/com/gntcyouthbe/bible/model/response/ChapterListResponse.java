@@ -17,8 +17,15 @@ public class ChapterListResponse {
 
     private final List<Integer> missionChapters;
 
-    public ChapterListResponse(final CellGoal goal, final BookName targetBook) {
+    private final List<Integer> completedChapters;
+
+    public ChapterListResponse(
+            final CellGoal goal,
+            final BookName targetBook,
+            final List<Integer> completedChapters
+    ) {
         this.chapters = targetBook.getChapters();
+        this.completedChapters = completedChapters;
 
         int startOrder   = goal.getStartBookOrder();
         int startChapter = goal.getStartChapter();

@@ -63,7 +63,13 @@ public class BookService {
     @Transactional(readOnly = true)
     public ChapterListResponse getChapterList(final UserPrincipal userPrincipal, final BookName bookName) {
         final CellGoal goal = getCellGoal(userPrincipal);
-        return new ChapterListResponse(goal, bookName);
+        final Book book = getBook(bookName);
+        final List<Integer> completedChapters = findCompletedChapters(userPrincipal, book);
+        return new ChapterListResponse(goal, bookName, completedChapters);
+    }
+
+    private List<Integer> findCompletedChapters(final UserPrincipal userPrincipal, final Book book) {
+        return copyRepository.findCompletedChaptersByUserAndBook(userPrincipal.getUserId(), book.getId());
     }
 
     @Transactional(readOnly = true)
