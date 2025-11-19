@@ -22,22 +22,25 @@ public interface VerseCopyRepository extends JpaRepository<VerseCopy, Long> {
     List<VerseCopy> findAllByUserIdAndVerseIdIn(Long userId, List<Long> verseIds);
 
     @Query(value = """
-        select vc
-        from VerseCopy vc
-        where vc.createdAt = (
-            select max(v2.createdAt)
-            from VerseCopy v2
-            where v2.user = vc.user
-        )
-        and vc.id = (
-            select max(v3.id)
-            from VerseCopy v3
-            where v3.user = vc.user
-              and v3.createdAt = vc.createdAt
-        )
-        order by vc.createdAt desc, vc.id desc
-        limit 10
-        """, nativeQuery = true)
+    select vc.*
+    from verse_copy vc
+    join user u on u.id = vc.user_id
+    join verse v on v.id = vc.verse_id
+    where vc.created_at = (
+        select max(v2.created_at)
+        from verse_copy v2
+        where v2.user_id = vc.user_id
+    )
+      and vc.id = (
+        select max(v3.id)
+        from verse_copy v3
+        where v3.user_id = vc.user_id
+          and v3.created_at = vc.created_at
+    )
+    order by vc.created_at desc, vc.id desc
+    limit 10
+    """,
+            nativeQuery = true)
     List<VerseCopy> findLatestPerUserOrderByCreatedAtDescLimited();
 
     long countByUserInAndVerse_SequenceBetween(Collection<User> users, int startSeq, int endSeq);
