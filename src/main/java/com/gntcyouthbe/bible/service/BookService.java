@@ -22,6 +22,8 @@ import com.gntcyouthbe.common.exception.model.ExceptionCode;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +43,8 @@ public class BookService {
     @Transactional(readOnly = true)
     public BookListResponse getBookList(final UserPrincipal userPrincipal) {
         final CellGoal goal = getCellGoal(userPrincipal);
-        return new BookListResponse(goal);
+        final Set<BookName> completedBooks = getCompletedBooks(userPrincipal);
+        return new BookListResponse(goal, completedBooks);
     }
 
     private CellGoal getCellGoal(final UserPrincipal userPrincipal) {
@@ -58,6 +61,11 @@ public class BookService {
     private CellGoal getCellGoal(final Cell cell) {
         return goalRepository.findByCell(cell)
                 .orElseThrow(() -> new EntityNotFoundException(CELL_GOAL_NOT_FOUND));
+    }
+
+    private Set<BookName> getCompletedBooks(final UserPrincipal userPrincipal) {
+        final List<BookName> completedBooks = copyRepository.findCompletedBooksByUserId(userPrincipal.getUserId());
+        return Set.copyOf(completedBooks);
     }
 
     @Transactional(readOnly = true)

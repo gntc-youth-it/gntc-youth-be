@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Getter
@@ -18,14 +19,15 @@ public class BookListResponse {
 
     private final List<BookListItem> books;
 
-    public BookListResponse(final CellGoal goal) {
+    public BookListResponse(final CellGoal goal, final Set<BookName> completedBooks) {
         this.books = Stream.of(BookName.values())
                 .sorted(Comparator.comparingInt(BookName::getOrder))
                 .map(book -> new BookListItem(
                         book.name(),
                         book.getDisplayName(),
                         book.getOrder(),
-                        book.getOrder() >= goal.getStartBookOrder() && book.getOrder() <= goal.getEndBookOrder()
+                        book.getOrder() >= goal.getStartBookOrder() && book.getOrder() <= goal.getEndBookOrder(),
+                        completedBooks.contains(book)
                 ))
                 .toList();
     }
@@ -43,5 +45,8 @@ public class BookListResponse {
 
         @JsonProperty("is_mission")
         private final boolean mission;
+
+        @JsonProperty("is_completed")
+        private final boolean completed;
     }
 }

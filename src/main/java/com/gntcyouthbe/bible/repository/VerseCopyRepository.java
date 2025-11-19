@@ -1,5 +1,6 @@
 package com.gntcyouthbe.bible.repository;
 
+import com.gntcyouthbe.bible.domain.BookName;
 import com.gntcyouthbe.bible.domain.VerseCopy;
 import com.gntcyouthbe.user.domain.User;
 
@@ -100,6 +101,17 @@ public interface VerseCopyRepository extends JpaRepository<VerseCopy, Long> {
         """, nativeQuery = true)
     long countDistinctUsersBetween(@Param("startUtc") Instant startUtc,
                                    @Param("endUtc") Instant endUtc);
+
+    @Query("""
+        select v.book.bookName
+        from Verse v
+        left join VerseCopy vc
+            on vc.verse = v
+           and vc.user.id = :userId
+        group by v.book.bookName
+        having count(distinct v.id) = count(distinct vc.verse.id)
+        """)
+    List<BookName> findCompletedBooksByUserId(@Param("userId") Long userId);
 
     @Query(value = """
         select v.chapter
