@@ -24,8 +24,6 @@ public interface VerseCopyRepository extends JpaRepository<VerseCopy, Long> {
     @Query(value = """
     select vc.*
     from verse_copy vc
-    join app_user u on u.id = vc.user_id
-    join verse v on v.id = vc.verse_id
     where vc.created_at = (
         select max(v2.created_at)
         from verse_copy v2
@@ -39,8 +37,7 @@ public interface VerseCopyRepository extends JpaRepository<VerseCopy, Long> {
     )
     order by vc.created_at desc, vc.id desc
     limit 10
-    """,
-            nativeQuery = true)
+    """, nativeQuery = true)
     List<VerseCopy> findLatestPerUserOrderByCreatedAtDescLimited();
 
     long countByUserInAndVerse_SequenceBetween(Collection<User> users, int startSeq, int endSeq);
