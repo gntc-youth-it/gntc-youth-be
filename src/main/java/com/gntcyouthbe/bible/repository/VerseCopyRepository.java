@@ -24,7 +24,7 @@ public interface VerseCopyRepository extends JpaRepository<VerseCopy, Long> {
     @Query(value = """
     select vc.*
     from verse_copy vc
-    join user u on u.id = vc.user_id
+    join app_user u on u.id = vc.user_id
     join verse v on v.id = vc.verse_id
     where vc.created_at = (
         select max(v2.created_at)
