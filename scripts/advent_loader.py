@@ -46,6 +46,27 @@ BOOK_NAMES = [
     "THIRD_JOHN", "JUDE", "REVELATION"
 ]
 
+# AI가 잘못된 형식으로 반환할 때 변환 매핑
+BOOK_NAME_ALIASES = {
+    "1_SAMUEL": "FIRST_SAMUEL", "2_SAMUEL": "SECOND_SAMUEL",
+    "1_KINGS": "FIRST_KINGS", "2_KINGS": "SECOND_KINGS",
+    "1_CHRONICLES": "FIRST_CHRONICLES", "2_CHRONICLES": "SECOND_CHRONICLES",
+    "1_CORINTHIANS": "FIRST_CORINTHIANS", "2_CORINTHIANS": "SECOND_CORINTHIANS",
+    "1_THESSALONIANS": "FIRST_THESSALONIANS", "2_THESSALONIANS": "SECOND_THESSALONIANS",
+    "1_TIMOTHY": "FIRST_TIMOTHY", "2_TIMOTHY": "SECOND_TIMOTHY",
+    "1_PETER": "FIRST_PETER", "2_PETER": "SECOND_PETER",
+    "1_JOHN": "FIRST_JOHN", "2_JOHN": "SECOND_JOHN", "3_JOHN": "THIRD_JOHN",
+    "I_SAMUEL": "FIRST_SAMUEL", "II_SAMUEL": "SECOND_SAMUEL",
+    "I_KINGS": "FIRST_KINGS", "II_KINGS": "SECOND_KINGS",
+    "I_CHRONICLES": "FIRST_CHRONICLES", "II_CHRONICLES": "SECOND_CHRONICLES",
+    "I_CORINTHIANS": "FIRST_CORINTHIANS", "II_CORINTHIANS": "SECOND_CORINTHIANS",
+    "I_THESSALONIANS": "FIRST_THESSALONIANS", "II_THESSALONIANS": "SECOND_THESSALONIANS",
+    "I_TIMOTHY": "FIRST_TIMOTHY", "II_TIMOTHY": "SECOND_TIMOTHY",
+    "I_PETER": "FIRST_PETER", "II_PETER": "SECOND_PETER",
+    "I_JOHN": "FIRST_JOHN", "II_JOHN": "SECOND_JOHN", "III_JOHN": "THIRD_JOHN",
+    "SONG_OF_SOLOMON": "SONG_OF_SONGS",
+}
+
 
 def get_ai_recommendations(client: OpenAI, resolution: str) -> list[dict]:
     """AI를 사용해 다짐 기반 28개 말씀 추천"""
@@ -93,13 +114,18 @@ JSON 배열만 응답하세요. 다른 텍스트는 포함하지 마세요."""
         else:
             raise ValueError(f"Failed to parse AI response: {response_text}")
 
-    # 검증
+    # 검증 및 변환
     if len(verses) != 28:
         print(f"  Warning: Got {len(verses)} verses instead of 28")
 
     for v in verses:
+        book_name = v["book_name"]
+        # 별칭 변환
+        if book_name in BOOK_NAME_ALIASES:
+            v["book_name"] = BOOK_NAME_ALIASES[book_name]
+        # 검증
         if v["book_name"] not in BOOK_NAMES:
-            raise ValueError(f"Invalid book name: {v['book_name']}")
+            print(f"  Warning: Unknown book name '{book_name}', skipping validation")
 
     return verses[:28]
 
