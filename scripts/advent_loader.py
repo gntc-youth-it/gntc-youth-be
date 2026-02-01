@@ -4,25 +4,29 @@
 
 사용법:
 1. 구글 스프레드시트에서 CSV로 다운로드 (이름, 성전, 기수, 내용 컬럼)
-2. .env 파일에 OPENAI_API_KEY 설정
+2. .env 파일에 OPENAI_API_KEY 설정 (또는 환경변수로)
 3. python advent_loader.py input.csv
 4. 생성된 output.sql을 DB에서 실행
 
 필요한 패키지:
-pip install openai python-dotenv pandas
+pip install openai
 """
 
 import os
 import sys
 import json
 import re
-import pandas as pd
+import csv
+from datetime import datetime
 from openai import OpenAI
-from dotenv import load_dotenv
 
-load_dotenv()
+# 환경변수에서 API 키 로드 (dotenv 없이도 동작)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # dotenv 없어도 환경변수에서 읽음
 
-# 환경변수
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # 성경 책 목록 (BookName Enum과 동일)
@@ -126,6 +130,16 @@ def generate_sql(person_id: int, name: str, temple: str, batch: int, verses: lis
     return "\n".join(sql_lines)
 
 
+def read_csv(csv_path: str) -> list[dict]:
+    """CSV 파일 읽기"""
+    rows = []
+    with open(csv_path, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            rows.append(row)
+    return rows
+
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: python advent_loader.py <input.csv>")
@@ -136,33 +150,40 @@ def main():
     output_path = csv_path.replace(".csv", "_output.sql")
 
     # CSV 읽기
-    df = pd.read_csv(csv_path)
-    print(f"Loaded {len(df)} rows from {csv_path}")
-    print(f"Columns: {list(df.columns)}")
+    rows = read_csv(csv_path)
+    print(f"Loaded {len(rows)} rows from {csv_path}")
+
+    if rows:
+        print(f"Columns: {list(rows[0].keys())}")
 
     # 컬럼명 확인
     required_cols = ["이름", "성전", "기수", "내용"]
-    for col in required_cols:
-        if col not in df.columns:
-            print(f"Error: Missing column '{col}'")
-            print(f"Available columns: {list(df.columns)}")
-            sys.exit(1)
+    if rows:
+        for col in required_cols:
+            if col not in rows[0]:
+                print(f"Error: Missing column '{col}'")
+                print(f"Available columns: {list(rows[0].keys())}")
+                sys.exit(1)
 
     # AI 클라이언트
+    if not OPENAI_API_KEY:
+        print("Error: OPENAI_API_KEY 환경변수를 설정해주세요")
+        sys.exit(1)
+
     client = OpenAI(api_key=OPENAI_API_KEY)
 
     # SQL 파일 생성
     with open(output_path, "w", encoding="utf-8") as f:
         f.write("-- 어드벤트 캘린더 데이터 적재 SQL\n")
-        f.write("-- 생성일: " + pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
+        f.write(f"-- 생성일: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
 
-        for idx, row in df.iterrows():
+        for idx, row in enumerate(rows):
             name = str(row["이름"]).strip()
             temple = str(row["성전"]).strip()
             batch = int(row["기수"])
             resolution = str(row["내용"]).strip()
 
-            print(f"\n[{idx+1}/{len(df)}] Processing: {name} ({temple}, {batch}기)")
+            print(f"\n[{idx+1}/{len(rows)}] Processing: {name} ({temple}, {batch}기)")
             print(f"  내용: {resolution[:50]}...")
 
             # AI 추천
