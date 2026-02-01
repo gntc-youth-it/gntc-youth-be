@@ -168,12 +168,16 @@ def read_csv(csv_path: str) -> list[dict]:
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python advent_loader.py <input.csv>")
+        print("Usage: python advent_loader.py <input.csv> [start_id]")
         print("\nCSV 컬럼: 이름, 성전, 기수, 내용")
+        print("start_id: 시작 person_id (기본값: 1)")
         sys.exit(1)
 
     csv_path = sys.argv[1]
+    start_id = int(sys.argv[2]) if len(sys.argv) >= 3 else 1
     output_path = csv_path.replace(".csv", "_output.sql")
+
+    print(f"시작 ID: {start_id}")
 
     # CSV 읽기
     rows = read_csv(csv_path)
@@ -218,7 +222,7 @@ def main():
             print(f"  ✓ Got {len(verses)} verses")
 
             # SQL 생성
-            person_id = idx + 1
+            person_id = start_id + idx
             sql = generate_sql(person_id, name, temple, batch, verses)
             f.write(sql)
 
