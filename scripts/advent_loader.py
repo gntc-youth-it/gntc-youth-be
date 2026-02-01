@@ -4,18 +4,19 @@
 
 사용법:
 1. 구글 스프레드시트에서 CSV로 다운로드 (이름, 성전, 기수, 내용 컬럼)
-2. .env 파일에 환경변수 설정
+2. .env 파일에 OPENAI_API_KEY 설정
 3. python advent_loader.py input.csv
+4. 생성된 output.sql을 DB에서 실행
 
 필요한 패키지:
-pip install openai psycopg2-binary python-dotenv pandas
+pip install openai python-dotenv pandas
 """
 
 import os
 import sys
 import json
+import re
 import pandas as pd
-import psycopg2
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -23,11 +24,6 @@ load_dotenv()
 
 # 환경변수
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_PORT = os.getenv("DB_PORT", "5432")
-DB_NAME = os.getenv("DB_NAME")
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
 
 # 성경 책 목록 (BookName Enum과 동일)
 BOOK_NAMES = [
@@ -87,8 +83,6 @@ JSON 배열만 응답하세요. 다른 텍스트는 포함하지 마세요."""
     try:
         verses = json.loads(response_text)
     except json.JSONDecodeError:
-        # JSON 부분만 추출 시도
-        import re
         json_match = re.search(r'\[.*\]', response_text, re.DOTALL)
         if json_match:
             verses = json.loads(json_match.group())
@@ -97,40 +91,39 @@ JSON 배열만 응답하세요. 다른 텍스트는 포함하지 마세요."""
 
     # 검증
     if len(verses) != 28:
-        print(f"Warning: Got {len(verses)} verses instead of 28")
+        print(f"  Warning: Got {len(verses)} verses instead of 28")
 
     for v in verses:
         if v["book_name"] not in BOOK_NAMES:
             raise ValueError(f"Invalid book name: {v['book_name']}")
 
-    return verses[:28]  # 28개만 반환
+    return verses[:28]
 
 
-def insert_to_db(conn, name: str, temple: str, batch: int, verses: list[dict]):
-    """DB에 데이터 적재"""
+def escape_sql(s: str) -> str:
+    """SQL 문자열 이스케이프"""
+    return s.replace("'", "''")
 
-    with conn.cursor() as cur:
-        # 1. AdventPerson 삽입
-        cur.execute("""
-            INSERT INTO advent_persons (name, temple, batch)
-            VALUES (%s, %s, %s)
-            ON CONFLICT (name, temple, batch) DO UPDATE SET name = EXCLUDED.name
-            RETURNING id
-        """, (name, temple, batch))
-        person_id = cur.fetchone()[0]
 
-        # 2. 기존 verses 삭제 (재실행 대비)
-        cur.execute("DELETE FROM advent_verses WHERE person_id = %s", (person_id,))
+def generate_sql(person_id: int, name: str, temple: str, batch: int, verses: list[dict]) -> str:
+    """INSERT SQL 생성"""
 
-        # 3. AdventVerse 삽입
-        for idx, v in enumerate(verses, start=1):
-            cur.execute("""
-                INSERT INTO advent_verses (person_id, sequence, book_name, chapter, verse)
-                VALUES (%s, %s, %s, %s, %s)
-            """, (person_id, idx, v["book_name"], v["chapter"], v["verse"]))
+    sql_lines = []
 
-        conn.commit()
-        print(f"  ✓ Inserted {len(verses)} verses for {name}")
+    # AdventPerson INSERT
+    sql_lines.append(f"-- {name} ({temple}, {batch}기)")
+    sql_lines.append(f"INSERT INTO advent_persons (id, name, temple, batch) VALUES ({person_id}, '{escape_sql(name)}', '{escape_sql(temple)}', {batch});")
+
+    # AdventVerse INSERT
+    for idx, v in enumerate(verses, start=1):
+        verse_id = (person_id - 1) * 28 + idx
+        sql_lines.append(
+            f"INSERT INTO advent_verses (id, person_id, sequence, book_name, chapter, verse) "
+            f"VALUES ({verse_id}, {person_id}, {idx}, '{v['book_name']}', {v['chapter']}, {v['verse']});"
+        )
+
+    sql_lines.append("")
+    return "\n".join(sql_lines)
 
 
 def main():
@@ -140,6 +133,7 @@ def main():
         sys.exit(1)
 
     csv_path = sys.argv[1]
+    output_path = csv_path.replace(".csv", "_output.sql")
 
     # CSV 읽기
     df = pd.read_csv(csv_path)
@@ -157,16 +151,11 @@ def main():
     # AI 클라이언트
     client = OpenAI(api_key=OPENAI_API_KEY)
 
-    # DB 연결
-    conn = psycopg2.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD
-    )
+    # SQL 파일 생성
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write("-- 어드벤트 캘린더 데이터 적재 SQL\n")
+        f.write("-- 생성일: " + pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
 
-    try:
         for idx, row in df.iterrows():
             name = str(row["이름"]).strip()
             temple = str(row["성전"]).strip()
@@ -179,14 +168,18 @@ def main():
             # AI 추천
             print("  Getting AI recommendations...")
             verses = get_ai_recommendations(client, resolution)
+            print(f"  ✓ Got {len(verses)} verses")
 
-            # DB 적재
-            insert_to_db(conn, name, temple, batch, verses)
+            # SQL 생성
+            person_id = idx + 1
+            sql = generate_sql(person_id, name, temple, batch, verses)
+            f.write(sql)
 
-    finally:
-        conn.close()
-
-    print(f"\n✅ Done! Processed {len(df)} people.")
+    print(f"\n✅ Done! SQL saved to: {output_path}")
+    print(f"\n실행 방법:")
+    print(f"  1. SSH 터널링으로 DB 연결")
+    print(f"  2. psql 또는 DB 클라이언트에서 SQL 실행")
+    print(f"     psql -h localhost -p 5432 -U dbmasteruser -d <dbname> -f {output_path}")
 
 
 if __name__ == "__main__":
