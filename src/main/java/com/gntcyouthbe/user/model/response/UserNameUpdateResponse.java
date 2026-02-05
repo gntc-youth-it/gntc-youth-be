@@ -2,7 +2,6 @@ package com.gntcyouthbe.user.model.response;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import com.gntcyouthbe.cell.model.response.CellJoinResponse;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
