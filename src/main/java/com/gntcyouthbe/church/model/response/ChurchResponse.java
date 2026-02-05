@@ -11,8 +11,12 @@ public class ChurchResponse {
     private final String code;
     private final String name;
 
-    public ChurchResponse(ChurchId churchId) {
-        this.code = churchId.name();
-        this.name = churchId.getDisplayName();
+    private ChurchResponse(String code, String name) {
+        this.code = code;
+        this.name = name;
+    }
+
+    public static ChurchResponse from(ChurchId churchId) {
+        return new ChurchResponse(churchId.name(), churchId.getDisplayName());
     }
 }
