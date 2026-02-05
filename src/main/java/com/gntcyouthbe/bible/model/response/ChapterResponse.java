@@ -1,14 +1,11 @@
 package com.gntcyouthbe.bible.model.response;
 
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.gntcyouthbe.bible.domain.ChapterVerse;
 import lombok.Getter;
 
 import java.util.List;
 
 @Getter
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class ChapterResponse {
 
     private final List<VerseItem> verses;
@@ -20,7 +17,6 @@ public class ChapterResponse {
     }
 
     @Getter
-    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class VerseItem {
 
         private final Long verseId;
