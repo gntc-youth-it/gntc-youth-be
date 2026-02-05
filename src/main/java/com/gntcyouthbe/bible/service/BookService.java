@@ -4,6 +4,7 @@ import com.gntcyouthbe.bible.domain.Book;
 import com.gntcyouthbe.bible.domain.BookName;
 import com.gntcyouthbe.bible.domain.ChapterVerse;
 import com.gntcyouthbe.bible.model.response.BookListResponse;
+import com.gntcyouthbe.bible.model.response.BookListResponse.BookListItem;
 import com.gntcyouthbe.bible.model.response.ChapterListResponse;
 import com.gntcyouthbe.bible.model.response.ChapterResponse;
 import com.gntcyouthbe.bible.repository.BookRepository;
@@ -12,6 +13,9 @@ import com.gntcyouthbe.common.exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Comparator;
+import java.util.stream.Stream;
 
 import static com.gntcyouthbe.common.exception.model.ExceptionCode.BOOK_NOT_FOUND;
 
@@ -24,7 +28,15 @@ public class BookService {
 
     @Transactional(readOnly = true)
     public BookListResponse getBookList() {
-        return new BookListResponse();
+        var books = Stream.of(BookName.values())
+                .sorted(Comparator.comparingInt(BookName::getOrder))
+                .map(book -> new BookListItem(
+                        book.name(),
+                        book.getDisplayName(),
+                        book.getOrder()
+                ))
+                .toList();
+        return new BookListResponse(books);
     }
 
     @Transactional(readOnly = true)
