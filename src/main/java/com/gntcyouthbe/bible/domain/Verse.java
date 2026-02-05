@@ -1,6 +1,5 @@
 package com.gntcyouthbe.bible.domain;
 
-import com.gntcyouthbe.user.domain.User;
 import jakarta.persistence.*;
 import java.util.Objects;
 import lombok.AccessLevel;
@@ -43,10 +42,6 @@ public class Verse {
 
     public String getFullName() {
         return book.getName() + " " + chapter + ":" + number;
-    }
-
-    public VerseCopy copy(User user) {
-        return new VerseCopy(this, user);
     }
 
     @Override
