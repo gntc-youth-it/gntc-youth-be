@@ -62,11 +62,6 @@ public class BookStepDefs {
         world.response = bookApi.getChapters(bookName);
     }
 
-    @그러면("에러 응답이 반환된다")
-    public void 에러_응답이_반환된다() {
-        assertThat(world.response.statusCode()).isGreaterThanOrEqualTo(400);
-    }
-
     @그러면("빈 절 목록이 반환된다")
     public void 빈_절_목록이_반환된다() {
         assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());

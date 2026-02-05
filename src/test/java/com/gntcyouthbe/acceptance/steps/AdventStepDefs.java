@@ -28,11 +28,6 @@ public class AdventStepDefs {
         assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
     }
 
-    @그러면("Not Found 에러가 반환된다")
-    public void not_found_에러가_반환된다() {
-        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
-    }
-
     @만일("사용자가 파라미터 없이 어드벤트 말씀을 조회한다")
     public void 사용자가_파라미터_없이_어드벤트_말씀을_조회한다() {
         world.response = adventApi.getAdventVersesWithoutParams();

@@ -20,8 +20,9 @@ public enum ExceptionCode {
 
     // 20xx: 성경 관련 예외
     BOOK_NOT_FOUND(2001, "해당 성경 책이 존재하지 않습니다."),
-    VERSE_NOT_FOUND(2002, "해당 성경 구절이 존재하지 않습니다."),
-    VERSE_COPY_NOT_FOUND(2003, "해당 성경 필사 기록이 존재하지 않습니다."),
+    CHAPTER_NOT_FOUND(2002, "해당 장이 존재하지 않습니다."),
+    VERSE_NOT_FOUND(2003, "해당 성경 구절이 존재하지 않습니다."),
+    VERSE_COPY_NOT_FOUND(2004, "해당 성경 필사 기록이 존재하지 않습니다."),
 
     // 21xx: 어드벤트 관련 예외
     ADVENT_PERSON_NOT_FOUND(2101, "해당 어드벤트 사용자가 존재하지 않습니다."),

@@ -18,4 +18,9 @@ public class CommonStepDefs {
     public void bad_request_에러가_반환된다() {
         assertThat(world.response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
     }
+
+    @그러면("Not Found 에러가 반환된다")
+    public void not_found_에러가_반환된다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
+    }
 }

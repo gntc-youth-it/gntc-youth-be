@@ -18,6 +18,7 @@ import java.util.Comparator;
 import java.util.stream.Stream;
 
 import static com.gntcyouthbe.common.exception.model.ExceptionCode.BOOK_NOT_FOUND;
+import static com.gntcyouthbe.common.exception.model.ExceptionCode.CHAPTER_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -57,6 +58,10 @@ public class BookService {
     }
 
     private ChapterVerse getVerses(final Book book, final int chapter) {
-        return new ChapterVerse(verseRepository.findAllByBookAndChapter(book, chapter));
+        var verses = verseRepository.findAllByBookAndChapter(book, chapter);
+        if (verses.isEmpty()) {
+            throw new EntityNotFoundException(CHAPTER_NOT_FOUND);
+        }
+        return new ChapterVerse(verses);
     }
 }
