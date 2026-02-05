@@ -17,6 +17,6 @@ public class ChurchController {
 
     @GetMapping
     public ResponseEntity<ChurchListResponse> getChurches() {
-        return ResponseEntity.ok(new ChurchListResponse(churchService.getChurches()));
+        return ResponseEntity.ok(churchService.getChurches());
     }
 }
