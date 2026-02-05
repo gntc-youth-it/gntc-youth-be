@@ -4,7 +4,6 @@ import com.gntcyouthbe.bible.domain.BookName;
 import com.gntcyouthbe.bible.model.response.BookListResponse;
 import com.gntcyouthbe.bible.model.response.ChapterListResponse;
 import com.gntcyouthbe.bible.model.response.ChapterResponse;
-import com.gntcyouthbe.bible.model.response.RecentChapterResponse;
 import com.gntcyouthbe.bible.service.BookService;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import jakarta.validation.Valid;
