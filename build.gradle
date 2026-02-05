@@ -25,6 +25,11 @@ repositories {
     mavenCentral()
 }
 
+ext {
+    cucumberVersion = '7.20.1'
+    restAssuredVersion = '5.5.0'
+}
+
 dependencies {
     // Spring Boot
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -55,10 +60,21 @@ dependencies {
     // test dependencies
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testRuntimeOnly 'com.h2database:h2'
+
+    // Cucumber
+    testImplementation 'org.junit.platform:junit-platform-suite:1.11.3'
+    testImplementation "io.cucumber:cucumber-java:${cucumberVersion}"
+    testImplementation "io.cucumber:cucumber-junit-platform-engine:${cucumberVersion}"
+    testImplementation "io.cucumber:cucumber-spring:${cucumberVersion}"
+
+    // RestAssured
+    testImplementation "io.rest-assured:rest-assured:${restAssuredVersion}"
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+    systemProperty "cucumber.junit-platform.naming-strategy", "long"
 }
 
 sentry {
