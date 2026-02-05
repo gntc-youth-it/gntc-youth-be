@@ -14,7 +14,7 @@ public class UserApi {
         return given()
                 .contentType("application/json")
                 .header("Authorization", "Bearer " + authToken)
-                .body(Map.of("newName", newName))
+                .body(Map.of("new_name", newName))
                 .when().put("/user/name")
                 .then().extract();
     }
@@ -22,7 +22,7 @@ public class UserApi {
     public ExtractableResponse<Response> updateNameWithoutAuth(String newName) {
         return given()
                 .contentType("application/json")
-                .body(Map.of("newName", newName))
+                .body(Map.of("new_name", newName))
                 .when().put("/user/name")
                 .then().extract();
     }

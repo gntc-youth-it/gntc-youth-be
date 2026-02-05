@@ -18,4 +18,11 @@ public class AdventApi {
                 .when().get("/advent")
                 .then().extract();
     }
+
+    public ExtractableResponse<Response> getAdventVersesWithoutParams() {
+        return given()
+                .contentType("application/json")
+                .when().get("/advent")
+                .then().extract();
+    }
 }

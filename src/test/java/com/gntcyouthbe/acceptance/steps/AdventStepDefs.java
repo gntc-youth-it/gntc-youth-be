@@ -32,4 +32,9 @@ public class AdventStepDefs {
     public void not_found_에러가_반환된다() {
         assertThat(world.response.statusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
     }
+
+    @만일("사용자가 파라미터 없이 강림절 말씀을 조회한다")
+    public void 사용자가_파라미터_없이_강림절_말씀을_조회한다() {
+        world.response = adventApi.getAdventVersesWithoutParams();
+    }
 }
