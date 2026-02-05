@@ -41,7 +41,7 @@ public class BookService {
 
     @Transactional(readOnly = true)
     public ChapterListResponse getChapterList(final BookName bookName) {
-        return new ChapterListResponse(bookName);
+        return new ChapterListResponse(bookName.getChapters());
     }
 
     @Transactional(readOnly = true)
