@@ -26,6 +26,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+// SecurityConfig 제외: OAuth2 로그인·JWT 필터 등 보안 의존성이 @WebMvcTest 슬라이스에 포함되면
+// CustomOAuth2UserService, FrontendProperties 등 컨트롤러와 무관한 빈을 모두 mock 해야 하므로 제외한다.
+// @ImportAutoConfiguration: @AuthenticationPrincipal 해석에 필요한 SecurityAutoConfiguration을 명시적으로 포함한다.
+// (Spring Boot 4의 @WebMvcTest는 기본적으로 SecurityAutoConfiguration을 포함하지 않는다.)
 @WebMvcTest(value = UserController.class,
         excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class))
 @ImportAutoConfiguration({SecurityAutoConfiguration.class, ServletWebSecurityAutoConfiguration.class})

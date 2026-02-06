@@ -24,6 +24,10 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+// SecurityConfig 제외: OAuth2 로그인·JWT 필터 등 보안 의존성이 @WebMvcTest 슬라이스에 포함되면
+// CustomOAuth2UserService, FrontendProperties 등 컨트롤러와 무관한 빈을 모두 mock 해야 하므로 제외한다.
+// OAuth2 자동 구성 제외: Spring Boot 4에서 @WebMvcTest가 OAuth2 자동 구성을 포함하지만
+// SecurityAutoConfiguration은 포함하지 않아 HttpSecurity 빈이 없어 컨텍스트 로드에 실패한다.
 @WebMvcTest(value = ChurchController.class,
         excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class),
         excludeAutoConfiguration = {OAuth2ClientAutoConfiguration.class, OAuth2ClientWebSecurityAutoConfiguration.class})
