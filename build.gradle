@@ -1,8 +1,8 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.5.5'
+    id 'org.springframework.boot' version '4.0.2'
     id 'io.spring.dependency-management' version '1.1.7'
-    id "io.sentry.jvm.gradle" version "5.12.1"
+    id "io.sentry.jvm.gradle" version "5.12.2"
 }
 
 group = 'com'
@@ -27,7 +27,7 @@ repositories {
 
 ext {
     cucumberVersion = '7.18.1'
-    restAssuredVersion = '5.5.0'
+    restAssuredVersion = '6.0.0'
 }
 
 dependencies {
