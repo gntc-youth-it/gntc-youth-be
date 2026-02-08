@@ -1,4 +1,5 @@
 -- Clean up existing data
+DELETE FROM user_profile;
 DELETE FROM advent_verses;
 DELETE FROM advent_persons;
 DELETE FROM app_user;
