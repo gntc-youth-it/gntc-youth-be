@@ -53,8 +53,42 @@ jobs:
 
             # Stop existing application
             if [ -f app.pid ]; then
-              kill $(cat app.pid) || true
-              rm app.pid
+              OLD_PID=$(cat app.pid)
+              if kill -0 "$OLD_PID" 2>/dev/null; then
+                echo "Stopping existing application (PID: $OLD_PID)..."
+                kill "$OLD_PID"
+
+                # Wait up to 40s for graceful shutdown (30s Spring + 10s buffer)
+                for i in $(seq 1 40); do
+                  if ! kill -0 "$OLD_PID" 2>/dev/null; then
+                    echo "Application stopped gracefully after ${i}s."
+                    break
+                  fi
+                  sleep 1
+                done
+
+                # Force kill if still running
+                if kill -0 "$OLD_PID" 2>/dev/null; then
+                  echo "Graceful shutdown timed out. Force killing..."
+                  kill -9 "$OLD_PID" || true
+                  sleep 1
+                fi
+              else
+                echo "PID $OLD_PID is not running."
+              fi
+              rm -f app.pid
+            fi
+
+            # Also kill any process on port 8080 as a safety net
+            PORT_PID=$(lsof -ti:8080 || true)
+            if [ -n "$PORT_PID" ]; then
+              echo "Found process on port 8080 (PID: $PORT_PID). Killing..."
+              kill "$PORT_PID" || true
+              sleep 2
+              if kill -0 "$PORT_PID" 2>/dev/null; then
+                kill -9 "$PORT_PID" || true
+                sleep 1
+              fi
             fi
 
             # Load environment variables
@@ -71,6 +105,17 @@ jobs:
               $JAR_FILE > app.log 2>&1 &
 
             echo $! > app.pid
+            echo "Application started (PID: $(cat app.pid))"
 
-            echo "Application deployed successfully!"
-            echo "PID: $(cat app.pid)"
+            # Wait for application to be ready
+            echo "Waiting for application to start..."
+            for i in $(seq 1 30); do
+              if curl -sf http://localhost:8080/actuator/health > /dev/null 2>&1; then
+                echo "Application is healthy after ${i}s."
+                break
+              fi
+              if [ "$i" -eq 30 ]; then
+                echo "WARNING: Application did not become healthy within 30s. Check app.log."
+              fi
+              sleep 1
+            done
