@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import static com.gntcyouthbe.common.exception.model.ExceptionCode.USER_NOT_FOUND;
-import static com.gntcyouthbe.common.exception.model.ExceptionCode.USER_PROFILE_NOT_FOUND;
+
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +28,8 @@ public class UserProfileService {
     @Transactional(readOnly = true)
     public UserProfileResponse getMyProfile(final UserPrincipal userPrincipal) {
         final User user = getUser(userPrincipal);
-        final UserProfile profile = getUserProfile(userPrincipal);
+        final UserProfile profile = userProfileRepository.findByUserId(userPrincipal.getUserId())
+                .orElse(null);
         return UserProfileResponse.from(user, profile);
     }
 
@@ -52,10 +53,5 @@ public class UserProfileService {
     private User getUser(final UserPrincipal userPrincipal) {
         return userRepository.findById(userPrincipal.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
-    }
-
-    private UserProfile getUserProfile(final UserPrincipal userPrincipal) {
-        return userProfileRepository.findByUserId(userPrincipal.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException(USER_PROFILE_NOT_FOUND));
     }
 }

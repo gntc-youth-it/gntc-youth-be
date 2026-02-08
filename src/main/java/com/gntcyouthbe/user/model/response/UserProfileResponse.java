@@ -33,10 +33,10 @@ public class UserProfileResponse {
                 user.getName(),
                 church != null ? church.name() : null,
                 church != null ? church.getDisplayName() : null,
-                profile.getGeneration(),
-                profile.getPhoneNumber(),
-                profile.getGender().name(),
-                profile.getGender().getDisplayName()
+                profile != null ? profile.getGeneration() : null,
+                profile != null ? profile.getPhoneNumber() : null,
+                profile != null && profile.getGender() != null ? profile.getGender().name() : null,
+                profile != null && profile.getGender() != null ? profile.getGender().getDisplayName() : null
         );
     }
 }
