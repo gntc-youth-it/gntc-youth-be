@@ -24,7 +24,7 @@ public class UserProfileService {
 
     @Transactional(readOnly = true)
     public UserProfileResponse getMyProfile(final UserPrincipal userPrincipal) {
-        final UserProfile profile = getUserProfile(userPrincipal.getUserId());
+        final UserProfile profile = getUserProfile(userPrincipal);
         return UserProfileResponse.from(profile);
     }
 
@@ -45,8 +45,8 @@ public class UserProfileService {
         return UserProfileResponse.from(profile);
     }
 
-    private UserProfile getUserProfile(final Long userId) {
-        return userProfileRepository.findByUserId(userId)
+    private UserProfile getUserProfile(final UserPrincipal userPrincipal) {
+        return userProfileRepository.findByUserId(userPrincipal.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException(USER_PROFILE_NOT_FOUND));
     }
 }
