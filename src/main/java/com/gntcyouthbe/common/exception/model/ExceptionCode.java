@@ -12,6 +12,7 @@ public enum ExceptionCode {
 
     // 11xx: 회원 관련 예외
     USER_NOT_FOUND(1101, "해당 사용자가 존재하지 않습니다."),
+    USER_PROFILE_NOT_FOUND(1102, "해당 사용자의 프로필이 존재하지 않습니다."),
 
     // 12xx: 구역 관련 예외
     CELL_NOT_FOUND(1201, "해당 구역이 존재하지 않습니다."),
