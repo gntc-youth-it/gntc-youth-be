@@ -33,7 +33,7 @@ class FileServiceTest {
     @DisplayName("Presigned URL 발급 성공")
     void generatePresignedUrl_success() {
         // given
-        PresignedUrlRequest request = new PresignedUrlRequest("photo.jpg", "image/jpeg");
+        PresignedUrlRequest request = new PresignedUrlRequest("photo.jpg", "image/jpeg", 1024L);
         given(uploadedFileRepository.save(any(UploadedFile.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
         given(fileStorageService.generatePresignedUrl(anyString(), anyString()))
@@ -51,7 +51,7 @@ class FileServiceTest {
     @DisplayName("확장자 없는 파일명도 처리된다")
     void generatePresignedUrl_noExtension() {
         // given
-        PresignedUrlRequest request = new PresignedUrlRequest("README", "text/plain");
+        PresignedUrlRequest request = new PresignedUrlRequest("README", "text/plain", 512L);
         given(uploadedFileRepository.save(any(UploadedFile.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
         given(fileStorageService.generatePresignedUrl(anyString(), anyString()))

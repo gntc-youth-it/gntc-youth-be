@@ -18,7 +18,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,7 +57,6 @@ class ChurchInfoServiceTest {
         given(churchInfoRepository.findByChurchId(ChurchId.ANYANG)).willReturn(Optional.empty());
         given(churchInfoRepository.save(any(ChurchInfo.class))).willReturn(churchInfo);
         given(uploadedFileRepository.findById(1L)).willReturn(Optional.of(file));
-        given(prayerTopicRepository.findByChurchInfoOrderBySortOrderAsc(churchInfo)).willReturn(Collections.emptyList());
         given(prayerTopicRepository.saveAll(anyList())).willAnswer(invocation -> invocation.getArgument(0));
 
         // when
@@ -82,7 +80,6 @@ class ChurchInfoServiceTest {
         ));
 
         given(churchInfoRepository.findByChurchId(ChurchId.SUWON)).willReturn(Optional.of(churchInfo));
-        given(prayerTopicRepository.findByChurchInfoOrderBySortOrderAsc(churchInfo)).willReturn(List.of(existingTopic));
         given(prayerTopicRepository.saveAll(anyList())).willAnswer(invocation -> invocation.getArgument(0));
 
         // when
@@ -91,7 +88,7 @@ class ChurchInfoServiceTest {
         // then
         assertThat(response.getPrayerTopics()).hasSize(1);
         assertThat(response.getPrayerTopics().get(0).getContent()).isEqualTo("수정된 기도제목");
-        verify(prayerTopicRepository).deleteAll(List.of(existingTopic));
+        verify(prayerTopicRepository).deleteByChurchInfo(churchInfo);
     }
 
     @Test

@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface PrayerTopicRepository extends JpaRepository<PrayerTopic, Long> {
 
     List<PrayerTopic> findByChurchInfoOrderBySortOrderAsc(ChurchInfo churchInfo);
+
+    void deleteByChurchInfo(ChurchInfo churchInfo);
 }

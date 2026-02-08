@@ -26,7 +26,7 @@ public class FileService {
                 storedFilename,
                 filePath,
                 request.getContentType(),
-                0L
+                request.getFileSize()
         );
         uploadedFileRepository.save(file);
 
@@ -36,7 +36,7 @@ public class FileService {
 
     private String extractExtension(String filename) {
         int dotIndex = filename.lastIndexOf('.');
-        if (dotIndex == -1) {
+        if (dotIndex <= 0) {
             return "";
         }
         return filename.substring(dotIndex);

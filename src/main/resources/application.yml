@@ -55,8 +55,6 @@ aws:
   s3:
     bucket: gntc-youth-asset
     region: ap-northeast-2
-    access-key: ${AWS_ACCESS_KEY_ID}
-    secret-key: ${AWS_SECRET_ACCESS_KEY}
     presigned-url-expiration-minutes: 30
 
 sentry:

@@ -16,7 +16,8 @@ public class FileApi {
                 .header("Authorization", "Bearer " + authToken)
                 .body(Map.of(
                         "filename", filename,
-                        "contentType", contentType
+                        "contentType", contentType,
+                        "fileSize", 1024
                 ))
                 .when().post("/files/presigned-url")
                 .then().extract();
@@ -27,7 +28,8 @@ public class FileApi {
                 .contentType("application/json")
                 .body(Map.of(
                         "filename", filename,
-                        "contentType", contentType
+                        "contentType", contentType,
+                        "fileSize", 1024
                 ))
                 .when().post("/files/presigned-url")
                 .then().extract();

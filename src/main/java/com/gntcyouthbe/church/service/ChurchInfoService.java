@@ -37,9 +37,7 @@ public class ChurchInfoService {
             churchInfo.updateGroupPhoto(file);
         }
 
-        prayerTopicRepository.deleteAll(
-                prayerTopicRepository.findByChurchInfoOrderBySortOrderAsc(churchInfo)
-        );
+        prayerTopicRepository.deleteByChurchInfo(churchInfo);
 
         List<PrayerTopic> prayerTopics = request.getPrayerTopics().stream()
                 .map(req -> new PrayerTopic(churchInfo, req.getContent(), req.getSortOrder()))
