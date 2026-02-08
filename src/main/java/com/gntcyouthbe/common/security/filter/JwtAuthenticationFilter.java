@@ -32,22 +32,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (token != null) {
             try {
-                if (jwtService.validate(token)) {
-                    Map<String, Object> claims = jwtService.getClaims(token);
-                    UserPrincipal principal = new UserPrincipal(claims);
+                Map<String, Object> claims = jwtService.getClaims(token);
+                UserPrincipal principal = new UserPrincipal(claims);
 
-                    UsernamePasswordAuthenticationToken auth =
-                            new UsernamePasswordAuthenticationToken(
-                                    principal, null, principal.getAuthorities());
+                UsernamePasswordAuthenticationToken auth =
+                        new UsernamePasswordAuthenticationToken(
+                                principal, null, principal.getAuthorities());
 
-                    SecurityContextHolder.getContext().setAuthentication(auth);
-                }
+                SecurityContextHolder.getContext().setAuthentication(auth);
             } catch (ExpiredJwtException e) {
-                // 토큰 만료
                 sendErrorResponse(response, "TOKEN_EXPIRED", "토큰이 만료되었습니다.", 401);
                 return;
             } catch (JwtException e) {
-                // 토큰 검증 실패
                 sendErrorResponse(response, "INVALID_TOKEN", "유효하지 않은 토큰입니다.", 401);
                 return;
             }
