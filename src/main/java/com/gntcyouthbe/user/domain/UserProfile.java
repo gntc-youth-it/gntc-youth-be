@@ -15,6 +15,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import com.gntcyouthbe.user.model.request.UserProfileRequest;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -54,9 +55,9 @@ public class UserProfile extends BaseEntity {
         this.gender = gender;
     }
 
-    public void update(Integer generation, String phoneNumber, Gender gender) {
-        this.generation = generation;
-        this.phoneNumber = phoneNumber;
-        this.gender = gender;
+    public void update(UserProfileRequest request) {
+        this.generation = request.getGeneration();
+        this.phoneNumber = request.getPhoneNumber();
+        this.gender = request.getGender();
     }
 }

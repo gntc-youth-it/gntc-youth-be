@@ -32,7 +32,7 @@ public class UserProfileService {
     public UserProfileResponse saveProfile(final UserPrincipal userPrincipal, final UserProfileRequest request) {
         final UserProfile profile = userProfileRepository.findByUserId(userPrincipal.getUserId())
                 .map(existing -> {
-                    existing.update(request.getGeneration(), request.getPhoneNumber(), request.getGender());
+                    existing.update(request);
                     return existing;
                 })
                 .orElseGet(() -> {
