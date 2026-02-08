@@ -68,8 +68,8 @@ class UserProfileServiceTest {
     }
 
     @Test
-    @DisplayName("프로필 조회 실패 - 프로필 없음")
-    void getMyProfile_notFound() {
+    @DisplayName("프로필 조회 - 프로필 없으면 기본 정보만 반환")
+    void getMyProfile_withoutProfile() {
         // given
         UserPrincipal principal = createUserPrincipal();
         User user = new User("test@example.com", "테스트", AuthProvider.KAKAO, "kakao_123");
@@ -77,9 +77,14 @@ class UserProfileServiceTest {
         given(userRepository.findById(1L)).willReturn(Optional.of(user));
         given(userProfileRepository.findByUserId(1L)).willReturn(Optional.empty());
 
-        // when & then
-        assertThatThrownBy(() -> userProfileService.getMyProfile(principal))
-                .isInstanceOf(EntityNotFoundException.class);
+        // when
+        UserProfileResponse response = userProfileService.getMyProfile(principal);
+
+        // then
+        assertThat(response.getName()).isEqualTo("테스트");
+        assertThat(response.getGeneration()).isNull();
+        assertThat(response.getPhoneNumber()).isNull();
+        assertThat(response.getGender()).isNull();
     }
 
     @Test
