@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -102,7 +103,6 @@ class UserProfileServiceTest {
         UserProfileRequest request = new UserProfileRequest(46, "010-9876-5432", Gender.FEMALE);
 
         given(userProfileRepository.findByUserId(1L)).willReturn(Optional.of(existingProfile));
-        given(userProfileRepository.save(any(UserProfile.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         // when
         UserProfileResponse response = userProfileService.saveProfile(principal, request);
@@ -112,6 +112,7 @@ class UserProfileServiceTest {
         assertThat(response.getPhoneNumber()).isEqualTo("010-9876-5432");
         assertThat(response.getGender()).isEqualTo("FEMALE");
         assertThat(response.getGenderDisplay()).isEqualTo("여");
+        verify(userProfileRepository, never()).save(any());
     }
 
     @Test
