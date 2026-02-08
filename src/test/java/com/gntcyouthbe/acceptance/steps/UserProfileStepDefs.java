@@ -69,6 +69,14 @@ public class UserProfileStepDefs {
         assertThat(world.response.jsonPath().getString("gender")).isEqualTo("FEMALE");
     }
 
+    @그러면("기본 정보만 반환된다")
+    public void 기본_정보만_반환된다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(world.response.jsonPath().getString("generation")).isNull();
+        assertThat(world.response.jsonPath().getString("phoneNumber")).isNull();
+        assertThat(world.response.jsonPath().getString("gender")).isNull();
+    }
+
     @만일("인증되지 않은 사용자가 프로필을 저장한다")
     public void 인증되지_않은_사용자가_프로필을_저장한다() {
         world.response = userProfileApi.saveProfileWithoutAuth(
