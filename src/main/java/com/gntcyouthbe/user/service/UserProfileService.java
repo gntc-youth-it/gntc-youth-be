@@ -30,19 +30,18 @@ public class UserProfileService {
 
     @Transactional
     public UserProfileResponse saveProfile(final UserPrincipal userPrincipal, final UserProfileRequest request) {
-        final var existing = userProfileRepository.findByUserId(userPrincipal.getUserId());
+        final UserProfile profile = userProfileRepository.findByUserId(userPrincipal.getUserId())
+                .map(existing -> {
+                    existing.update(request.getGeneration(), request.getPhoneNumber(), request.getGender());
+                    return existing;
+                })
+                .orElseGet(() -> {
+                    final User user = userRepository.findById(userPrincipal.getUserId())
+                            .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
+                    return new UserProfile(user, request.getGeneration(), request.getPhoneNumber(), request.getGender());
+                });
 
-        if (existing.isPresent()) {
-            final UserProfile profile = existing.get();
-            profile.update(request.getGeneration(), request.getPhoneNumber(), request.getGender());
-            return UserProfileResponse.from(profile);
-        }
-
-        final User user = userRepository.findById(userPrincipal.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
-        final UserProfile profile = userProfileRepository.save(
-                new UserProfile(user, request.getGeneration(), request.getPhoneNumber(), request.getGender())
-        );
+        userProfileRepository.save(profile);
         return UserProfileResponse.from(profile);
     }
 
