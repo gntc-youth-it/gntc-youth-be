@@ -16,7 +16,7 @@ public class UserProfileApi {
                 .header("Authorization", "Bearer " + authToken)
                 .body(Map.of(
                         "generation", generation,
-                        "phone_number", phoneNumber,
+                        "phoneNumber", phoneNumber,
                         "gender", gender
                 ))
                 .when().put("/user/profile")
@@ -35,7 +35,7 @@ public class UserProfileApi {
                 .contentType("application/json")
                 .body(Map.of(
                         "generation", generation,
-                        "phone_number", phoneNumber,
+                        "phoneNumber", phoneNumber,
                         "gender", gender
                 ))
                 .when().put("/user/profile")

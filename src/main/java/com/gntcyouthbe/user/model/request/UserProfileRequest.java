@@ -1,15 +1,15 @@
 package com.gntcyouthbe.user.model.request;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.gntcyouthbe.user.domain.Gender;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public class UserProfileRequest {
 
     @NotNull(message = "기수는 필수입니다")
@@ -22,14 +22,4 @@ public class UserProfileRequest {
 
     @NotNull(message = "성별은 필수입니다")
     private final Gender gender;
-
-    @JsonCreator
-    public UserProfileRequest(
-            @JsonProperty("generation") Integer generation,
-            @JsonProperty("phone_number") String phoneNumber,
-            @JsonProperty("gender") Gender gender) {
-        this.generation = generation;
-        this.phoneNumber = phoneNumber;
-        this.gender = gender;
-    }
 }

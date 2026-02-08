@@ -31,7 +31,7 @@ public class UserProfileStepDefs {
     public void 프로필_저장이_성공한다() {
         assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
         assertThat(world.response.jsonPath().getInt("generation")).isEqualTo(45);
-        assertThat(world.response.jsonPath().getString("phone_number")).isEqualTo("010-1234-5678");
+        assertThat(world.response.jsonPath().getString("phoneNumber")).isEqualTo("010-1234-5678");
         assertThat(world.response.jsonPath().getString("gender")).isEqualTo("MALE");
     }
 
@@ -44,7 +44,7 @@ public class UserProfileStepDefs {
     public void 프로필_조회가_성공한다() {
         assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
         assertThat(world.response.jsonPath().getInt("generation")).isEqualTo(45);
-        assertThat(world.response.jsonPath().getString("phone_number")).isEqualTo("010-1234-5678");
+        assertThat(world.response.jsonPath().getString("phoneNumber")).isEqualTo("010-1234-5678");
         assertThat(world.response.jsonPath().getString("gender")).isEqualTo("MALE");
     }
 
@@ -57,7 +57,7 @@ public class UserProfileStepDefs {
     public void 프로필_수정이_성공한다() {
         assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
         assertThat(world.response.jsonPath().getInt("generation")).isEqualTo(46);
-        assertThat(world.response.jsonPath().getString("phone_number")).isEqualTo("010-9876-5432");
+        assertThat(world.response.jsonPath().getString("phoneNumber")).isEqualTo("010-9876-5432");
         assertThat(world.response.jsonPath().getString("gender")).isEqualTo("FEMALE");
     }
 
