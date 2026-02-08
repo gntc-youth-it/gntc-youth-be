@@ -28,6 +28,12 @@ public enum ExceptionCode {
     // 21xx: 어드벤트 관련 예외
     ADVENT_PERSON_NOT_FOUND(2101, "해당 어드벤트 사용자가 존재하지 않습니다."),
 
+    // 30xx: 파일 관련 예외
+    FILE_NOT_FOUND(3001, "해당 파일이 존재하지 않습니다."),
+
+    // 31xx: 성전 정보 관련 예외
+    CHURCH_INFO_NOT_FOUND(3101, "해당 성전 정보가 존재하지 않습니다."),
+
     INTERNAL_SERVER_ERROR(9999, "서버에서 알 수 없는 오류가 발생했습니다.");
 
     private final int code;

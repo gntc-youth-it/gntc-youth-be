@@ -51,6 +51,14 @@ app:
     url: ${FRONTEND_URL:https://gntc-youth.com}
     oauth2-redirect-path: /auth/callback
 
+aws:
+  s3:
+    bucket: gntc-youth-asset
+    region: ap-northeast-2
+    access-key: ${AWS_ACCESS_KEY_ID}
+    secret-key: ${AWS_SECRET_ACCESS_KEY}
+    presigned-url-expiration-minutes: 30
+
 sentry:
   dsn: ${SENTRY_DSN:https://e9914c7350dc44a51ce067725b289a5c@o4510239422545920.ingest.us.sentry.io/4510239424577536}
   environment: ${SPRING_PROFILES_ACTIVE:dev}
