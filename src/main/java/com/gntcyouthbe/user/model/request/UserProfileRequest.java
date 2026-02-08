@@ -1,5 +1,6 @@
 package com.gntcyouthbe.user.model.request;
 
+import com.gntcyouthbe.church.domain.ChurchId;
 import com.gntcyouthbe.user.domain.Gender;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -11,6 +12,12 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public class UserProfileRequest {
+
+    @NotBlank(message = "이름은 필수입니다")
+    private final String name;
+
+    @NotNull(message = "성전은 필수입니다")
+    private final ChurchId churchId;
 
     @NotNull(message = "기수는 필수입니다")
     @Positive(message = "기수는 양수여야 합니다")

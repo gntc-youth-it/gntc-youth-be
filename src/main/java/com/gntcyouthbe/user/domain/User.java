@@ -81,4 +81,9 @@ public class User extends BaseEntity {
     public void updateName(UserNameUpdateRequest request) {
         this.name = request.getNewName();
     }
+
+    public void updateNameAndChurch(String name, Church church) {
+        this.name = name;
+        this.church = church;
+    }
 }

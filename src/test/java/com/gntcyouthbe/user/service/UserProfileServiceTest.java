@@ -1,5 +1,8 @@
 package com.gntcyouthbe.user.service;
 
+import com.gntcyouthbe.church.domain.Church;
+import com.gntcyouthbe.church.domain.ChurchId;
+import com.gntcyouthbe.church.repository.ChurchRepository;
 import com.gntcyouthbe.common.exception.EntityNotFoundException;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.user.domain.AuthProvider;
@@ -24,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,6 +38,9 @@ class UserProfileServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ChurchRepository churchRepository;
 
     @InjectMocks
     private UserProfileService userProfileService;
@@ -46,12 +53,14 @@ class UserProfileServiceTest {
         User user = new User("test@example.com", "테스트", AuthProvider.KAKAO, "kakao_123");
         UserProfile profile = new UserProfile(user, 45, "010-1234-5678", Gender.MALE);
 
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
         given(userProfileRepository.findByUserId(1L)).willReturn(Optional.of(profile));
 
         // when
         UserProfileResponse response = userProfileService.getMyProfile(principal);
 
         // then
+        assertThat(response.getName()).isEqualTo("테스트");
         assertThat(response.getGeneration()).isEqualTo(45);
         assertThat(response.getPhoneNumber()).isEqualTo("010-1234-5678");
         assertThat(response.getGender()).isEqualTo("MALE");
@@ -63,6 +72,9 @@ class UserProfileServiceTest {
     void getMyProfile_notFound() {
         // given
         UserPrincipal principal = createUserPrincipal();
+        User user = new User("test@example.com", "테스트", AuthProvider.KAKAO, "kakao_123");
+
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
         given(userProfileRepository.findByUserId(1L)).willReturn(Optional.empty());
 
         // when & then
@@ -76,16 +88,19 @@ class UserProfileServiceTest {
         // given
         UserPrincipal principal = createUserPrincipal();
         User user = new User("test@example.com", "테스트", AuthProvider.KAKAO, "kakao_123");
-        UserProfileRequest request = new UserProfileRequest(45, "010-1234-5678", Gender.MALE);
+        Church church = mock(Church.class);
+        UserProfileRequest request = new UserProfileRequest("홍길동", ChurchId.ANYANG, 45, "010-1234-5678", Gender.MALE);
 
-        given(userProfileRepository.findByUserId(1L)).willReturn(Optional.empty());
         given(userRepository.findById(1L)).willReturn(Optional.of(user));
+        given(churchRepository.getReferenceById(ChurchId.ANYANG)).willReturn(church);
+        given(userProfileRepository.findByUserId(1L)).willReturn(Optional.empty());
         given(userProfileRepository.save(any(UserProfile.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         // when
         UserProfileResponse response = userProfileService.saveProfile(principal, request);
 
         // then
+        assertThat(response.getName()).isEqualTo("홍길동");
         assertThat(response.getGeneration()).isEqualTo(45);
         assertThat(response.getPhoneNumber()).isEqualTo("010-1234-5678");
         assertThat(response.getGender()).isEqualTo("MALE");
@@ -99,8 +114,11 @@ class UserProfileServiceTest {
         UserPrincipal principal = createUserPrincipal();
         User user = new User("test@example.com", "테스트", AuthProvider.KAKAO, "kakao_123");
         UserProfile existingProfile = new UserProfile(user, 45, "010-1234-5678", Gender.MALE);
-        UserProfileRequest request = new UserProfileRequest(46, "010-9876-5432", Gender.FEMALE);
+        Church church = mock(Church.class);
+        UserProfileRequest request = new UserProfileRequest("김철수", ChurchId.SUWON, 46, "010-9876-5432", Gender.FEMALE);
 
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+        given(churchRepository.getReferenceById(ChurchId.SUWON)).willReturn(church);
         given(userProfileRepository.findByUserId(1L)).willReturn(Optional.of(existingProfile));
         given(userProfileRepository.save(any(UserProfile.class))).willAnswer(invocation -> invocation.getArgument(0));
 
@@ -108,6 +126,7 @@ class UserProfileServiceTest {
         UserProfileResponse response = userProfileService.saveProfile(principal, request);
 
         // then
+        assertThat(response.getName()).isEqualTo("김철수");
         assertThat(response.getGeneration()).isEqualTo(46);
         assertThat(response.getPhoneNumber()).isEqualTo("010-9876-5432");
         assertThat(response.getGender()).isEqualTo("FEMALE");
@@ -119,9 +138,8 @@ class UserProfileServiceTest {
     void saveProfile_userNotFound() {
         // given
         UserPrincipal principal = createUserPrincipal();
-        UserProfileRequest request = new UserProfileRequest(45, "010-1234-5678", Gender.MALE);
+        UserProfileRequest request = new UserProfileRequest("홍길동", ChurchId.ANYANG, 45, "010-1234-5678", Gender.MALE);
 
-        given(userProfileRepository.findByUserId(1L)).willReturn(Optional.empty());
         given(userRepository.findById(1L)).willReturn(Optional.empty());
 
         // when & then

@@ -1,5 +1,7 @@
 package com.gntcyouthbe.user.service;
 
+import com.gntcyouthbe.church.domain.Church;
+import com.gntcyouthbe.church.repository.ChurchRepository;
 import com.gntcyouthbe.common.exception.EntityNotFoundException;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.user.domain.User;
@@ -21,28 +23,35 @@ public class UserProfileService {
 
     private final UserProfileRepository userProfileRepository;
     private final UserRepository userRepository;
+    private final ChurchRepository churchRepository;
 
     @Transactional(readOnly = true)
     public UserProfileResponse getMyProfile(final UserPrincipal userPrincipal) {
+        final User user = getUser(userPrincipal);
         final UserProfile profile = getUserProfile(userPrincipal);
-        return UserProfileResponse.from(profile);
+        return UserProfileResponse.from(user, profile);
     }
 
     @Transactional
     public UserProfileResponse saveProfile(final UserPrincipal userPrincipal, final UserProfileRequest request) {
+        final User user = getUser(userPrincipal);
+        final Church church = churchRepository.getReferenceById(request.getChurchId());
+        user.updateNameAndChurch(request.getName(), church);
+
         final UserProfile profile = userProfileRepository.findByUserId(userPrincipal.getUserId())
                 .map(existing -> {
                     existing.update(request);
                     return existing;
                 })
-                .orElseGet(() -> {
-                    final User user = userRepository.findById(userPrincipal.getUserId())
-                            .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
-                    return new UserProfile(user, request.getGeneration(), request.getPhoneNumber(), request.getGender());
-                });
+                .orElseGet(() -> new UserProfile(user, request.getGeneration(), request.getPhoneNumber(), request.getGender()));
 
         userProfileRepository.save(profile);
-        return UserProfileResponse.from(profile);
+        return UserProfileResponse.from(user, profile);
+    }
+
+    private User getUser(final UserPrincipal userPrincipal) {
+        return userRepository.findById(userPrincipal.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
     }
 
     private UserProfile getUserProfile(final UserPrincipal userPrincipal) {

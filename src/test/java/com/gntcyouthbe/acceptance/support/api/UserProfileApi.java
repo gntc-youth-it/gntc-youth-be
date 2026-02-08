@@ -10,11 +10,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserProfileApi {
 
-    public ExtractableResponse<Response> saveProfile(String authToken, int generation, String phoneNumber, String gender) {
+    public ExtractableResponse<Response> saveProfile(
+            String authToken, String name, String churchId, int generation, String phoneNumber, String gender) {
         return given()
                 .contentType("application/json")
                 .header("Authorization", "Bearer " + authToken)
                 .body(Map.of(
+                        "name", name,
+                        "churchId", churchId,
                         "generation", generation,
                         "phoneNumber", phoneNumber,
                         "gender", gender
@@ -30,10 +33,13 @@ public class UserProfileApi {
                 .then().extract();
     }
 
-    public ExtractableResponse<Response> saveProfileWithoutAuth(int generation, String phoneNumber, String gender) {
+    public ExtractableResponse<Response> saveProfileWithoutAuth(
+            String name, String churchId, int generation, String phoneNumber, String gender) {
         return given()
                 .contentType("application/json")
                 .body(Map.of(
+                        "name", name,
+                        "churchId", churchId,
                         "generation", generation,
                         "phoneNumber", phoneNumber,
                         "gender", gender

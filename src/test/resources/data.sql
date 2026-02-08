@@ -3,7 +3,15 @@ DELETE FROM user_profile;
 DELETE FROM advent_verses;
 DELETE FROM advent_persons;
 DELETE FROM app_user;
+DELETE FROM church;
 DELETE FROM books;
+
+-- Test Church
+INSERT INTO church (id, created_at, updated_at)
+VALUES ('ANYANG', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT INTO church (id, created_at, updated_at)
+VALUES ('SUWON', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- Test User
 INSERT INTO app_user (id, email, name, provider, provider_user_id, role, created_at, updated_at)
