@@ -63,7 +63,8 @@ class ChurchInfoServiceTest {
         ChurchInfoResponse response = churchInfoService.saveChurchInfo(ChurchId.ANYANG, request);
 
         // then
-        assertThat(response.getChurchId()).isEqualTo("ANYANG");
+        assertThat(response.getChurchId()).isEqualTo(ChurchId.ANYANG);
+        assertThat(response.getGroupPhotoPath()).isEqualTo("/uploads/stored.jpg");
         assertThat(response.getPrayerTopics()).hasSize(2);
         assertThat(response.getPrayerTopics().get(0).getContent()).isEqualTo("교회의 부흥을 위해");
         assertThat(response.getPrayerTopics().get(1).getContent()).isEqualTo("청년들의 신앙 성장을 위해");
@@ -125,7 +126,7 @@ class ChurchInfoServiceTest {
         ChurchInfoResponse response = churchInfoService.getChurchInfo(ChurchId.ANYANG);
 
         // then
-        assertThat(response.getChurchId()).isEqualTo("ANYANG");
+        assertThat(response.getChurchId()).isEqualTo(ChurchId.ANYANG);
         assertThat(response.getPrayerTopics()).hasSize(2);
     }
 

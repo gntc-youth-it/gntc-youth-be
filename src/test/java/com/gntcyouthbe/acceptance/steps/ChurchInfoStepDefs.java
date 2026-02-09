@@ -82,7 +82,7 @@ public class ChurchInfoStepDefs {
     public void 성전_정보가_반환된다() {
         assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
         assertThat(world.response.jsonPath().getString("churchId")).isEqualTo("ANYANG");
-        assertThat(world.response.jsonPath().getLong("groupPhotoFileId")).isPositive();
+        assertThat(world.response.jsonPath().getString("groupPhotoPath")).isNotBlank();
         assertThat(world.response.jsonPath().getList("prayerTopics")).hasSize(2);
     }
 
