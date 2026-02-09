@@ -3,7 +3,9 @@ package com.gntcyouthbe.church.model.response;
 import com.gntcyouthbe.church.domain.ChurchId;
 import com.gntcyouthbe.church.domain.ChurchInfo;
 import com.gntcyouthbe.church.domain.PrayerTopic;
+import com.gntcyouthbe.file.domain.UploadedFile;
 import java.util.List;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -18,7 +20,7 @@ public class ChurchInfoResponse {
     public static ChurchInfoResponse from(ChurchInfo churchInfo, List<PrayerTopic> prayerTopics) {
         return new ChurchInfoResponse(
                 churchInfo.getChurchId(),
-                churchInfo.getGroupPhoto() != null ? churchInfo.getGroupPhoto().getFilePath() : null,
+                Optional.ofNullable(churchInfo.getGroupPhoto()).map(UploadedFile::getFilePath).orElse(null),
                 prayerTopics.stream()
                         .map(PrayerTopicResponse::from)
                         .toList()
