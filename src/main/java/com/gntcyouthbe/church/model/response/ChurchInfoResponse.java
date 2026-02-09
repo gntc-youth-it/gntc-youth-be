@@ -1,5 +1,6 @@
 package com.gntcyouthbe.church.model.response;
 
+import com.gntcyouthbe.church.domain.ChurchId;
 import com.gntcyouthbe.church.domain.ChurchInfo;
 import com.gntcyouthbe.church.domain.PrayerTopic;
 import java.util.List;
@@ -10,14 +11,14 @@ import lombok.Getter;
 @AllArgsConstructor
 public class ChurchInfoResponse {
 
-    private final String churchId;
-    private final Long groupPhotoFileId;
+    private final ChurchId churchId;
+    private final String groupPhotoPath;
     private final List<PrayerTopicResponse> prayerTopics;
 
     public static ChurchInfoResponse from(ChurchInfo churchInfo, List<PrayerTopic> prayerTopics) {
         return new ChurchInfoResponse(
-                churchInfo.getChurchId().name(),
-                churchInfo.getGroupPhoto() != null ? churchInfo.getGroupPhoto().getId() : null,
+                churchInfo.getChurchId(),
+                churchInfo.getGroupPhoto() != null ? churchInfo.getGroupPhoto().getFilePath() : null,
                 prayerTopics.stream()
                         .map(PrayerTopicResponse::from)
                         .toList()
