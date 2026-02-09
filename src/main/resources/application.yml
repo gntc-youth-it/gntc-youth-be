@@ -61,6 +61,6 @@ sentry:
   dsn: ${SENTRY_DSN:https://e9914c7350dc44a51ce067725b289a5c@o4510239422545920.ingest.us.sentry.io/4510239424577536}
   environment: ${SPRING_PROFILES_ACTIVE:dev}
   send-default-pii: true
-  traces-sample-rate: 1.0
+  traces-sample-rate: 0.1
   logs:
     enabled: true
