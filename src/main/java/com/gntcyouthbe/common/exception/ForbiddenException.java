@@ -7,10 +7,9 @@ import lombok.Getter;
 public class ForbiddenException extends RuntimeException {
 
     private final int code;
-    private final String message;
 
     public ForbiddenException(final ExceptionCode exceptionCode) {
+        super(exceptionCode.getMessage());
         this.code = exceptionCode.getCode();
-        this.message = exceptionCode.getMessage();
     }
 }
