@@ -9,8 +9,12 @@ import com.gntcyouthbe.church.model.response.ChurchInfoResponse;
 import com.gntcyouthbe.church.repository.ChurchInfoRepository;
 import com.gntcyouthbe.church.repository.PrayerTopicRepository;
 import com.gntcyouthbe.common.exception.EntityNotFoundException;
+import com.gntcyouthbe.common.exception.ForbiddenException;
+import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.file.domain.UploadedFile;
 import com.gntcyouthbe.file.repository.UploadedFileRepository;
+import com.gntcyouthbe.user.domain.AuthProvider;
+import com.gntcyouthbe.user.domain.Role;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,10 +47,15 @@ class ChurchInfoServiceTest {
     @InjectMocks
     private ChurchInfoService churchInfoService;
 
+    private UserPrincipal createPrincipal(Role role, ChurchId churchId) {
+        return new UserPrincipal(1L, "test@example.com", "테스트", role, churchId, AuthProvider.KAKAO);
+    }
+
     @Test
     @DisplayName("성전 정보 신규 저장 성공")
     void saveChurchInfo_create() {
         // given
+        UserPrincipal principal = createPrincipal(Role.LEADER, ChurchId.ANYANG);
         ChurchInfo churchInfo = new ChurchInfo(ChurchId.ANYANG);
         UploadedFile file = new UploadedFile("photo.jpg", "stored.jpg", "/uploads/stored.jpg", "image/jpeg", 1024L);
         ChurchInfoRequest request = new ChurchInfoRequest(1L, List.of(
@@ -60,7 +69,7 @@ class ChurchInfoServiceTest {
         given(prayerTopicRepository.saveAll(anyList())).willAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        ChurchInfoResponse response = churchInfoService.saveChurchInfo(ChurchId.ANYANG, request);
+        ChurchInfoResponse response = churchInfoService.saveChurchInfo(principal, ChurchId.ANYANG, request);
 
         // then
         assertThat(response.getChurchId()).isEqualTo(ChurchId.ANYANG);
@@ -74,8 +83,8 @@ class ChurchInfoServiceTest {
     @DisplayName("성전 정보 수정 성공 - 기존 기도제목 교체")
     void saveChurchInfo_update() {
         // given
+        UserPrincipal principal = createPrincipal(Role.LEADER, ChurchId.SUWON);
         ChurchInfo churchInfo = new ChurchInfo(ChurchId.SUWON);
-        PrayerTopic existingTopic = new PrayerTopic(churchInfo, "기존 기도제목", 1);
         ChurchInfoRequest request = new ChurchInfoRequest(null, List.of(
                 new PrayerTopicRequest("수정된 기도제목", 1)
         ));
@@ -84,7 +93,7 @@ class ChurchInfoServiceTest {
         given(prayerTopicRepository.saveAll(anyList())).willAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        ChurchInfoResponse response = churchInfoService.saveChurchInfo(ChurchId.SUWON, request);
+        ChurchInfoResponse response = churchInfoService.saveChurchInfo(principal, ChurchId.SUWON, request);
 
         // then
         assertThat(response.getPrayerTopics()).hasSize(1);
@@ -96,6 +105,7 @@ class ChurchInfoServiceTest {
     @DisplayName("성전 정보 저장 실패 - 존재하지 않는 파일")
     void saveChurchInfo_fileNotFound() {
         // given
+        UserPrincipal principal = createPrincipal(Role.LEADER, ChurchId.ANYANG);
         ChurchInfo churchInfo = new ChurchInfo(ChurchId.ANYANG);
         ChurchInfoRequest request = new ChurchInfoRequest(999L, List.of(
                 new PrayerTopicRequest("기도제목", 1)
@@ -105,8 +115,42 @@ class ChurchInfoServiceTest {
         given(uploadedFileRepository.findById(999L)).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> churchInfoService.saveChurchInfo(ChurchId.ANYANG, request))
+        assertThatThrownBy(() -> churchInfoService.saveChurchInfo(principal, ChurchId.ANYANG, request))
                 .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("LEADER가 다른 성전 정보 수정 시 실패")
+    void saveChurchInfo_leaderAccessDenied() {
+        // given
+        UserPrincipal principal = createPrincipal(Role.LEADER, ChurchId.ANYANG);
+        ChurchInfoRequest request = new ChurchInfoRequest(null, List.of(
+                new PrayerTopicRequest("기도제목", 1)
+        ));
+
+        // when & then
+        assertThatThrownBy(() -> churchInfoService.saveChurchInfo(principal, ChurchId.SUWON, request))
+                .isInstanceOf(ForbiddenException.class);
+    }
+
+    @Test
+    @DisplayName("MASTER는 다른 성전 정보 수정 가능")
+    void saveChurchInfo_masterCanAccessAnyChurch() {
+        // given
+        UserPrincipal principal = createPrincipal(Role.MASTER, ChurchId.ANYANG);
+        ChurchInfo churchInfo = new ChurchInfo(ChurchId.SUWON);
+        ChurchInfoRequest request = new ChurchInfoRequest(null, List.of(
+                new PrayerTopicRequest("기도제목", 1)
+        ));
+
+        given(churchInfoRepository.findByChurchId(ChurchId.SUWON)).willReturn(Optional.of(churchInfo));
+        given(prayerTopicRepository.saveAll(anyList())).willAnswer(invocation -> invocation.getArgument(0));
+
+        // when
+        ChurchInfoResponse response = churchInfoService.saveChurchInfo(principal, ChurchId.SUWON, request);
+
+        // then
+        assertThat(response.getChurchId()).isEqualTo(ChurchId.SUWON);
     }
 
     @Test
