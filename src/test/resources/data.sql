@@ -20,6 +20,9 @@ VALUES (1, 'test@example.com', '테스트유저', 'KAKAO', 'kakao_123456', 'USER
 INSERT INTO app_user (id, email, name, provider, provider_user_id, role, church_id, created_at, updated_at)
 VALUES (2, 'leader@example.com', '리더유저', 'KAKAO', 'kakao_789012', 'LEADER', 'ANYANG', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
+INSERT INTO app_user (id, email, name, provider, provider_user_id, role, church_id, created_at, updated_at)
+VALUES (3, 'master@example.com', '마스터유저', 'KAKAO', 'kakao_345678', 'MASTER', 'ANYANG', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
 -- Test Book
 INSERT INTO books (id, canon_order, book_name, name)
 VALUES (1, 1, 'GENESIS', '창세기');

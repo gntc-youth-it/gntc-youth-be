@@ -114,4 +114,41 @@ public class ChurchInfoStepDefs {
                 List.of(Map.of("content", "기도제목", "sortOrder", 1))
         );
     }
+
+    @만일("리더가 다른 성전 정보를 저장한다")
+    public void 리더가_다른_성전_정보를_저장한다() {
+        world.response = churchInfoApi.saveChurchInfo(
+                world.authToken,
+                "SUWON",
+                null,
+                List.of(Map.of("content", "기도제목", "sortOrder", 1))
+        );
+    }
+
+    @그러면("권한 에러가 반환된다")
+    public void 권한_에러가_반환된다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.FORBIDDEN.value());
+    }
+
+    @먼저("마스터가 로그인되어 있다")
+    public void 마스터가_로그인되어_있다() {
+        world.authToken = authApi.getAccessToken("master@example.com");
+        assertThat(world.authToken).isNotBlank();
+    }
+
+    @만일("마스터가 다른 성전 정보를 저장한다")
+    public void 마스터가_다른_성전_정보를_저장한다() {
+        world.response = churchInfoApi.saveChurchInfo(
+                world.authToken,
+                "SUWON",
+                null,
+                List.of(Map.of("content", "마스터 기도제목", "sortOrder", 1))
+        );
+    }
+
+    @그러면("다른 성전 정보 저장이 성공한다")
+    public void 다른_성전_정보_저장이_성공한다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(world.response.jsonPath().getString("churchId")).isEqualTo("SUWON");
+    }
 }
