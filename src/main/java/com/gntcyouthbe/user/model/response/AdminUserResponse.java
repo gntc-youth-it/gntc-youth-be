@@ -34,11 +34,16 @@ public class AdminUserResponse {
         );
     }
 
+    private static final String PHONE_REGEX = "(\\d{3})-?(\\d{3,4})-?(\\d{4})";
+
     private static String maskPhoneNumber(String phoneNumber) {
         if (phoneNumber == null || phoneNumber.isBlank()) {
             return null;
         }
+        if (!phoneNumber.matches(PHONE_REGEX)) {
+            return null;
+        }
         // 010-1234-5678 → 010-****-5678
-        return phoneNumber.replaceAll("(\\d{3})-?(\\d{3,4})-?(\\d{4})", "$1-****-$3");
+        return phoneNumber.replaceAll(PHONE_REGEX, "$1-****-$3");
     }
 }

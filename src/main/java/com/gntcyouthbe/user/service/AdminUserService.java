@@ -23,8 +23,9 @@ public class AdminUserService {
 
     @Transactional(readOnly = true)
     public AdminUserListResponse getAllUsers() {
-        List<User> users = userRepository.findAll();
-        Map<Long, UserProfile> profileMap = userProfileRepository.findAll().stream()
+        List<User> users = userRepository.findAllWithChurch();
+        List<Long> userIds = users.stream().map(User::getId).toList();
+        Map<Long, UserProfile> profileMap = userProfileRepository.findByUserIdIn(userIds).stream()
                 .collect(Collectors.toMap(p -> p.getUser().getId(), Function.identity()));
 
         List<AdminUserResponse> responses = users.stream()
