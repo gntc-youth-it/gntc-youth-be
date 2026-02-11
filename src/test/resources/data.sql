@@ -23,6 +23,11 @@ VALUES (2, 'leader@example.com', '리더유저', 'KAKAO', 'kakao_789012', 'LEADE
 INSERT INTO app_user (id, email, name, provider, provider_user_id, role, church_id, created_at, updated_at)
 VALUES (3, 'master@example.com', '마스터유저', 'KAKAO', 'kakao_345678', 'MASTER', 'ANYANG', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
+-- Test UserProfile (리더유저에게 프로필 추가)
+INSERT INTO user_profile (id, user_id, generation, phone_number, gender, created_at, updated_at)
+VALUES (100, 2, 45, '010-1234-5678', 'MALE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+ALTER TABLE user_profile ALTER COLUMN id RESTART WITH 101;
+
 -- Test Book
 INSERT INTO books (id, canon_order, book_name, name)
 VALUES (1, 1, 'GENESIS', '창세기');
