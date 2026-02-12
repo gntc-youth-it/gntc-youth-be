@@ -9,15 +9,28 @@ import org.springframework.stereotype.Component;
 @Component
 public class AdminUserApi {
 
-    public ExtractableResponse<Response> getAllUsers(String authToken) {
+    public ExtractableResponse<Response> getUsers(String authToken, int page, int size) {
         return given()
                 .contentType("application/json")
                 .header("Authorization", "Bearer " + authToken)
+                .queryParam("page", page)
+                .queryParam("size", size)
                 .when().get("/admin/users")
                 .then().extract();
     }
 
-    public ExtractableResponse<Response> getAllUsersWithoutAuth() {
+    public ExtractableResponse<Response> getUsersByName(String authToken, int page, int size, String name) {
+        return given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + authToken)
+                .queryParam("page", page)
+                .queryParam("size", size)
+                .queryParam("name", name)
+                .when().get("/admin/users")
+                .then().extract();
+    }
+
+    public ExtractableResponse<Response> getUsersWithoutAuth() {
         return given()
                 .contentType("application/json")
                 .when().get("/admin/users")

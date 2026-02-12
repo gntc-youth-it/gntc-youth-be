@@ -22,17 +22,22 @@ public class AdminUserStepDefs {
 
     @만일("마스터가 전체 사용자 목록을 조회한다")
     public void 마스터가_전체_사용자_목록을_조회한다() {
-        world.response = adminUserApi.getAllUsers(world.authToken);
+        world.response = adminUserApi.getUsers(world.authToken, 0, 10);
     }
 
     @만일("사용자가 전체 사용자 목록을 조회한다")
     public void 사용자가_전체_사용자_목록을_조회한다() {
-        world.response = adminUserApi.getAllUsers(world.authToken);
+        world.response = adminUserApi.getUsers(world.authToken, 0, 10);
     }
 
     @만일("인증 없이 전체 사용자 목록을 조회한다")
     public void 인증_없이_전체_사용자_목록을_조회한다() {
-        world.response = adminUserApi.getAllUsersWithoutAuth();
+        world.response = adminUserApi.getUsersWithoutAuth();
+    }
+
+    @만일("마스터가 이름 {string}으로 사용자를 검색한다")
+    public void 마스터가_이름으로_사용자를_검색한다(String name) {
+        world.response = adminUserApi.getUsersByName(world.authToken, 0, 10, name);
     }
 
     @그러면("전체 사용자 목록이 반환된다")
@@ -41,6 +46,9 @@ public class AdminUserStepDefs {
 
         List<Map<String, Object>> users = world.response.jsonPath().getList("users");
         assertThat(users).hasSize(3);
+
+        int totalElements = world.response.jsonPath().getInt("totalElements");
+        assertThat(totalElements).isEqualTo(3);
 
         // 각 사용자에게 필수 필드가 존재하는지 검증
         for (Map<String, Object> user : users) {
@@ -86,5 +94,16 @@ public class AdminUserStepDefs {
         assertThat(testUser.get("phoneNumber")).isNull();
         assertThat(testUser.get("churchName")).isNull();
         assertThat(testUser.get("role")).isEqualTo("USER");
+    }
+
+    @그러면("검색된 사용자 {int}명이 반환된다")
+    public void 검색된_사용자_n명이_반환된다(int count) {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
+
+        List<Map<String, Object>> users = world.response.jsonPath().getList("users");
+        assertThat(users).hasSize(count);
+
+        int totalElements = world.response.jsonPath().getInt("totalElements");
+        assertThat(totalElements).isEqualTo(count);
     }
 }
