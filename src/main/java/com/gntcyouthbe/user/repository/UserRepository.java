@@ -20,7 +20,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.church")
     List<User> findAllWithChurch();
 
-    @Query(value = "SELECT u FROM User u LEFT JOIN FETCH u.church WHERE (:name IS NULL OR u.name LIKE CONCAT('%', :name, '%'))",
-            countQuery = "SELECT COUNT(u) FROM User u WHERE (:name IS NULL OR u.name LIKE CONCAT('%', :name, '%'))")
-    Page<User> findAllWithChurch(@Param("name") String name, Pageable pageable);
+    @Query(value = "SELECT u FROM User u LEFT JOIN FETCH u.church",
+            countQuery = "SELECT COUNT(u) FROM User u")
+    Page<User> findAllWithChurch(Pageable pageable);
+
+    @Query(value = "SELECT u FROM User u LEFT JOIN FETCH u.church WHERE u.name LIKE CONCAT('%', :name, '%')",
+            countQuery = "SELECT COUNT(u) FROM User u WHERE u.name LIKE CONCAT('%', :name, '%')")
+    Page<User> findAllWithChurchByNameContaining(@Param("name") String name, Pageable pageable);
 }

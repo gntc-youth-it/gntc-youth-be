@@ -25,7 +25,10 @@ public class AdminUserService {
 
     @Transactional(readOnly = true)
     public AdminUserListResponse getUsers(int page, int size, String name) {
-        Page<User> userPage = userRepository.findAllWithChurch(name, PageRequest.of(page, size));
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<User> userPage = (name != null && !name.isBlank())
+                ? userRepository.findAllWithChurchByNameContaining(name, pageRequest)
+                : userRepository.findAllWithChurch(pageRequest);
         List<Long> userIds = userPage.getContent().stream().map(User::getId).toList();
         Map<Long, UserProfile> profileMap = userProfileRepository.findByUserIdIn(userIds).stream()
                 .collect(Collectors.toMap(p -> p.getUser().getId(), Function.identity()));
