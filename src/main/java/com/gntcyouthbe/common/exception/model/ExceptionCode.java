@@ -13,6 +13,9 @@ public enum ExceptionCode {
     // 11xx: 회원 관련 예외
     USER_NOT_FOUND(1101, "해당 사용자가 존재하지 않습니다."),
     USER_PROFILE_NOT_FOUND(1102, "해당 사용자의 프로필이 존재하지 않습니다."),
+    USER_NO_CHURCH(1103, "성전이 지정되지 않은 사용자는 회장으로 임명할 수 없습니다."),
+    INVALID_ROLE(1104, "유효하지 않은 권한입니다."),
+    SAME_ROLE(1105, "이미 해당 권한을 가지고 있습니다."),
 
     // 12xx: 구역 관련 예외
     CELL_NOT_FOUND(1201, "해당 구역이 존재하지 않습니다."),
