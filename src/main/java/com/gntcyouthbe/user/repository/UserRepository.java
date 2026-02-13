@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.gntcyouthbe.church.domain.ChurchId;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,4 +28,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query(value = "SELECT u FROM User u LEFT JOIN FETCH u.church WHERE u.name LIKE CONCAT('%', :name, '%')",
             countQuery = "SELECT COUNT(u) FROM User u WHERE u.name LIKE CONCAT('%', :name, '%')")
     Page<User> findAllWithChurchByNameContaining(@Param("name") String name, Pageable pageable);
+
+    @Query("SELECT u FROM User u WHERE u.church.id = :churchId AND u.role = 'LEADER'")
+    Optional<User> findLeaderByChurchId(@Param("churchId") ChurchId churchId);
 }

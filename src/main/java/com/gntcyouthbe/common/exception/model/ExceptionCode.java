@@ -32,6 +32,7 @@ public enum ExceptionCode {
     FILE_NOT_FOUND(3001, "해당 파일이 존재하지 않습니다."),
 
     // 31xx: 성전 정보 관련 예외
+    CHURCH_NOT_FOUND(3100, "해당 성전이 존재하지 않습니다."),
     CHURCH_INFO_NOT_FOUND(3101, "해당 성전 정보가 존재하지 않습니다."),
     CHURCH_ACCESS_DENIED(3102, "해당 성전에 대한 수정 권한이 없습니다."),
 

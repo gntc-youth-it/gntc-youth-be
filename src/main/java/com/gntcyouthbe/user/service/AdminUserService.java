@@ -1,9 +1,14 @@
 package com.gntcyouthbe.user.service;
 
+import com.gntcyouthbe.church.domain.ChurchId;
+import com.gntcyouthbe.church.repository.ChurchRepository;
+import com.gntcyouthbe.common.exception.EntityNotFoundException;
+import com.gntcyouthbe.common.exception.model.ExceptionCode;
 import com.gntcyouthbe.user.domain.User;
 import com.gntcyouthbe.user.domain.UserProfile;
 import com.gntcyouthbe.user.model.response.AdminUserListResponse;
 import com.gntcyouthbe.user.model.response.AdminUserResponse;
+import com.gntcyouthbe.user.model.response.ChurchLeaderResponse;
 import com.gntcyouthbe.user.repository.UserProfileRepository;
 import com.gntcyouthbe.user.repository.UserRepository;
 import java.util.List;
@@ -23,6 +28,7 @@ public class AdminUserService {
 
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
+    private final ChurchRepository churchRepository;
 
     @Transactional(readOnly = true)
     public AdminUserListResponse getUsers(int page, int size, String name) {
@@ -40,5 +46,14 @@ public class AdminUserService {
 
         return new AdminUserListResponse(responses, userPage.getTotalElements(),
                 userPage.getTotalPages(), page, size);
+    }
+
+    @Transactional(readOnly = true)
+    public ChurchLeaderResponse getChurchLeader(ChurchId churchId) {
+        churchRepository.findById(churchId)
+                .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.CHURCH_NOT_FOUND));
+
+        User leader = userRepository.findLeaderByChurchId(churchId).orElse(null);
+        return ChurchLeaderResponse.of(churchId, leader);
     }
 }
