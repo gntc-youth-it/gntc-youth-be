@@ -23,6 +23,14 @@ VALUES (2, 'leader@example.com', '리더유저', 'KAKAO', 'kakao_789012', 'LEADE
 INSERT INTO app_user (id, email, name, provider, provider_user_id, role, church_id, created_at, updated_at)
 VALUES (3, 'master@example.com', '마스터유저', 'KAKAO', 'kakao_345678', 'MASTER', 'ANYANG', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
+-- 수원 성전 소속 일반 사용자 (역할 변경 테스트용)
+INSERT INTO app_user (id, email, name, provider, provider_user_id, role, church_id, created_at, updated_at)
+VALUES (4, 'suwon-user@example.com', '수원유저', 'KAKAO', 'kakao_111222', 'USER', 'SUWON', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- 안양 성전 소속 일반 사용자 (역할 변경 테스트용 - 기존 리더 강등 확인)
+INSERT INTO app_user (id, email, name, provider, provider_user_id, role, church_id, created_at, updated_at)
+VALUES (5, 'anyang-user@example.com', '안양유저', 'KAKAO', 'kakao_333444', 'USER', 'ANYANG', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
 -- Test UserProfile (리더유저에게 프로필 추가)
 INSERT INTO user_profile (id, user_id, generation, phone_number, gender, created_at, updated_at)
 VALUES (100, 2, 45, '010-1234-5678', 'MALE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
