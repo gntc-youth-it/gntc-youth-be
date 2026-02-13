@@ -50,8 +50,9 @@ public class AdminUserService {
 
     @Transactional(readOnly = true)
     public ChurchLeaderResponse getChurchLeader(ChurchId churchId) {
-        churchRepository.findById(churchId)
-                .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.CHURCH_NOT_FOUND));
+        if (!churchRepository.existsById(churchId)) {
+            throw new EntityNotFoundException(ExceptionCode.CHURCH_NOT_FOUND);
+        }
 
         User leader = userRepository.findLeaderByChurchId(churchId).orElse(null);
         return ChurchLeaderResponse.of(churchId, leader);
