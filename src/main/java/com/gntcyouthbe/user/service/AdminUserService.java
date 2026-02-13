@@ -17,6 +17,7 @@ import com.gntcyouthbe.user.repository.UserProfileRepository;
 import com.gntcyouthbe.user.repository.UserRepository;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -76,21 +77,19 @@ public class AdminUserService {
             throw new BadRequestException(ExceptionCode.SAME_ROLE);
         }
 
-        User demotedLeader = null;
+        Optional<User> demotedLeader = Optional.empty();
 
         if (newRole == Role.LEADER) {
             if (user.getChurchId() == null) {
                 throw new BadRequestException(ExceptionCode.USER_NO_CHURCH);
             }
 
-            demotedLeader = userRepository.findLeaderByChurchId(user.getChurchId()).orElse(null);
-            if (demotedLeader != null) {
-                demotedLeader.updateRole(Role.USER);
-            }
+            demotedLeader = userRepository.findLeaderByChurchId(user.getChurchId());
+            demotedLeader.ifPresent(leader -> leader.updateRole(Role.USER));
         }
 
         user.updateRole(newRole);
 
-        return UserRoleUpdateResponse.of(user, demotedLeader);
+        return UserRoleUpdateResponse.of(user, demotedLeader.orElse(null));
     }
 }
