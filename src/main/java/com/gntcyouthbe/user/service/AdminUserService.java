@@ -2,17 +2,22 @@ package com.gntcyouthbe.user.service;
 
 import com.gntcyouthbe.church.domain.ChurchId;
 import com.gntcyouthbe.church.repository.ChurchRepository;
+import com.gntcyouthbe.common.exception.BadRequestException;
 import com.gntcyouthbe.common.exception.EntityNotFoundException;
 import com.gntcyouthbe.common.exception.model.ExceptionCode;
+import com.gntcyouthbe.user.domain.Role;
 import com.gntcyouthbe.user.domain.User;
 import com.gntcyouthbe.user.domain.UserProfile;
+import com.gntcyouthbe.user.model.request.UserRoleUpdateRequest;
 import com.gntcyouthbe.user.model.response.AdminUserListResponse;
 import com.gntcyouthbe.user.model.response.AdminUserResponse;
 import com.gntcyouthbe.user.model.response.ChurchLeaderResponse;
+import com.gntcyouthbe.user.model.response.UserRoleUpdateResponse;
 import com.gntcyouthbe.user.repository.UserProfileRepository;
 import com.gntcyouthbe.user.repository.UserRepository;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -56,5 +61,35 @@ public class AdminUserService {
 
         User leader = userRepository.findLeaderByChurchId(churchId).orElse(null);
         return ChurchLeaderResponse.of(churchId, leader);
+    }
+
+    @Transactional
+    public UserRoleUpdateResponse updateUserRole(Long userId, UserRoleUpdateRequest request) {
+        Role newRole = request.getRole();
+        if (newRole != Role.LEADER && newRole != Role.USER) {
+            throw new BadRequestException(ExceptionCode.INVALID_ROLE);
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException(ExceptionCode.USER_NOT_FOUND));
+
+        if (user.getRole() == newRole) {
+            throw new BadRequestException(ExceptionCode.SAME_ROLE);
+        }
+
+        Optional<User> demotedLeader = Optional.empty();
+
+        if (newRole == Role.LEADER) {
+            if (user.getChurchId() == null) {
+                throw new BadRequestException(ExceptionCode.USER_NO_CHURCH);
+            }
+
+            demotedLeader = userRepository.findLeaderByChurchId(user.getChurchId());
+            demotedLeader.ifPresent(leader -> leader.updateRole(Role.USER));
+        }
+
+        user.updateRole(newRole);
+
+        return UserRoleUpdateResponse.of(user, demotedLeader.orElse(null));
     }
 }

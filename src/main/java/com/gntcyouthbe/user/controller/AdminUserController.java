@@ -1,9 +1,12 @@
 package com.gntcyouthbe.user.controller;
 
 import com.gntcyouthbe.church.domain.ChurchId;
+import com.gntcyouthbe.user.model.request.UserRoleUpdateRequest;
 import com.gntcyouthbe.user.model.response.AdminUserListResponse;
 import com.gntcyouthbe.user.model.response.ChurchLeaderResponse;
+import com.gntcyouthbe.user.model.response.UserRoleUpdateResponse;
 import com.gntcyouthbe.user.service.AdminUserService;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +14,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,5 +42,13 @@ public class AdminUserController {
     @PreAuthorize("hasAuthority('MASTER')")
     public ResponseEntity<ChurchLeaderResponse> getChurchLeader(@PathVariable ChurchId churchId) {
         return ResponseEntity.ok(adminUserService.getChurchLeader(churchId));
+    }
+
+    @PatchMapping("/users/{userId}/role")
+    @PreAuthorize("hasAuthority('MASTER')")
+    public ResponseEntity<UserRoleUpdateResponse> updateUserRole(
+            @PathVariable Long userId,
+            @Valid @RequestBody UserRoleUpdateRequest request) {
+        return ResponseEntity.ok(adminUserService.updateUserRole(userId, request));
     }
 }

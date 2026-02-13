@@ -1,5 +1,6 @@
 package com.gntcyouthbe.common.exception.handler;
 
+import com.gntcyouthbe.common.exception.BadRequestException;
 import com.gntcyouthbe.common.exception.EntityNotFoundException;
 import com.gntcyouthbe.common.exception.ForbiddenException;
 import com.gntcyouthbe.common.exception.UserNotFoundException;
@@ -53,6 +54,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         log.warn(e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new ExceptionResponse(UNAUTHORIZED.getCode(), UNAUTHORIZED.getMessage()));
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ExceptionResponse> handleBadRequestException(final BadRequestException e) {
+        log.warn(e.getMessage(), e);
+        return ResponseEntity.badRequest()
+                .body(new ExceptionResponse(e.getCode(), e.getMessage()));
     }
 
     @ExceptionHandler(ForbiddenException.class)
