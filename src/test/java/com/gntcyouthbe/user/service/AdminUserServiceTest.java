@@ -12,12 +12,17 @@ import com.gntcyouthbe.church.repository.ChurchRepository;
 import com.gntcyouthbe.common.exception.BadRequestException;
 import com.gntcyouthbe.common.exception.EntityNotFoundException;
 import com.gntcyouthbe.user.domain.AuthProvider;
+import com.gntcyouthbe.user.domain.Gender;
 import com.gntcyouthbe.user.domain.Role;
 import com.gntcyouthbe.user.domain.User;
+import com.gntcyouthbe.user.domain.UserProfile;
 import com.gntcyouthbe.user.model.request.UserRoleUpdateRequest;
+import com.gntcyouthbe.user.model.response.AdminUserListResponse;
+import com.gntcyouthbe.user.model.response.AdminUserResponse;
 import com.gntcyouthbe.user.model.response.UserRoleUpdateResponse;
 import com.gntcyouthbe.user.repository.UserProfileRepository;
 import com.gntcyouthbe.user.repository.UserRepository;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,6 +30,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class AdminUserServiceTest {
@@ -40,6 +48,60 @@ class AdminUserServiceTest {
 
     @InjectMocks
     private AdminUserService adminUserService;
+
+    @Test
+    @DisplayName("사용자 목록 조회 시 userId, churchId, churchName이 포함된다")
+    void getUsers_containsUserIdAndChurchId() {
+        // given
+        User user = createUserWithIdAndChurch(1L, "리더유저", Role.LEADER, ChurchId.ANYANG);
+        UserProfile profile = new UserProfile(user, 45, "01012345678", Gender.MALE);
+
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        given(userRepository.findAllWithChurch(pageRequest))
+                .willReturn(new PageImpl<>(List.of(user), pageRequest, 1));
+        given(userProfileRepository.findByUserIdIn(List.of(1L)))
+                .willReturn(List.of(profile));
+
+        // when
+        AdminUserListResponse response = adminUserService.getUsers(0, 10, null);
+
+        // then
+        assertThat(response.getUsers()).hasSize(1);
+        AdminUserResponse userResponse = response.getUsers().get(0);
+        assertThat(userResponse.getUserId()).isEqualTo(1L);
+        assertThat(userResponse.getName()).isEqualTo("리더유저");
+        assertThat(userResponse.getChurchId()).isEqualTo("ANYANG");
+        assertThat(userResponse.getChurchName()).isEqualTo("안양");
+        assertThat(userResponse.getGeneration()).isEqualTo(45);
+        assertThat(userResponse.getPhoneNumber()).isEqualTo("010-****-5678");
+        assertThat(userResponse.getRole()).isEqualTo("LEADER");
+    }
+
+    @Test
+    @DisplayName("성전이 없는 사용자 조회 시 churchId, churchName이 null이다")
+    void getUsers_noChurch_returnsNullChurchFields() {
+        // given
+        User user = new User("test@example.com", "테스트유저", AuthProvider.KAKAO, "kakao_123");
+        ReflectionTestUtils.setField(user, "id", 2L);
+
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        given(userRepository.findAllWithChurch(pageRequest))
+                .willReturn(new PageImpl<>(List.of(user), pageRequest, 1));
+        given(userProfileRepository.findByUserIdIn(List.of(2L)))
+                .willReturn(List.of());
+
+        // when
+        AdminUserListResponse response = adminUserService.getUsers(0, 10, null);
+
+        // then
+        assertThat(response.getUsers()).hasSize(1);
+        AdminUserResponse userResponse = response.getUsers().get(0);
+        assertThat(userResponse.getUserId()).isEqualTo(2L);
+        assertThat(userResponse.getChurchId()).isNull();
+        assertThat(userResponse.getChurchName()).isNull();
+        assertThat(userResponse.getGeneration()).isNull();
+        assertThat(userResponse.getPhoneNumber()).isNull();
+    }
 
     @Test
     @DisplayName("USER를 LEADER로 변경 성공 - 기존 LEADER 없음")
@@ -153,6 +215,12 @@ class AdminUserServiceTest {
 
         User user = new User("test@example.com", name, AuthProvider.KAKAO, "kakao_123", role);
         user.updateNameAndChurch(name, church);
+        return user;
+    }
+
+    private User createUserWithIdAndChurch(Long id, String name, Role role, ChurchId churchId) {
+        User user = createUserWithChurch(name, role, churchId);
+        ReflectionTestUtils.setField(user, "id", id);
         return user;
     }
 }

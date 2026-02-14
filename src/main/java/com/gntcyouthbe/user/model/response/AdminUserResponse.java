@@ -8,15 +8,19 @@ import lombok.Getter;
 @Getter
 public class AdminUserResponse {
 
+    private final Long userId;
     private final String name;
+    private final String churchId;
     private final String churchName;
     private final Integer generation;
     private final String phoneNumber;
     private final String role;
 
-    private AdminUserResponse(String name, String churchName, Integer generation,
-                              String phoneNumber, String role) {
+    private AdminUserResponse(Long userId, String name, String churchId, String churchName,
+                              Integer generation, String phoneNumber, String role) {
+        this.userId = userId;
         this.name = name;
+        this.churchId = churchId;
         this.churchName = churchName;
         this.generation = generation;
         this.phoneNumber = phoneNumber;
@@ -26,7 +30,9 @@ public class AdminUserResponse {
     public static AdminUserResponse from(User user, UserProfile profile) {
         ChurchId church = user.getChurchId();
         return new AdminUserResponse(
+                user.getId(),
                 user.getName(),
+                church != null ? church.name() : null,
                 church != null ? church.getDisplayName() : null,
                 profile != null ? profile.getGeneration() : null,
                 profile != null ? maskPhoneNumber(profile.getPhoneNumber()) : null,
