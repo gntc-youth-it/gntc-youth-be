@@ -52,7 +52,9 @@ public class AdminUserStepDefs {
 
         // 각 사용자에게 필수 필드가 존재하는지 검증
         for (Map<String, Object> user : users) {
+            assertThat(user).containsKey("userId");
             assertThat(user).containsKey("name");
+            assertThat(user).containsKey("churchId");
             assertThat(user).containsKey("churchName");
             assertThat(user).containsKey("generation");
             assertThat(user).containsKey("phoneNumber");
@@ -72,8 +74,10 @@ public class AdminUserStepDefs {
                 .findFirst()
                 .orElseThrow();
 
+        assertThat(leaderUser.get("userId")).isNotNull();
         assertThat(leaderUser.get("phoneNumber")).isEqualTo("010-****-5678");
         assertThat(leaderUser.get("generation")).isEqualTo(45);
+        assertThat(leaderUser.get("churchId")).isEqualTo("ANYANG");
         assertThat(leaderUser.get("churchName")).isEqualTo("안양");
         assertThat(leaderUser.get("role")).isEqualTo("LEADER");
     }
@@ -92,6 +96,7 @@ public class AdminUserStepDefs {
 
         assertThat(testUser.get("generation")).isNull();
         assertThat(testUser.get("phoneNumber")).isNull();
+        assertThat(testUser.get("churchId")).isNull();
         assertThat(testUser.get("churchName")).isNull();
         assertThat(testUser.get("role")).isEqualTo("USER");
     }
