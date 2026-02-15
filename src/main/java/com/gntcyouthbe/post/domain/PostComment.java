@@ -2,6 +2,7 @@ package com.gntcyouthbe.post.domain;
 
 import com.gntcyouthbe.common.orm.domain.BaseEntity;
 import com.gntcyouthbe.user.domain.User;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
@@ -48,7 +49,7 @@ public class PostComment extends BaseEntity {
             foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private PostComment parent;
 
-    @OneToMany(mappedBy = "parent")
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostComment> children = new ArrayList<>();
 
     public PostComment(Post post, User author, String content, PostComment parent) {
@@ -64,5 +65,10 @@ public class PostComment extends BaseEntity {
 
     public void addReply(PostComment reply) {
         children.add(reply);
+        reply.setParent(this);
+    }
+
+    void setParent(PostComment parent) {
+        this.parent = parent;
     }
 }
