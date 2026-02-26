@@ -1,5 +1,6 @@
 package com.gntcyouthbe.post.domain;
 
+import com.gntcyouthbe.church.domain.ChurchId;
 import com.gntcyouthbe.common.orm.domain.BaseEntity;
 import com.gntcyouthbe.user.domain.User;
 import jakarta.persistence.CascadeType;
@@ -65,6 +66,16 @@ public class Post extends BaseEntity {
     @Column(name = "hashtag", nullable = false, length = 100)
     private List<String> hashtags = new ArrayList<>();
 
+    @ElementCollection
+    @CollectionTable(
+            name = "post_church",
+            joinColumns = @JoinColumn(name = "post_id"),
+            foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT)
+    )
+    @Enumerated(EnumType.STRING)
+    @Column(name = "church_id", nullable = false, length = 30)
+    private List<ChurchId> churches = new ArrayList<>();
+
     public Post(User author, PostSubCategory subCategory, PostStatus status, String content) {
         this.author = author;
         this.subCategory = subCategory;
@@ -87,5 +98,19 @@ public class Post extends BaseEntity {
     public void addImage(PostImage image) {
         images.add(image);
         image.setPost(this);
+    }
+
+    public void updateHashtags(List<String> hashtags) {
+        this.hashtags.clear();
+        if (hashtags != null) {
+            this.hashtags.addAll(hashtags);
+        }
+    }
+
+    public void updateChurches(List<ChurchId> churches) {
+        this.churches.clear();
+        if (churches != null) {
+            this.churches.addAll(churches);
+        }
     }
 }

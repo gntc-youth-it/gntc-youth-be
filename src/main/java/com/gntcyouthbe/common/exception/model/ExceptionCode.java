@@ -39,6 +39,10 @@ public enum ExceptionCode {
     CHURCH_INFO_NOT_FOUND(3101, "해당 성전 정보가 존재하지 않습니다."),
     CHURCH_ACCESS_DENIED(3102, "해당 성전에 대한 수정 권한이 없습니다."),
 
+    // 40xx: 게시글 관련 예외
+    POST_NOT_FOUND(4001, "해당 게시글이 존재하지 않습니다."),
+    POST_ACCESS_DENIED(4002, "해당 게시글에 대한 권한이 없습니다."),
+
     INTERNAL_SERVER_ERROR(9999, "서버에서 알 수 없는 오류가 발생했습니다.");
 
     private final int code;
