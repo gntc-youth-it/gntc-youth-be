@@ -46,7 +46,7 @@ public class PostStepDefs {
 
     @그러면("게시글이 심사대기 상태로 생성된다")
     public void 게시글이_심사대기_상태로_생성된다() {
-        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(world.response.jsonPath().getString("status")).isEqualTo("PENDING_REVIEW");
         assertThat(world.response.jsonPath().getString("content")).isEqualTo("수련회 후기입니다");
         assertThat(world.response.jsonPath().getString("subCategory")).isEqualTo("RETREAT_2026_WINTER");
@@ -63,7 +63,7 @@ public class PostStepDefs {
 
     @그러면("게시글이 승인 상태로 생성된다")
     public void 게시글이_승인_상태로_생성된다() {
-        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(world.response.jsonPath().getString("status")).isEqualTo("APPROVED");
     }
 
@@ -73,15 +73,15 @@ public class PostStepDefs {
                 "subCategory", "RETREAT_2026_WINTER",
                 "content", "안양 수원 합동 수련회",
                 "hashtags", List.of("수련회", "은혜"),
-                "churchIds", List.of("ANYANG", "SUWON")
+                "churches", List.of("ANYANG", "SUWON")
         ));
     }
 
     @그러면("게시글에 성전 태그와 해시태그가 포함되어 있다")
     public void 게시글에_성전_태그와_해시태그가_포함되어_있다() {
-        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(world.response.jsonPath().getList("hashtags")).containsExactly("수련회", "은혜");
-        assertThat(world.response.jsonPath().getList("churchIds")).containsExactly("ANYANG", "SUWON");
+        assertThat(world.response.jsonPath().getList("churches")).containsExactly("ANYANG", "SUWON");
     }
 
     @만일("미인증 사용자가 게시글을 작성한다")

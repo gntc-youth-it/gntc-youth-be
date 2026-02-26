@@ -6,6 +6,7 @@ import com.gntcyouthbe.post.model.response.PostResponse;
 import com.gntcyouthbe.post.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,6 +27,6 @@ public class PostController {
     public ResponseEntity<PostResponse> createPost(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @Valid @RequestBody PostCreateRequest request) {
-        return ResponseEntity.ok(postService.createPost(userPrincipal, request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(postService.createPost(userPrincipal, request));
     }
 }

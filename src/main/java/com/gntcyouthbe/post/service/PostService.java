@@ -34,7 +34,7 @@ public class PostService {
 
         Post post = new Post(author, request.getSubCategory(), status, request.getContent());
         post.updateHashtags(request.getHashtags());
-        post.updateChurches(request.getChurchIds());
+        post.updateChurches(request.getChurches());
 
         postRepository.save(post);
 

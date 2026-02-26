@@ -110,7 +110,7 @@ class PostServiceTest {
 
         // then
         assertThat(response.getHashtags()).containsExactly("수련회", "은혜");
-        assertThat(response.getChurchIds()).containsExactly(ChurchId.ANYANG, ChurchId.SUWON);
+        assertThat(response.getChurches()).containsExactly(ChurchId.ANYANG, ChurchId.SUWON);
     }
 
     private User createUser(Long id, String name, Role role) {

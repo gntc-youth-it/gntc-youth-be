@@ -20,12 +20,12 @@ public class PostResponse {
     private final PostStatus status;
     private final String content;
     private final List<String> hashtags;
-    private final List<ChurchId> churchIds;
+    private final List<ChurchId> churches;
     private final LocalDateTime createdAt;
 
     private PostResponse(Long id, Long authorId, String authorName, PostSubCategory subCategory,
             PostCategory category, PostStatus status, String content,
-            List<String> hashtags, List<ChurchId> churchIds, LocalDateTime createdAt) {
+            List<String> hashtags, List<ChurchId> churches, LocalDateTime createdAt) {
         this.id = id;
         this.authorId = authorId;
         this.authorName = authorName;
@@ -34,7 +34,7 @@ public class PostResponse {
         this.status = status;
         this.content = content;
         this.hashtags = hashtags;
-        this.churchIds = churchIds;
+        this.churches = churches;
         this.createdAt = createdAt;
     }
 
