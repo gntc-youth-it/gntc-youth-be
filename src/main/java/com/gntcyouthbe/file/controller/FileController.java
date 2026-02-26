@@ -20,7 +20,7 @@ public class FileController {
     private final FileService fileService;
 
     @PostMapping("/presigned-url")
-    @PreAuthorize("hasAnyAuthority('LEADER', 'MASTER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<PresignedUrlResponse> generatePresignedUrl(
             @Valid @RequestBody PresignedUrlRequest request) {
         return ResponseEntity.ok(fileService.generatePresignedUrl(request));
