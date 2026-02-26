@@ -23,13 +23,14 @@ public class PostResponse {
     private final List<String> hashtags;
     private final List<ChurchId> churches;
     private final List<ImageResponse> images;
+    private final boolean isAuthorPublic;
     private final long commentCount;
     private final LocalDateTime createdAt;
 
     private PostResponse(Long id, Long authorId, String authorName, PostSubCategory subCategory,
             PostCategory category, PostStatus status, String content,
             List<String> hashtags, List<ChurchId> churches, List<ImageResponse> images,
-            long commentCount, LocalDateTime createdAt) {
+            boolean isAuthorPublic, long commentCount, LocalDateTime createdAt) {
         this.id = id;
         this.authorId = authorId;
         this.authorName = authorName;
@@ -40,6 +41,7 @@ public class PostResponse {
         this.hashtags = hashtags;
         this.churches = churches;
         this.images = images;
+        this.isAuthorPublic = isAuthorPublic;
         this.commentCount = commentCount;
         this.createdAt = createdAt;
     }
@@ -64,6 +66,7 @@ public class PostResponse {
                 post.getHashtags(),
                 post.getChurches(),
                 imageResponses,
+                post.isAuthorPublic(),
                 commentCount,
                 post.getCreatedAt()
         );

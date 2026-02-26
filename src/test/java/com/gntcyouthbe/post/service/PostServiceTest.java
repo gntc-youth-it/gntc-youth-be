@@ -58,7 +58,7 @@ class PostServiceTest {
         User user = createUser(1L, "테스트유저", Role.USER);
         UserPrincipal principal = new UserPrincipal(user);
         PostCreateRequest request = new PostCreateRequest(
-                PostSubCategory.RETREAT_2026_WINTER, "수련회 후기", null, null, null);
+                PostSubCategory.RETREAT_2026_WINTER, "수련회 후기", null, null, null, null);
 
         given(userRepository.findById(1L)).willReturn(Optional.of(user));
         given(postRepository.save(any(Post.class))).willAnswer(invocation -> {
@@ -83,7 +83,7 @@ class PostServiceTest {
         User master = createUser(2L, "마스터유저", Role.MASTER);
         UserPrincipal principal = new UserPrincipal(master);
         PostCreateRequest request = new PostCreateRequest(
-                PostSubCategory.RETREAT_2026_WINTER, "마스터 게시글", null, null, null);
+                PostSubCategory.RETREAT_2026_WINTER, "마스터 게시글", null, null, null, null);
 
         given(userRepository.findById(2L)).willReturn(Optional.of(master));
         given(postRepository.save(any(Post.class))).willAnswer(invocation -> {
@@ -110,7 +110,7 @@ class PostServiceTest {
                 "합동 수련회",
                 List.of("수련회", "은혜"),
                 List.of(ChurchId.ANYANG, ChurchId.SUWON),
-                null);
+                null, null);
 
         given(userRepository.findById(1L)).willReturn(Optional.of(user));
         given(postRepository.save(any(Post.class))).willAnswer(invocation -> {
@@ -135,7 +135,7 @@ class PostServiceTest {
         UserPrincipal principal = new UserPrincipal(user);
         PostCreateRequest request = new PostCreateRequest(
                 PostSubCategory.RETREAT_2026_WINTER, "이미지 게시글", null, null,
-                List.of(10L, 20L));
+                List.of(10L, 20L), null);
 
         UploadedFile file1 = createUploadedFile(10L, "photo1.jpg", "images/photo1.jpg");
         UploadedFile file2 = createUploadedFile(20L, "photo2.jpg", "images/photo2.jpg");
@@ -167,7 +167,7 @@ class PostServiceTest {
         UserPrincipal principal = new UserPrincipal(user);
         PostCreateRequest request = new PostCreateRequest(
                 PostSubCategory.RETREAT_2026_WINTER, "게시글", null, null,
-                List.of(999L));
+                List.of(999L), null);
 
         given(userRepository.findById(1L)).willReturn(Optional.of(user));
         given(uploadedFileRepository.findAllById(List.of(999L))).willReturn(List.of());

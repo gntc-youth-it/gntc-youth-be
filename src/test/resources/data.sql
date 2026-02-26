@@ -68,16 +68,16 @@ INSERT INTO uploaded_file (id, original_filename, stored_filename, file_path, co
 VALUES (904, 'gallery4.jpg', 'stored_gallery4.jpg', 'uploads/gallery4.jpg', 'image/jpeg', 1024, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- Gallery Test: APPROVED post (RETREAT_2026_WINTER, by master user 3)
-INSERT INTO post (id, author_id, sub_category, status, content, created_at, updated_at, created_by, updated_by)
-VALUES (901, 3, 'RETREAT_2026_WINTER', 'APPROVED', '승인된 수련회 게시글', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
+INSERT INTO post (id, author_id, sub_category, status, content, is_author_public, created_at, updated_at, created_by, updated_by)
+VALUES (901, 3, 'RETREAT_2026_WINTER', 'APPROVED', '승인된 수련회 게시글', false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
 
 -- Gallery Test: APPROVED post (NONE, by master user 3)
-INSERT INTO post (id, author_id, sub_category, status, content, created_at, updated_at, created_by, updated_by)
-VALUES (902, 3, 'NONE', 'APPROVED', '승인된 기타 게시글', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
+INSERT INTO post (id, author_id, sub_category, status, content, is_author_public, created_at, updated_at, created_by, updated_by)
+VALUES (902, 3, 'NONE', 'APPROVED', '승인된 기타 게시글', false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
 
 -- Gallery Test: PENDING_REVIEW post (RETREAT_2026_WINTER, by regular user 1)
-INSERT INTO post (id, author_id, sub_category, status, content, created_at, updated_at, created_by, updated_by)
-VALUES (903, 1, 'RETREAT_2026_WINTER', 'PENDING_REVIEW', '검수대기 게시글', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1);
+INSERT INTO post (id, author_id, sub_category, status, content, is_author_public, created_at, updated_at, created_by, updated_by)
+VALUES (903, 1, 'RETREAT_2026_WINTER', 'PENDING_REVIEW', '검수대기 게시글', false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1);
 
 -- Gallery Test: Images for APPROVED post 901 (RETREAT_2026_WINTER)
 INSERT INTO post_image (id, post_id, uploaded_file_id, sort_order, created_at, updated_at, created_by, updated_by)

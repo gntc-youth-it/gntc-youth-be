@@ -88,7 +88,7 @@ class GalleryResponseTest {
         User user = new User("test@test.com", "테스트", AuthProvider.KAKAO, "provider_1");
         ReflectionTestUtils.setField(user, "id", 1L);
 
-        Post post = new Post(user, PostSubCategory.RETREAT_2026_WINTER, PostStatus.APPROVED, "내용");
+        Post post = new Post(user, PostSubCategory.RETREAT_2026_WINTER, PostStatus.APPROVED, "내용", false);
         ReflectionTestUtils.setField(post, "id", 1L);
 
         UploadedFile file = new UploadedFile("original.jpg", "stored.jpg", filePath, "image/jpeg", 1024L);

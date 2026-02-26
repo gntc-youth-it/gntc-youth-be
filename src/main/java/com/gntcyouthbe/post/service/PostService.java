@@ -48,7 +48,8 @@ public class PostService {
                 ? PostStatus.APPROVED
                 : PostStatus.PENDING_REVIEW;
 
-        Post post = new Post(author, request.getSubCategory(), status, request.getContent());
+        boolean isAuthorPublic = request.getIsAuthorPublic() != null && request.getIsAuthorPublic();
+        Post post = new Post(author, request.getSubCategory(), status, request.getContent(), isAuthorPublic);
         post.updateHashtags(request.getHashtags());
         post.updateChurches(request.getChurches());
         addImages(post, request.getImageIds());
