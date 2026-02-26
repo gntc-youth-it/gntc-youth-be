@@ -26,4 +26,14 @@ public class PostApi {
                 .when().post("/posts")
                 .then().extract();
     }
+
+    public ExtractableResponse<Response> getGallery(String subCategory, Long cursor, Integer size) {
+        var request = given();
+        if (subCategory != null) request.queryParam("subCategory", subCategory);
+        if (cursor != null) request.queryParam("cursor", cursor);
+        if (size != null) request.queryParam("size", size);
+        return request
+                .when().get("/posts/gallery")
+                .then().extract();
+    }
 }

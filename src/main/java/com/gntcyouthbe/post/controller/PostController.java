@@ -2,7 +2,9 @@ package com.gntcyouthbe.post.controller;
 
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.post.domain.PostCategory;
+import com.gntcyouthbe.post.domain.PostSubCategory;
 import com.gntcyouthbe.post.model.request.PostCreateRequest;
+import com.gntcyouthbe.post.model.response.GalleryResponse;
 import com.gntcyouthbe.post.model.response.PostCategoryResponse;
 import com.gntcyouthbe.post.model.response.PostResponse;
 import com.gntcyouthbe.post.model.response.PostSubCategoryResponse;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -37,6 +40,17 @@ public class PostController {
     public ResponseEntity<List<PostSubCategoryResponse>> getSubCategories(
             @PathVariable PostCategory category) {
         return ResponseEntity.ok(PostSubCategoryResponse.fromCategory(category));
+    }
+
+    @GetMapping("/gallery")
+    public ResponseEntity<GalleryResponse> getGalleryImages(
+            @RequestParam(required = false) PostSubCategory subCategory,
+            @RequestParam(required = false) Long cursor,
+            @RequestParam(defaultValue = "20") int size) {
+        if (cursor == null) {
+            cursor = Long.MAX_VALUE;
+        }
+        return ResponseEntity.ok(postService.getGalleryImages(subCategory, cursor, size));
     }
 
     @PostMapping
