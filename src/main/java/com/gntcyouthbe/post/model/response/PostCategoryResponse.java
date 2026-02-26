@@ -6,13 +6,16 @@ import java.util.List;
 
 public record PostCategoryResponse(String name, String displayName) {
 
+    private static final List<PostCategoryResponse> ALL_CATEGORIES =
+            Arrays.stream(PostCategory.values())
+                    .map(PostCategoryResponse::from)
+                    .toList();
+
     public static PostCategoryResponse from(PostCategory category) {
         return new PostCategoryResponse(category.name(), category.getDisplayName());
     }
 
     public static List<PostCategoryResponse> fromAll() {
-        return Arrays.stream(PostCategory.values())
-                .map(PostCategoryResponse::from)
-                .toList();
+        return ALL_CATEGORIES;
     }
 }
