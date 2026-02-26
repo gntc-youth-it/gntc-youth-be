@@ -21,6 +21,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.BatchSize;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -55,6 +56,7 @@ public class Post extends BaseEntity {
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sortOrder ASC")
+    @BatchSize(size = 20)
     private List<PostImage> images = new ArrayList<>();
 
     @ElementCollection
@@ -64,6 +66,7 @@ public class Post extends BaseEntity {
             foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT)
     )
     @Column(name = "hashtag", nullable = false, length = 100)
+    @BatchSize(size = 20)
     private List<String> hashtags = new ArrayList<>();
 
     @ElementCollection
@@ -74,6 +77,7 @@ public class Post extends BaseEntity {
     )
     @Enumerated(EnumType.STRING)
     @Column(name = "church_id", nullable = false, length = 30)
+    @BatchSize(size = 20)
     private List<ChurchId> churches = new ArrayList<>();
 
     public Post(User author, PostSubCategory subCategory, PostStatus status, String content) {

@@ -61,8 +61,8 @@ public class PostService {
     @Transactional(readOnly = true)
     public FeedResponse getFeed(PostSubCategory subCategory, Long cursor, int size) {
         List<Post> posts = (subCategory != null)
-                ? postRepository.findFeedBySubCategory(subCategory, cursor, size + 1)
-                : postRepository.findFeed(cursor, size + 1);
+                ? postRepository.findFeedBySubCategory(PostStatus.APPROVED, subCategory, cursor, size + 1)
+                : postRepository.findFeed(PostStatus.APPROVED, cursor, size + 1);
 
         List<Long> postIds = posts.stream().map(Post::getId).toList();
         Map<Long, Long> commentCounts = postCommentRepository.countByPostIds(postIds).stream()
