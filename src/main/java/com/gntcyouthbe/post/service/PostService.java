@@ -96,15 +96,15 @@ public class PostService {
 
     private List<PostImage> findGalleryImages(PostSubCategory subCategory, ChurchId churchId, Long cursor, int size) {
         if (subCategory != null && churchId != null) {
-            return postImageRepository.findGalleryImagesBySubCategoryAndChurch(subCategory, churchId, cursor, size);
+            return postImageRepository.findGalleryImagesBySubCategoryAndChurch(PostStatus.APPROVED, subCategory, churchId, cursor, size);
         }
         if (subCategory != null) {
-            return postImageRepository.findGalleryImagesBySubCategory(subCategory, cursor, size);
+            return postImageRepository.findGalleryImagesBySubCategory(PostStatus.APPROVED, subCategory, cursor, size);
         }
         if (churchId != null) {
-            return postImageRepository.findGalleryImagesByChurch(churchId, cursor, size);
+            return postImageRepository.findGalleryImagesByChurch(PostStatus.APPROVED, churchId, cursor, size);
         }
-        return postImageRepository.findGalleryImages(cursor, size);
+        return postImageRepository.findGalleryImages(PostStatus.APPROVED, cursor, size);
     }
 
     private void addImages(Post post, List<Long> imageIds) {

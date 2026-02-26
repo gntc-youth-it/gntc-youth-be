@@ -192,7 +192,7 @@ class PostServiceTest {
                 createPostImage(3L, "uploads/c.jpg"),
                 createPostImage(2L, "uploads/b.jpg")
         );
-        given(postImageRepository.findGalleryImages(Long.MAX_VALUE, 21))
+        given(postImageRepository.findGalleryImages(PostStatus.APPROVED, Long.MAX_VALUE, 21))
                 .willReturn(postImages);
 
         // when
@@ -212,7 +212,7 @@ class PostServiceTest {
                 createPostImage(1L, "uploads/a.jpg")
         );
         given(postImageRepository.findGalleryImagesBySubCategory(
-                PostSubCategory.RETREAT_2026_WINTER, Long.MAX_VALUE, 21))
+                PostStatus.APPROVED, PostSubCategory.RETREAT_2026_WINTER, Long.MAX_VALUE, 21))
                 .willReturn(postImages);
 
         // when
@@ -232,7 +232,7 @@ class PostServiceTest {
                 createPostImage(2L, "uploads/b.jpg")
         );
         given(postImageRepository.findGalleryImagesByChurch(
-                ChurchId.ANYANG, Long.MAX_VALUE, 21))
+                PostStatus.APPROVED, ChurchId.ANYANG, Long.MAX_VALUE, 21))
                 .willReturn(postImages);
 
         // when
@@ -252,7 +252,7 @@ class PostServiceTest {
                 createPostImage(1L, "uploads/a.jpg")
         );
         given(postImageRepository.findGalleryImagesBySubCategoryAndChurch(
-                PostSubCategory.RETREAT_2026_WINTER, ChurchId.ANYANG, Long.MAX_VALUE, 21))
+                PostStatus.APPROVED, PostSubCategory.RETREAT_2026_WINTER, ChurchId.ANYANG, Long.MAX_VALUE, 21))
                 .willReturn(postImages);
 
         // when
@@ -273,7 +273,7 @@ class PostServiceTest {
                 createPostImage(2L, "uploads/b.jpg"),
                 createPostImage(1L, "uploads/a.jpg")
         );
-        given(postImageRepository.findGalleryImages(Long.MAX_VALUE, 3))
+        given(postImageRepository.findGalleryImages(PostStatus.APPROVED, Long.MAX_VALUE, 3))
                 .willReturn(postImages);
 
         // when
