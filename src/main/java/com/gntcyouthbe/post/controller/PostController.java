@@ -1,5 +1,6 @@
 package com.gntcyouthbe.post.controller;
 
+import com.gntcyouthbe.church.domain.ChurchId;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.post.domain.PostCategory;
 import com.gntcyouthbe.post.domain.PostSubCategory;
@@ -46,23 +47,25 @@ public class PostController {
     @GetMapping("/feed")
     public ResponseEntity<FeedResponse> getFeed(
             @RequestParam(required = false) PostSubCategory subCategory,
+            @RequestParam(required = false) ChurchId churchId,
             @RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "4") int size) {
         if (cursor == null) {
             cursor = Long.MAX_VALUE;
         }
-        return ResponseEntity.ok(postService.getFeed(subCategory, cursor, size));
+        return ResponseEntity.ok(postService.getFeed(subCategory, churchId, cursor, size));
     }
 
     @GetMapping("/gallery")
     public ResponseEntity<GalleryResponse> getGalleryImages(
             @RequestParam(required = false) PostSubCategory subCategory,
+            @RequestParam(required = false) ChurchId churchId,
             @RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "20") int size) {
         if (cursor == null) {
             cursor = Long.MAX_VALUE;
         }
-        return ResponseEntity.ok(postService.getGalleryImages(subCategory, cursor, size));
+        return ResponseEntity.ok(postService.getGalleryImages(subCategory, churchId, cursor, size));
     }
 
     @PostMapping

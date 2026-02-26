@@ -1,5 +1,6 @@
 package com.gntcyouthbe.post.repository;
 
+import com.gntcyouthbe.church.domain.ChurchId;
 import com.gntcyouthbe.post.domain.Post;
 import com.gntcyouthbe.post.domain.PostStatus;
 import com.gntcyouthbe.post.domain.PostSubCategory;
@@ -32,5 +33,33 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             """)
     List<Post> findFeedBySubCategory(@Param("status") PostStatus status,
             @Param("subCategory") PostSubCategory subCategory,
+            @Param("cursor") Long cursor, @Param("size") int size);
+
+    @Query("""
+            SELECT p FROM Post p
+            JOIN FETCH p.author
+            WHERE p.status = :status
+            AND :churchId MEMBER OF p.churches
+            AND p.id < :cursor
+            ORDER BY p.id DESC
+            LIMIT :size
+            """)
+    List<Post> findFeedByChurch(@Param("status") PostStatus status,
+            @Param("churchId") ChurchId churchId,
+            @Param("cursor") Long cursor, @Param("size") int size);
+
+    @Query("""
+            SELECT p FROM Post p
+            JOIN FETCH p.author
+            WHERE p.status = :status
+            AND p.subCategory = :subCategory
+            AND :churchId MEMBER OF p.churches
+            AND p.id < :cursor
+            ORDER BY p.id DESC
+            LIMIT :size
+            """)
+    List<Post> findFeedBySubCategoryAndChurch(@Param("status") PostStatus status,
+            @Param("subCategory") PostSubCategory subCategory,
+            @Param("churchId") ChurchId churchId,
             @Param("cursor") Long cursor, @Param("size") int size);
 }

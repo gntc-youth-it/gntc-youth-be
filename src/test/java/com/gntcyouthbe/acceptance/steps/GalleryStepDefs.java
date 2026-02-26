@@ -21,7 +21,7 @@ public class GalleryStepDefs {
 
     @만일("갤러리를 조회한다")
     public void 갤러리를_조회한다() {
-        world.response = postApi.getGallery(null, null, null);
+        world.response = postApi.getGallery(null, null, null, null);
     }
 
     @그러면("승인된 게시글의 이미지만 반환된다")
@@ -37,7 +37,7 @@ public class GalleryStepDefs {
 
     @만일("소분류 {string}로 갤러리를 조회한다")
     public void 소분류로_갤러리를_조회한다(String subCategory) {
-        world.response = postApi.getGallery(subCategory, null, null);
+        world.response = postApi.getGallery(subCategory, null, null, null);
     }
 
     @그러면("해당 소분류의 이미지만 반환된다")
@@ -53,9 +53,25 @@ public class GalleryStepDefs {
         assertThat(imageIds).doesNotContain(904L);
     }
 
+    @만일("성전 {string}으로 갤러리를 조회한다")
+    public void 성전으로_갤러리를_조회한다(String churchId) {
+        world.response = postApi.getGallery(null, churchId, null, null);
+    }
+
+    @그러면("해당 성전의 이미지만 반환된다")
+    public void 해당_성전의_이미지만_반환된다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
+
+        List<Long> imageIds = world.response.jsonPath().getList("images.id", Long.class);
+        // ANYANG 성전 태그된 post 901의 이미지만 포함 (901, 902)
+        assertThat(imageIds).contains(901L, 902L);
+        // SUWON 성전 태그된 post 902의 이미지 (903)는 미포함
+        assertThat(imageIds).doesNotContain(903L);
+    }
+
     @만일("size {int}로 갤러리를 조회한다")
     public void size로_갤러리를_조회한다(int size) {
-        world.response = postApi.getGallery(null, null, size);
+        world.response = postApi.getGallery(null, null, null, size);
     }
 
     @그러면("{int}개의 이미지와 다음 페이지 정보가 반환된다")
@@ -69,7 +85,7 @@ public class GalleryStepDefs {
     @만일("다음 커서로 갤러리를 조회한다")
     public void 다음_커서로_갤러리를_조회한다() {
         Long nextCursor = world.response.jsonPath().getLong("nextCursor");
-        world.response = postApi.getGallery(null, nextCursor, 1);
+        world.response = postApi.getGallery(null, null, nextCursor, 1);
     }
 
     @그러면("다음 이미지가 반환된다")

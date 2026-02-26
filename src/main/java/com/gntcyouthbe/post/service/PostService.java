@@ -1,5 +1,6 @@
 package com.gntcyouthbe.post.service;
 
+import com.gntcyouthbe.church.domain.ChurchId;
 import com.gntcyouthbe.common.exception.EntityNotFoundException;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.file.domain.UploadedFile;
@@ -60,10 +61,8 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public FeedResponse getFeed(PostSubCategory subCategory, Long cursor, int size) {
-        List<Post> posts = (subCategory != null)
-                ? postRepository.findFeedBySubCategory(PostStatus.APPROVED, subCategory, cursor, size + 1)
-                : postRepository.findFeed(PostStatus.APPROVED, cursor, size + 1);
+    public FeedResponse getFeed(PostSubCategory subCategory, ChurchId churchId, Long cursor, int size) {
+        List<Post> posts = findFeedPosts(subCategory, churchId, cursor, size + 1);
 
         List<Long> postIds = posts.stream().map(Post::getId).toList();
         Map<Long, Long> commentCounts = postCommentRepository.countByPostIds(postIds).stream()
@@ -76,12 +75,36 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public GalleryResponse getGalleryImages(PostSubCategory subCategory, Long cursor, int size) {
-        List<PostImage> postImages = (subCategory != null)
-                ? postImageRepository.findGalleryImagesBySubCategory(subCategory, cursor, size + 1)
-                : postImageRepository.findGalleryImages(cursor, size + 1);
+    public GalleryResponse getGalleryImages(PostSubCategory subCategory, ChurchId churchId, Long cursor, int size) {
+        List<PostImage> postImages = findGalleryImages(subCategory, churchId, cursor, size + 1);
 
         return GalleryResponse.of(postImages, size);
+    }
+
+    private List<Post> findFeedPosts(PostSubCategory subCategory, ChurchId churchId, Long cursor, int size) {
+        if (subCategory != null && churchId != null) {
+            return postRepository.findFeedBySubCategoryAndChurch(PostStatus.APPROVED, subCategory, churchId, cursor, size);
+        }
+        if (subCategory != null) {
+            return postRepository.findFeedBySubCategory(PostStatus.APPROVED, subCategory, cursor, size);
+        }
+        if (churchId != null) {
+            return postRepository.findFeedByChurch(PostStatus.APPROVED, churchId, cursor, size);
+        }
+        return postRepository.findFeed(PostStatus.APPROVED, cursor, size);
+    }
+
+    private List<PostImage> findGalleryImages(PostSubCategory subCategory, ChurchId churchId, Long cursor, int size) {
+        if (subCategory != null && churchId != null) {
+            return postImageRepository.findGalleryImagesBySubCategoryAndChurch(PostStatus.APPROVED, subCategory, churchId, cursor, size);
+        }
+        if (subCategory != null) {
+            return postImageRepository.findGalleryImagesBySubCategory(PostStatus.APPROVED, subCategory, cursor, size);
+        }
+        if (churchId != null) {
+            return postImageRepository.findGalleryImagesByChurch(PostStatus.APPROVED, churchId, cursor, size);
+        }
+        return postImageRepository.findGalleryImages(PostStatus.APPROVED, cursor, size);
     }
 
     private void addImages(Post post, List<Long> imageIds) {

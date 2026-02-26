@@ -1,6 +1,8 @@
 package com.gntcyouthbe.post.repository;
 
+import com.gntcyouthbe.church.domain.ChurchId;
 import com.gntcyouthbe.post.domain.PostImage;
+import com.gntcyouthbe.post.domain.PostStatus;
 import com.gntcyouthbe.post.domain.PostSubCategory;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,24 +14,55 @@ public interface PostImageRepository extends JpaRepository<PostImage, Long> {
     @Query("""
             SELECT pi FROM PostImage pi
             JOIN FETCH pi.uploadedFile
-            WHERE pi.post.status = 'APPROVED'
+            WHERE pi.post.status = :status
             AND pi.id < :cursor
             ORDER BY pi.id DESC
             LIMIT :size
             """)
-    List<PostImage> findGalleryImages(@Param("cursor") Long cursor, @Param("size") int size);
+    List<PostImage> findGalleryImages(@Param("status") PostStatus status,
+            @Param("cursor") Long cursor, @Param("size") int size);
 
     @Query("""
             SELECT pi FROM PostImage pi
             JOIN FETCH pi.uploadedFile
-            WHERE pi.post.status = 'APPROVED'
+            WHERE pi.post.status = :status
             AND pi.post.subCategory = :subCategory
             AND pi.id < :cursor
             ORDER BY pi.id DESC
             LIMIT :size
             """)
-    List<PostImage> findGalleryImagesBySubCategory(
+    List<PostImage> findGalleryImagesBySubCategory(@Param("status") PostStatus status,
             @Param("subCategory") PostSubCategory subCategory,
+            @Param("cursor") Long cursor,
+            @Param("size") int size);
+
+    @Query("""
+            SELECT pi FROM PostImage pi
+            JOIN FETCH pi.uploadedFile
+            WHERE pi.post.status = :status
+            AND :churchId MEMBER OF pi.post.churches
+            AND pi.id < :cursor
+            ORDER BY pi.id DESC
+            LIMIT :size
+            """)
+    List<PostImage> findGalleryImagesByChurch(@Param("status") PostStatus status,
+            @Param("churchId") ChurchId churchId,
+            @Param("cursor") Long cursor,
+            @Param("size") int size);
+
+    @Query("""
+            SELECT pi FROM PostImage pi
+            JOIN FETCH pi.uploadedFile
+            WHERE pi.post.status = :status
+            AND pi.post.subCategory = :subCategory
+            AND :churchId MEMBER OF pi.post.churches
+            AND pi.id < :cursor
+            ORDER BY pi.id DESC
+            LIMIT :size
+            """)
+    List<PostImage> findGalleryImagesBySubCategoryAndChurch(@Param("status") PostStatus status,
+            @Param("subCategory") PostSubCategory subCategory,
+            @Param("churchId") ChurchId churchId,
             @Param("cursor") Long cursor,
             @Param("size") int size);
 }

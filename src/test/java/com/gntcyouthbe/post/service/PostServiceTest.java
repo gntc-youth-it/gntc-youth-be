@@ -15,8 +15,10 @@ import com.gntcyouthbe.post.domain.PostImage;
 import com.gntcyouthbe.post.domain.PostStatus;
 import com.gntcyouthbe.post.domain.PostSubCategory;
 import com.gntcyouthbe.post.model.request.PostCreateRequest;
+import com.gntcyouthbe.post.model.response.FeedResponse;
 import com.gntcyouthbe.post.model.response.GalleryResponse;
 import com.gntcyouthbe.post.model.response.PostResponse;
+import com.gntcyouthbe.post.repository.PostCommentRepository;
 import com.gntcyouthbe.post.repository.PostImageRepository;
 import com.gntcyouthbe.post.repository.PostRepository;
 import com.gntcyouthbe.user.domain.AuthProvider;
@@ -38,6 +40,9 @@ class PostServiceTest {
 
     @Mock
     private PostRepository postRepository;
+
+    @Mock
+    private PostCommentRepository postCommentRepository;
 
     @Mock
     private PostImageRepository postImageRepository;
@@ -177,6 +182,8 @@ class PostServiceTest {
                 .isInstanceOf(EntityNotFoundException.class);
     }
 
+    // --- 갤러리 조회 테스트 ---
+
     @Test
     @DisplayName("소분류 없이 갤러리를 조회하면 전체 승인된 이미지가 반환된다")
     void getGalleryImages_withoutSubCategory() {
@@ -185,11 +192,11 @@ class PostServiceTest {
                 createPostImage(3L, "uploads/c.jpg"),
                 createPostImage(2L, "uploads/b.jpg")
         );
-        given(postImageRepository.findGalleryImages(Long.MAX_VALUE, 21))
+        given(postImageRepository.findGalleryImages(PostStatus.APPROVED, Long.MAX_VALUE, 21))
                 .willReturn(postImages);
 
         // when
-        GalleryResponse response = postService.getGalleryImages(null, Long.MAX_VALUE, 20);
+        GalleryResponse response = postService.getGalleryImages(null, null, Long.MAX_VALUE, 20);
 
         // then
         assertThat(response.getImages()).hasSize(2);
@@ -205,15 +212,55 @@ class PostServiceTest {
                 createPostImage(1L, "uploads/a.jpg")
         );
         given(postImageRepository.findGalleryImagesBySubCategory(
-                PostSubCategory.RETREAT_2026_WINTER, Long.MAX_VALUE, 21))
+                PostStatus.APPROVED, PostSubCategory.RETREAT_2026_WINTER, Long.MAX_VALUE, 21))
                 .willReturn(postImages);
 
         // when
         GalleryResponse response = postService.getGalleryImages(
-                PostSubCategory.RETREAT_2026_WINTER, Long.MAX_VALUE, 20);
+                PostSubCategory.RETREAT_2026_WINTER, null, Long.MAX_VALUE, 20);
 
         // then
         assertThat(response.getImages()).hasSize(2);
+        assertThat(response.isHasNext()).isFalse();
+    }
+
+    @Test
+    @DisplayName("성전을 지정하면 해당 성전의 승인된 이미지만 반환된다")
+    void getGalleryImages_withChurchId() {
+        // given
+        List<PostImage> postImages = List.of(
+                createPostImage(2L, "uploads/b.jpg")
+        );
+        given(postImageRepository.findGalleryImagesByChurch(
+                PostStatus.APPROVED, ChurchId.ANYANG, Long.MAX_VALUE, 21))
+                .willReturn(postImages);
+
+        // when
+        GalleryResponse response = postService.getGalleryImages(
+                null, ChurchId.ANYANG, Long.MAX_VALUE, 20);
+
+        // then
+        assertThat(response.getImages()).hasSize(1);
+        assertThat(response.isHasNext()).isFalse();
+    }
+
+    @Test
+    @DisplayName("소분류와 성전을 동시에 지정하면 두 조건 모두 만족하는 이미지가 반환된다")
+    void getGalleryImages_withSubCategoryAndChurchId() {
+        // given
+        List<PostImage> postImages = List.of(
+                createPostImage(1L, "uploads/a.jpg")
+        );
+        given(postImageRepository.findGalleryImagesBySubCategoryAndChurch(
+                PostStatus.APPROVED, PostSubCategory.RETREAT_2026_WINTER, ChurchId.ANYANG, Long.MAX_VALUE, 21))
+                .willReturn(postImages);
+
+        // when
+        GalleryResponse response = postService.getGalleryImages(
+                PostSubCategory.RETREAT_2026_WINTER, ChurchId.ANYANG, Long.MAX_VALUE, 20);
+
+        // then
+        assertThat(response.getImages()).hasSize(1);
         assertThat(response.isHasNext()).isFalse();
     }
 
@@ -226,16 +273,104 @@ class PostServiceTest {
                 createPostImage(2L, "uploads/b.jpg"),
                 createPostImage(1L, "uploads/a.jpg")
         );
-        given(postImageRepository.findGalleryImages(Long.MAX_VALUE, 3))
+        given(postImageRepository.findGalleryImages(PostStatus.APPROVED, Long.MAX_VALUE, 3))
                 .willReturn(postImages);
 
         // when
-        GalleryResponse response = postService.getGalleryImages(null, Long.MAX_VALUE, 2);
+        GalleryResponse response = postService.getGalleryImages(null, null, Long.MAX_VALUE, 2);
 
         // then
         assertThat(response.getImages()).hasSize(2);
         assertThat(response.isHasNext()).isTrue();
         assertThat(response.getNextCursor()).isEqualTo(2L);
+    }
+
+    // --- 피드 조회 테스트 ---
+
+    @Test
+    @DisplayName("필터 없이 피드를 조회하면 전체 승인된 게시글이 반환된다")
+    void getFeed_withoutFilter() {
+        // given
+        User author = createUser(1L, "작성자", Role.MASTER);
+        Post post1 = createPost(10L, author, PostSubCategory.RETREAT_2026_WINTER);
+        Post post2 = createPost(9L, author, PostSubCategory.NONE);
+
+        given(postRepository.findFeed(PostStatus.APPROVED, Long.MAX_VALUE, 5))
+                .willReturn(List.of(post1, post2));
+        given(postCommentRepository.countByPostIds(List.of(10L, 9L)))
+                .willReturn(List.of());
+
+        // when
+        FeedResponse response = postService.getFeed(null, null, Long.MAX_VALUE, 4);
+
+        // then
+        assertThat(response.getPosts()).hasSize(2);
+        assertThat(response.isHasNext()).isFalse();
+    }
+
+    @Test
+    @DisplayName("성전을 지정하면 해당 성전의 게시글만 반환된다")
+    void getFeed_withChurchId() {
+        // given
+        User author = createUser(1L, "작성자", Role.MASTER);
+        Post post = createPost(10L, author, PostSubCategory.RETREAT_2026_WINTER);
+
+        given(postRepository.findFeedByChurch(PostStatus.APPROVED, ChurchId.ANYANG, Long.MAX_VALUE, 5))
+                .willReturn(List.of(post));
+        given(postCommentRepository.countByPostIds(List.of(10L)))
+                .willReturn(List.of());
+
+        // when
+        FeedResponse response = postService.getFeed(null, ChurchId.ANYANG, Long.MAX_VALUE, 4);
+
+        // then
+        assertThat(response.getPosts()).hasSize(1);
+        assertThat(response.isHasNext()).isFalse();
+    }
+
+    @Test
+    @DisplayName("소분류와 성전을 동시에 지정하면 두 조건 모두 만족하는 게시글이 반환된다")
+    void getFeed_withSubCategoryAndChurchId() {
+        // given
+        User author = createUser(1L, "작성자", Role.MASTER);
+        Post post = createPost(10L, author, PostSubCategory.RETREAT_2026_WINTER);
+
+        given(postRepository.findFeedBySubCategoryAndChurch(
+                PostStatus.APPROVED, PostSubCategory.RETREAT_2026_WINTER, ChurchId.ANYANG, Long.MAX_VALUE, 5))
+                .willReturn(List.of(post));
+        given(postCommentRepository.countByPostIds(List.of(10L)))
+                .willReturn(List.of());
+
+        // when
+        FeedResponse response = postService.getFeed(
+                PostSubCategory.RETREAT_2026_WINTER, ChurchId.ANYANG, Long.MAX_VALUE, 4);
+
+        // then
+        assertThat(response.getPosts()).hasSize(1);
+        assertThat(response.isHasNext()).isFalse();
+    }
+
+    @Test
+    @DisplayName("피드 결과가 size보다 많으면 hasNext가 true이다")
+    void getFeed_hasNextTrue() {
+        // given
+        User author = createUser(1L, "작성자", Role.MASTER);
+        Post post1 = createPost(10L, author, PostSubCategory.RETREAT_2026_WINTER);
+        Post post2 = createPost(9L, author, PostSubCategory.NONE);
+        Post post3 = createPost(8L, author, PostSubCategory.NONE);
+
+        given(postRepository.findFeed(PostStatus.APPROVED, Long.MAX_VALUE, 3))
+                .willReturn(List.of(post1, post2, post3));
+        given(postCommentRepository.countByPostIds(List.of(10L, 9L, 8L)))
+                .willReturn(List.of());
+
+        // when
+        FeedResponse response = postService.getFeed(null, null, Long.MAX_VALUE, 2);
+
+        // then
+        assertThat(response.getPosts()).hasSize(2);
+        assertThat(response.isHasNext()).isTrue();
+        assertThat(response.getNextCursor()).isEqualTo(9L);
     }
 
     private User createUser(Long id, String name, Role role) {
@@ -257,5 +392,11 @@ class PostServiceTest {
         PostImage postImage = new PostImage(file, 1);
         ReflectionTestUtils.setField(postImage, "id", id);
         return postImage;
+    }
+
+    private Post createPost(Long id, User author, PostSubCategory subCategory) {
+        Post post = new Post(author, subCategory, PostStatus.APPROVED, "테스트 게시글", false);
+        ReflectionTestUtils.setField(post, "id", id);
+        return post;
     }
 }
