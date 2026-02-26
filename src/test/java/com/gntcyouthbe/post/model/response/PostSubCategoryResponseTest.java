@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.gntcyouthbe.post.domain.PostCategory;
 import com.gntcyouthbe.post.domain.PostSubCategory;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,15 +55,13 @@ class PostSubCategoryResponseTest {
         });
 
         // 시작일 기준 내림차순 정렬 검증
-        for (int i = 0; i < responses.size() - 1; i++) {
-            assertThat(responses.get(i).startDate())
-                    .isAfterOrEqualTo(responses.get(i + 1).startDate());
-        }
+        assertThat(responses).isSortedAccordingTo(
+                Comparator.comparing(PostSubCategoryResponse::startDate).reversed());
     }
 
     @Test
-    @DisplayName("존재하지 않는 카테고리를 조회하면 빈 목록이 반환된다")
-    void fromCategory_nonExistent_returnsEmptyList() {
+    @DisplayName("NONE 카테고리를 조회하면 NONE 세부 카테고리가 포함된 목록이 반환된다")
+    void fromCategory_none_returnsNoneSubCategoryList() {
         // when
         List<PostSubCategoryResponse> responses = PostSubCategoryResponse.fromCategory(PostCategory.NONE);
 
