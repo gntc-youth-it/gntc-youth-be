@@ -1,5 +1,6 @@
 package com.gntcyouthbe.post.repository;
 
+import com.gntcyouthbe.church.domain.ChurchId;
 import com.gntcyouthbe.post.domain.PostImage;
 import com.gntcyouthbe.post.domain.PostSubCategory;
 import java.util.List;
@@ -30,6 +31,36 @@ public interface PostImageRepository extends JpaRepository<PostImage, Long> {
             """)
     List<PostImage> findGalleryImagesBySubCategory(
             @Param("subCategory") PostSubCategory subCategory,
+            @Param("cursor") Long cursor,
+            @Param("size") int size);
+
+    @Query("""
+            SELECT pi FROM PostImage pi
+            JOIN FETCH pi.uploadedFile
+            WHERE pi.post.status = 'APPROVED'
+            AND :churchId MEMBER OF pi.post.churches
+            AND pi.id < :cursor
+            ORDER BY pi.id DESC
+            LIMIT :size
+            """)
+    List<PostImage> findGalleryImagesByChurch(
+            @Param("churchId") ChurchId churchId,
+            @Param("cursor") Long cursor,
+            @Param("size") int size);
+
+    @Query("""
+            SELECT pi FROM PostImage pi
+            JOIN FETCH pi.uploadedFile
+            WHERE pi.post.status = 'APPROVED'
+            AND pi.post.subCategory = :subCategory
+            AND :churchId MEMBER OF pi.post.churches
+            AND pi.id < :cursor
+            ORDER BY pi.id DESC
+            LIMIT :size
+            """)
+    List<PostImage> findGalleryImagesBySubCategoryAndChurch(
+            @Param("subCategory") PostSubCategory subCategory,
+            @Param("churchId") ChurchId churchId,
             @Param("cursor") Long cursor,
             @Param("size") int size);
 }

@@ -33,13 +33,27 @@ public class PostApi {
                 .then().extract();
     }
 
-    public ExtractableResponse<Response> getGallery(String subCategory, Long cursor, Integer size) {
+    public ExtractableResponse<Response> getGallery(String subCategory, String churchId, Long cursor,
+            Integer size) {
         var request = given();
         if (subCategory != null) request.queryParam("subCategory", subCategory);
+        if (churchId != null) request.queryParam("churchId", churchId);
         if (cursor != null) request.queryParam("cursor", cursor);
         if (size != null) request.queryParam("size", size);
         return request
                 .when().get("/posts/gallery")
+                .then().extract();
+    }
+
+    public ExtractableResponse<Response> getFeed(String subCategory, String churchId, Long cursor,
+            Integer size) {
+        var request = given();
+        if (subCategory != null) request.queryParam("subCategory", subCategory);
+        if (churchId != null) request.queryParam("churchId", churchId);
+        if (cursor != null) request.queryParam("cursor", cursor);
+        if (size != null) request.queryParam("size", size);
+        return request
+                .when().get("/posts/feed")
                 .then().extract();
     }
 }

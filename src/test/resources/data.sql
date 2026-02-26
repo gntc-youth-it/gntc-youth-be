@@ -93,3 +93,7 @@ VALUES (903, 902, 903, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
 -- Gallery Test: Image for PENDING_REVIEW post 903 (should NOT appear in gallery)
 INSERT INTO post_image (id, post_id, uploaded_file_id, sort_order, created_at, updated_at, created_by, updated_by)
 VALUES (904, 903, 904, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1);
+
+-- Church Tag: post 901 -> ANYANG, post 902 -> SUWON
+INSERT INTO post_church (post_id, church_id) VALUES (901, 'ANYANG');
+INSERT INTO post_church (post_id, church_id) VALUES (902, 'SUWON');
