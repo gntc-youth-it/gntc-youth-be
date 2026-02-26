@@ -14,6 +14,9 @@ import com.gntcyouthbe.user.domain.Role;
 import com.gntcyouthbe.user.domain.User;
 import com.gntcyouthbe.user.repository.UserRepository;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,10 +55,16 @@ public class PostService {
         if (imageIds == null || imageIds.isEmpty()) {
             return;
         }
+        List<UploadedFile> files = uploadedFileRepository.findAllById(imageIds);
+        if (files.size() != imageIds.stream().distinct().count()) {
+            throw new EntityNotFoundException(FILE_NOT_FOUND);
+        }
+
+        Map<Long, UploadedFile> fileMap = files.stream()
+                .collect(Collectors.toMap(UploadedFile::getId, Function.identity()));
+
         for (int i = 0; i < imageIds.size(); i++) {
-            UploadedFile file = uploadedFileRepository.findById(imageIds.get(i))
-                    .orElseThrow(() -> new EntityNotFoundException(FILE_NOT_FOUND));
-            post.addImage(new PostImage(file, i + 1));
+            post.addImage(new PostImage(fileMap.get(imageIds.get(i)), i + 1));
         }
     }
 }

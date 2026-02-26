@@ -135,8 +135,7 @@ class PostServiceTest {
         UploadedFile file2 = createUploadedFile(20L, "photo2.jpg", "images/photo2.jpg");
 
         given(userRepository.findById(1L)).willReturn(Optional.of(user));
-        given(uploadedFileRepository.findById(10L)).willReturn(Optional.of(file1));
-        given(uploadedFileRepository.findById(20L)).willReturn(Optional.of(file2));
+        given(uploadedFileRepository.findAllById(List.of(10L, 20L))).willReturn(List.of(file1, file2));
         given(postRepository.save(any(Post.class))).willAnswer(invocation -> {
             Post post = invocation.getArgument(0);
             ReflectionTestUtils.setField(post, "id", 1L);
@@ -165,7 +164,7 @@ class PostServiceTest {
                 List.of(999L));
 
         given(userRepository.findById(1L)).willReturn(Optional.of(user));
-        given(uploadedFileRepository.findById(999L)).willReturn(Optional.empty());
+        given(uploadedFileRepository.findAllById(List.of(999L))).willReturn(List.of());
 
         // when & then
         assertThatThrownBy(() -> postService.createPost(principal, request))
