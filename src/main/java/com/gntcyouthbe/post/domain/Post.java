@@ -51,6 +51,9 @@ public class Post extends BaseEntity {
     @Column(nullable = false, length = 20)
     private PostStatus status;
 
+    @Column(nullable = false)
+    private boolean isAuthorPublic = false;
+
     @Column(columnDefinition = "TEXT")
     private String content;
 
@@ -80,11 +83,12 @@ public class Post extends BaseEntity {
     @BatchSize(size = 20)
     private List<ChurchId> churches = new ArrayList<>();
 
-    public Post(User author, PostSubCategory subCategory, PostStatus status, String content) {
+    public Post(User author, PostSubCategory subCategory, PostStatus status, String content, boolean isAuthorPublic) {
         this.author = author;
         this.subCategory = subCategory;
         this.status = status;
         this.content = content;
+        this.isAuthorPublic = isAuthorPublic;
     }
 
     public PostCategory getCategory() {

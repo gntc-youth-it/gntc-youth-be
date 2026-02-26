@@ -23,4 +23,6 @@ public class PostCreateRequest {
     private List<ChurchId> churches;
 
     private List<Long> imageIds;
+
+    private Boolean isAuthorPublic;
 }
