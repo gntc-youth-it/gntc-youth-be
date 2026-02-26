@@ -6,7 +6,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum PostCategory {
-    RETREAT("수련회");
+    RETREAT("수련회"),
+    NONE("기타");
 
     private final String displayName;
 }
