@@ -21,4 +21,6 @@ public class PostCreateRequest {
     private List<String> hashtags;
 
     private List<ChurchId> churches;
+
+    private List<Long> imageIds;
 }
