@@ -4,6 +4,7 @@ import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.post.domain.PostCategory;
 import com.gntcyouthbe.post.domain.PostSubCategory;
 import com.gntcyouthbe.post.model.request.PostCreateRequest;
+import com.gntcyouthbe.post.model.response.FeedResponse;
 import com.gntcyouthbe.post.model.response.GalleryResponse;
 import com.gntcyouthbe.post.model.response.PostCategoryResponse;
 import com.gntcyouthbe.post.model.response.PostResponse;
@@ -40,6 +41,17 @@ public class PostController {
     public ResponseEntity<List<PostSubCategoryResponse>> getSubCategories(
             @PathVariable PostCategory category) {
         return ResponseEntity.ok(PostSubCategoryResponse.fromCategory(category));
+    }
+
+    @GetMapping("/feed")
+    public ResponseEntity<FeedResponse> getFeed(
+            @RequestParam(required = false) PostSubCategory subCategory,
+            @RequestParam(required = false) Long cursor,
+            @RequestParam(defaultValue = "4") int size) {
+        if (cursor == null) {
+            cursor = Long.MAX_VALUE;
+        }
+        return ResponseEntity.ok(postService.getFeed(subCategory, cursor, size));
     }
 
     @GetMapping("/gallery")
