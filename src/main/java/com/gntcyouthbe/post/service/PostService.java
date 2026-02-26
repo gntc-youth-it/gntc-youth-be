@@ -9,8 +9,10 @@ import com.gntcyouthbe.post.domain.PostImage;
 import com.gntcyouthbe.post.domain.PostStatus;
 import com.gntcyouthbe.post.domain.PostSubCategory;
 import com.gntcyouthbe.post.model.request.PostCreateRequest;
+import com.gntcyouthbe.post.model.response.FeedResponse;
 import com.gntcyouthbe.post.model.response.GalleryResponse;
 import com.gntcyouthbe.post.model.response.PostResponse;
+import com.gntcyouthbe.post.repository.PostCommentRepository;
 import com.gntcyouthbe.post.repository.PostImageRepository;
 import com.gntcyouthbe.post.repository.PostRepository;
 import com.gntcyouthbe.user.domain.Role;
@@ -32,6 +34,7 @@ import static com.gntcyouthbe.common.exception.model.ExceptionCode.USER_NOT_FOUN
 public class PostService {
 
     private final PostRepository postRepository;
+    private final PostCommentRepository postCommentRepository;
     private final PostImageRepository postImageRepository;
     private final UserRepository userRepository;
     private final UploadedFileRepository uploadedFileRepository;
@@ -53,6 +56,22 @@ public class PostService {
         postRepository.save(post);
 
         return PostResponse.from(post);
+    }
+
+    @Transactional(readOnly = true)
+    public FeedResponse getFeed(PostSubCategory subCategory, Long cursor, int size) {
+        List<Post> posts = (subCategory != null)
+                ? postRepository.findFeedBySubCategory(subCategory, cursor, size + 1)
+                : postRepository.findFeed(cursor, size + 1);
+
+        List<Long> postIds = posts.stream().map(Post::getId).toList();
+        Map<Long, Long> commentCounts = postCommentRepository.countByPostIds(postIds).stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> (Long) row[1]
+                ));
+
+        return FeedResponse.of(posts, size, commentCounts);
     }
 
     @Transactional(readOnly = true)
