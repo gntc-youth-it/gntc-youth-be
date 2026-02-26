@@ -3,6 +3,7 @@ package com.gntcyouthbe.post.model.response;
 import com.gntcyouthbe.church.domain.ChurchId;
 import com.gntcyouthbe.post.domain.Post;
 import com.gntcyouthbe.post.domain.PostCategory;
+import com.gntcyouthbe.post.domain.PostImage;
 import com.gntcyouthbe.post.domain.PostStatus;
 import com.gntcyouthbe.post.domain.PostSubCategory;
 import java.time.LocalDateTime;
@@ -21,11 +22,13 @@ public class PostResponse {
     private final String content;
     private final List<String> hashtags;
     private final List<ChurchId> churches;
+    private final List<ImageResponse> images;
     private final LocalDateTime createdAt;
 
     private PostResponse(Long id, Long authorId, String authorName, PostSubCategory subCategory,
             PostCategory category, PostStatus status, String content,
-            List<String> hashtags, List<ChurchId> churches, LocalDateTime createdAt) {
+            List<String> hashtags, List<ChurchId> churches, List<ImageResponse> images,
+            LocalDateTime createdAt) {
         this.id = id;
         this.authorId = authorId;
         this.authorName = authorName;
@@ -35,10 +38,15 @@ public class PostResponse {
         this.content = content;
         this.hashtags = hashtags;
         this.churches = churches;
+        this.images = images;
         this.createdAt = createdAt;
     }
 
     public static PostResponse from(Post post) {
+        List<ImageResponse> imageResponses = post.getImages().stream()
+                .map(ImageResponse::from)
+                .toList();
+
         return new PostResponse(
                 post.getId(),
                 post.getAuthor().getId(),
@@ -49,7 +57,29 @@ public class PostResponse {
                 post.getContent(),
                 post.getHashtags(),
                 post.getChurches(),
+                imageResponses,
                 post.getCreatedAt()
         );
+    }
+
+    @Getter
+    public static class ImageResponse {
+        private final Long fileId;
+        private final String filePath;
+        private final Integer sortOrder;
+
+        private ImageResponse(Long fileId, String filePath, Integer sortOrder) {
+            this.fileId = fileId;
+            this.filePath = filePath;
+            this.sortOrder = sortOrder;
+        }
+
+        public static ImageResponse from(PostImage postImage) {
+            return new ImageResponse(
+                    postImage.getUploadedFile().getId(),
+                    postImage.getUploadedFile().getFilePath(),
+                    postImage.getSortOrder()
+            );
+        }
     }
 }
