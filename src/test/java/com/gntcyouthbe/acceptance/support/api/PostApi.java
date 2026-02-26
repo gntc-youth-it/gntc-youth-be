@@ -27,6 +27,12 @@ public class PostApi {
                 .then().extract();
     }
 
+    public ExtractableResponse<Response> getSubCategories(String category) {
+        return given()
+                .when().get("/posts/categories/" + category + "/sub-categories")
+                .then().extract();
+    }
+
     public ExtractableResponse<Response> getGallery(String subCategory, Long cursor, Integer size) {
         var request = given();
         if (subCategory != null) request.queryParam("subCategory", subCategory);
