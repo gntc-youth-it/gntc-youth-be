@@ -7,8 +7,11 @@ import com.gntcyouthbe.file.repository.UploadedFileRepository;
 import com.gntcyouthbe.post.domain.Post;
 import com.gntcyouthbe.post.domain.PostImage;
 import com.gntcyouthbe.post.domain.PostStatus;
+import com.gntcyouthbe.post.domain.PostSubCategory;
 import com.gntcyouthbe.post.model.request.PostCreateRequest;
+import com.gntcyouthbe.post.model.response.GalleryResponse;
 import com.gntcyouthbe.post.model.response.PostResponse;
+import com.gntcyouthbe.post.repository.PostImageRepository;
 import com.gntcyouthbe.post.repository.PostRepository;
 import com.gntcyouthbe.user.domain.Role;
 import com.gntcyouthbe.user.domain.User;
@@ -29,6 +32,7 @@ import static com.gntcyouthbe.common.exception.model.ExceptionCode.USER_NOT_FOUN
 public class PostService {
 
     private final PostRepository postRepository;
+    private final PostImageRepository postImageRepository;
     private final UserRepository userRepository;
     private final UploadedFileRepository uploadedFileRepository;
 
@@ -49,6 +53,15 @@ public class PostService {
         postRepository.save(post);
 
         return PostResponse.from(post);
+    }
+
+    @Transactional(readOnly = true)
+    public GalleryResponse getGalleryImages(PostSubCategory subCategory, Long cursor, int size) {
+        List<PostImage> postImages = (subCategory != null)
+                ? postImageRepository.findGalleryImagesBySubCategory(subCategory, cursor, size + 1)
+                : postImageRepository.findGalleryImages(cursor, size + 1);
+
+        return GalleryResponse.of(postImages, size);
     }
 
     private void addImages(Post post, List<Long> imageIds) {

@@ -11,10 +11,13 @@ import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.file.domain.UploadedFile;
 import com.gntcyouthbe.file.repository.UploadedFileRepository;
 import com.gntcyouthbe.post.domain.Post;
+import com.gntcyouthbe.post.domain.PostImage;
 import com.gntcyouthbe.post.domain.PostStatus;
 import com.gntcyouthbe.post.domain.PostSubCategory;
 import com.gntcyouthbe.post.model.request.PostCreateRequest;
+import com.gntcyouthbe.post.model.response.GalleryResponse;
 import com.gntcyouthbe.post.model.response.PostResponse;
+import com.gntcyouthbe.post.repository.PostImageRepository;
 import com.gntcyouthbe.post.repository.PostRepository;
 import com.gntcyouthbe.user.domain.AuthProvider;
 import com.gntcyouthbe.user.domain.Role;
@@ -35,6 +38,9 @@ class PostServiceTest {
 
     @Mock
     private PostRepository postRepository;
+
+    @Mock
+    private PostImageRepository postImageRepository;
 
     @Mock
     private UserRepository userRepository;
@@ -171,6 +177,67 @@ class PostServiceTest {
                 .isInstanceOf(EntityNotFoundException.class);
     }
 
+    @Test
+    @DisplayName("소분류 없이 갤러리를 조회하면 전체 승인된 이미지가 반환된다")
+    void getGalleryImages_withoutSubCategory() {
+        // given
+        List<PostImage> postImages = List.of(
+                createPostImage(3L, "uploads/c.jpg"),
+                createPostImage(2L, "uploads/b.jpg")
+        );
+        given(postImageRepository.findGalleryImages(Long.MAX_VALUE, 21))
+                .willReturn(postImages);
+
+        // when
+        GalleryResponse response = postService.getGalleryImages(null, Long.MAX_VALUE, 20);
+
+        // then
+        assertThat(response.getImages()).hasSize(2);
+        assertThat(response.isHasNext()).isFalse();
+    }
+
+    @Test
+    @DisplayName("소분류를 지정하면 해당 소분류의 승인된 이미지만 반환된다")
+    void getGalleryImages_withSubCategory() {
+        // given
+        List<PostImage> postImages = List.of(
+                createPostImage(2L, "uploads/b.jpg"),
+                createPostImage(1L, "uploads/a.jpg")
+        );
+        given(postImageRepository.findGalleryImagesBySubCategory(
+                PostSubCategory.RETREAT_2026_WINTER, Long.MAX_VALUE, 21))
+                .willReturn(postImages);
+
+        // when
+        GalleryResponse response = postService.getGalleryImages(
+                PostSubCategory.RETREAT_2026_WINTER, Long.MAX_VALUE, 20);
+
+        // then
+        assertThat(response.getImages()).hasSize(2);
+        assertThat(response.isHasNext()).isFalse();
+    }
+
+    @Test
+    @DisplayName("결과가 size보다 많으면 hasNext가 true이다")
+    void getGalleryImages_hasNextTrue() {
+        // given
+        List<PostImage> postImages = List.of(
+                createPostImage(3L, "uploads/c.jpg"),
+                createPostImage(2L, "uploads/b.jpg"),
+                createPostImage(1L, "uploads/a.jpg")
+        );
+        given(postImageRepository.findGalleryImages(Long.MAX_VALUE, 3))
+                .willReturn(postImages);
+
+        // when
+        GalleryResponse response = postService.getGalleryImages(null, Long.MAX_VALUE, 2);
+
+        // then
+        assertThat(response.getImages()).hasSize(2);
+        assertThat(response.isHasNext()).isTrue();
+        assertThat(response.getNextCursor()).isEqualTo(2L);
+    }
+
     private User createUser(Long id, String name, Role role) {
         User user = new User("email@test.com", name, AuthProvider.KAKAO, "provider_" + id);
         ReflectionTestUtils.setField(user, "id", id);
@@ -183,5 +250,12 @@ class PostServiceTest {
                 filePath, "image/jpeg", 1024L);
         ReflectionTestUtils.setField(file, "id", id);
         return file;
+    }
+
+    private PostImage createPostImage(Long id, String filePath) {
+        UploadedFile file = createUploadedFile(id, "photo.jpg", filePath);
+        PostImage postImage = new PostImage(file, 1);
+        ReflectionTestUtils.setField(postImage, "id", id);
+        return postImage;
     }
 }
