@@ -3,6 +3,8 @@ package com.gntcyouthbe.common.security.service;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.user.domain.AuthProvider;
 import com.gntcyouthbe.user.domain.User;
+import com.gntcyouthbe.user.domain.UserProfile;
+import com.gntcyouthbe.user.repository.UserProfileRepository;
 import com.gntcyouthbe.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
 
     @Override
     @Transactional
@@ -25,9 +28,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         AuthProvider authProvider = extractProvider(request);
 
         User user = getUser(authProvider, oAuth2User);
+        String profileImagePath = getProfileImagePath(user.getId());
 
-        return new UserPrincipal(user);
-}
+        return new UserPrincipal(user, profileImagePath);
+    }
+
+    private String getProfileImagePath(Long userId) {
+        return userProfileRepository.findByUserId(userId)
+                .map(UserProfile::getProfileImage)
+                .map(image -> image.getFilePath())
+                .orElse(null);
+    }
 
     private AuthProvider extractProvider(OAuth2UserRequest request) {
         String registrationId = request.getClientRegistration().getRegistrationId();

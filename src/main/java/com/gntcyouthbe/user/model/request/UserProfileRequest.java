@@ -29,4 +29,6 @@ public class UserProfileRequest {
 
     @NotNull(message = "성별은 필수입니다")
     private final Gender gender;
+
+    private final Long profileImageId;
 }

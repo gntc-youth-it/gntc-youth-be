@@ -4,6 +4,8 @@ import com.gntcyouthbe.common.security.dto.TestLoginRequest;
 import com.gntcyouthbe.common.security.dto.TestLoginResponse;
 import com.gntcyouthbe.common.security.service.JwtService;
 import com.gntcyouthbe.user.domain.User;
+import com.gntcyouthbe.user.domain.UserProfile;
+import com.gntcyouthbe.user.repository.UserProfileRepository;
 import com.gntcyouthbe.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class TestAuthController {
 
     private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
     private final JwtService jwtService;
 
     @PostMapping("/login")
@@ -31,13 +34,19 @@ public class TestAuthController {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + request.getEmail()));
 
+        String profileImagePath = userProfileRepository.findByUserId(user.getId())
+                .map(UserProfile::getProfileImage)
+                .map(image -> image.getFilePath())
+                .orElse(null);
+
         String accessToken = jwtService.createAccessToken(
                 user.getId(),
                 user.getEmail(),
                 user.getName(),
                 user.getRole(),
                 user.getChurchId(),
-                user.getProvider()
+                user.getProvider(),
+                profileImagePath
         );
 
         String refreshToken = jwtService.createRefreshToken(user.getId());

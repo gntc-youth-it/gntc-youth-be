@@ -36,27 +36,31 @@ public class UserPrincipal implements UserDetails, OAuth2User, Serializable {
 
     private final AuthProvider provider;
 
+    private final String profileImagePath;
+
     private final Collection<? extends GrantedAuthority> authorities;
 
     public UserPrincipal(Long userId, String email, String name, Role role, ChurchId church,
-            AuthProvider provider) {
+            AuthProvider provider, String profileImagePath) {
         this.userId = userId;
         this.email = email;
         this.name = name;
         this.role = role;
         this.church = church;
         this.provider = provider;
+        this.profileImagePath = profileImagePath;
         this.authorities = List.of(new SimpleGrantedAuthority(role.name()));
     }
 
-    public UserPrincipal(User user) {
+    public UserPrincipal(User user, String profileImagePath) {
         this(
                 user.getId(),
                 user.getEmail(),
                 user.getName(),
                 user.getRole(),
                 user.getChurchId(),
-                user.getProvider()
+                user.getProvider(),
+                profileImagePath
         );
     }
 
@@ -69,7 +73,8 @@ public class UserPrincipal implements UserDetails, OAuth2User, Serializable {
                 claims.containsKey("church") ?
                         ChurchId.valueOf((String) claims.get("church")) : null,
                 claims.containsKey("provider") ?
-                        AuthProvider.valueOf((String) claims.get("provider")) : null
+                        AuthProvider.valueOf((String) claims.get("provider")) : null,
+                (String) claims.get("profileImagePath")
         );
     }
 

@@ -3,6 +3,8 @@ package com.gntcyouthbe.common.security.controller;
 import com.gntcyouthbe.common.security.dto.TokenRefreshResponse;
 import com.gntcyouthbe.common.security.service.JwtService;
 import com.gntcyouthbe.user.domain.User;
+import com.gntcyouthbe.user.domain.UserProfile;
+import com.gntcyouthbe.user.repository.UserProfileRepository;
 import com.gntcyouthbe.user.repository.UserRepository;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.Cookie;
@@ -21,6 +23,7 @@ public class AuthController {
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
 
     @PostMapping("/refresh")
     public ResponseEntity<TokenRefreshResponse> refreshToken(
@@ -40,6 +43,12 @@ public class AuthController {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
+            // 프로필 이미지 경로 조회
+            String profileImagePath = userProfileRepository.findByUserId(userId)
+                    .map(UserProfile::getProfileImage)
+                    .map(image -> image.getFilePath())
+                    .orElse(null);
+
             // 새 Access Token 생성
             String newAccessToken = jwtService.createAccessToken(
                     user.getId(),
@@ -47,7 +56,8 @@ public class AuthController {
                     user.getName(),
                     user.getRole(),
                     user.getChurchId(),
-                    user.getProvider()
+                    user.getProvider(),
+                    profileImagePath
             );
 
             // 새 Refresh Token 생성 (Rotating Refresh Token 전략)

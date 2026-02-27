@@ -71,7 +71,7 @@ class PostServiceTest {
     void createPost_userRole_pendingReview() {
         // given
         User user = createUser(1L, "테스트유저", Role.USER);
-        UserPrincipal principal = new UserPrincipal(user);
+        UserPrincipal principal = new UserPrincipal(user, null);
         PostCreateRequest request = new PostCreateRequest(
                 PostSubCategory.RETREAT_2026_WINTER, "수련회 후기", null, null, null, null);
 
@@ -96,7 +96,7 @@ class PostServiceTest {
     void createPost_masterRole_approved() {
         // given
         User master = createUser(2L, "마스터유저", Role.MASTER);
-        UserPrincipal principal = new UserPrincipal(master);
+        UserPrincipal principal = new UserPrincipal(master, null);
         PostCreateRequest request = new PostCreateRequest(
                 PostSubCategory.RETREAT_2026_WINTER, "마스터 게시글", null, null, null, null);
 
@@ -119,7 +119,7 @@ class PostServiceTest {
     void createPost_withHashtagsAndChurches() {
         // given
         User user = createUser(1L, "테스트유저", Role.USER);
-        UserPrincipal principal = new UserPrincipal(user);
+        UserPrincipal principal = new UserPrincipal(user, null);
         PostCreateRequest request = new PostCreateRequest(
                 PostSubCategory.RETREAT_2026_WINTER,
                 "합동 수련회",
@@ -147,7 +147,7 @@ class PostServiceTest {
     void createPost_withImages() {
         // given
         User user = createUser(1L, "테스트유저", Role.USER);
-        UserPrincipal principal = new UserPrincipal(user);
+        UserPrincipal principal = new UserPrincipal(user, null);
         PostCreateRequest request = new PostCreateRequest(
                 PostSubCategory.RETREAT_2026_WINTER, "이미지 게시글", null, null,
                 List.of(10L, 20L), null);
@@ -179,7 +179,7 @@ class PostServiceTest {
     void createPost_withInvalidImageId_throwsException() {
         // given
         User user = createUser(1L, "테스트유저", Role.USER);
-        UserPrincipal principal = new UserPrincipal(user);
+        UserPrincipal principal = new UserPrincipal(user, null);
         PostCreateRequest request = new PostCreateRequest(
                 PostSubCategory.RETREAT_2026_WINTER, "게시글", null, null,
                 List.of(999L), null);
