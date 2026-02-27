@@ -32,13 +32,15 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 public class AdminUserService {
 
+    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "id");
+
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
     private final ChurchRepository churchRepository;
 
     @Transactional(readOnly = true)
     public AdminUserListResponse getUsers(int page, int size, String name) {
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        PageRequest pageRequest = PageRequest.of(page, size, DEFAULT_SORT);
         Page<User> userPage = StringUtils.hasText(name)
                 ? userRepository.findAllWithChurchByNameContaining(name, pageRequest)
                 : userRepository.findAllWithChurch(pageRequest);
