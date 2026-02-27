@@ -5,6 +5,7 @@ import com.gntcyouthbe.church.domain.ChurchId;
 import com.gntcyouthbe.church.repository.ChurchRepository;
 import com.gntcyouthbe.common.exception.EntityNotFoundException;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
+import com.gntcyouthbe.file.repository.UploadedFileRepository;
 import com.gntcyouthbe.user.domain.AuthProvider;
 import com.gntcyouthbe.user.domain.Gender;
 import com.gntcyouthbe.user.domain.Role;
@@ -41,6 +42,9 @@ class UserProfileServiceTest {
 
     @Mock
     private ChurchRepository churchRepository;
+
+    @Mock
+    private UploadedFileRepository uploadedFileRepository;
 
     @InjectMocks
     private UserProfileService userProfileService;
@@ -94,7 +98,7 @@ class UserProfileServiceTest {
         UserPrincipal principal = createUserPrincipal();
         User user = new User("test@example.com", "테스트", AuthProvider.KAKAO, "kakao_123");
         Church church = mock(Church.class);
-        UserProfileRequest request = new UserProfileRequest("홍길동", ChurchId.ANYANG, 45, "010-1234-5678", Gender.MALE);
+        UserProfileRequest request = new UserProfileRequest("홍길동", ChurchId.ANYANG, 45, "010-1234-5678", Gender.MALE, null);
 
         given(userRepository.findById(1L)).willReturn(Optional.of(user));
         given(churchRepository.getReferenceById(ChurchId.ANYANG)).willReturn(church);
@@ -120,7 +124,7 @@ class UserProfileServiceTest {
         User user = new User("test@example.com", "테스트", AuthProvider.KAKAO, "kakao_123");
         UserProfile existingProfile = new UserProfile(user, 45, "010-1234-5678", Gender.MALE);
         Church church = mock(Church.class);
-        UserProfileRequest request = new UserProfileRequest("김철수", ChurchId.SUWON, 46, "010-9876-5432", Gender.FEMALE);
+        UserProfileRequest request = new UserProfileRequest("김철수", ChurchId.SUWON, 46, "010-9876-5432", Gender.FEMALE, null);
 
         given(userRepository.findById(1L)).willReturn(Optional.of(user));
         given(churchRepository.getReferenceById(ChurchId.SUWON)).willReturn(church);
@@ -143,7 +147,7 @@ class UserProfileServiceTest {
     void saveProfile_userNotFound() {
         // given
         UserPrincipal principal = createUserPrincipal();
-        UserProfileRequest request = new UserProfileRequest("홍길동", ChurchId.ANYANG, 45, "010-1234-5678", Gender.MALE);
+        UserProfileRequest request = new UserProfileRequest("홍길동", ChurchId.ANYANG, 45, "010-1234-5678", Gender.MALE, null);
 
         given(userRepository.findById(1L)).willReturn(Optional.empty());
 

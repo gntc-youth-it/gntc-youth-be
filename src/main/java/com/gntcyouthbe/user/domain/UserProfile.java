@@ -1,6 +1,7 @@
 package com.gntcyouthbe.user.domain;
 
 import com.gntcyouthbe.common.orm.domain.BaseEntity;
+import com.gntcyouthbe.file.domain.UploadedFile;
 import jakarta.persistence.Column;
 import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
@@ -12,6 +13,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -48,6 +50,10 @@ public class UserProfile extends BaseEntity {
     @Column(nullable = false, length = 10)
     private Gender gender;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "profile_image_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    private UploadedFile profileImage;
+
     public UserProfile(User user, Integer generation, String phoneNumber, Gender gender) {
         this.user = user;
         this.generation = generation;
@@ -59,5 +65,9 @@ public class UserProfile extends BaseEntity {
         this.generation = request.getGeneration();
         this.phoneNumber = request.getPhoneNumber();
         this.gender = request.getGender();
+    }
+
+    public void updateProfileImage(UploadedFile profileImage) {
+        this.profileImage = profileImage;
     }
 }

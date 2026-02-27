@@ -4,6 +4,8 @@ import com.gntcyouthbe.church.domain.Church;
 import com.gntcyouthbe.church.repository.ChurchRepository;
 import com.gntcyouthbe.common.exception.EntityNotFoundException;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
+import com.gntcyouthbe.file.domain.UploadedFile;
+import com.gntcyouthbe.file.repository.UploadedFileRepository;
 import com.gntcyouthbe.user.domain.User;
 import com.gntcyouthbe.user.domain.UserProfile;
 import com.gntcyouthbe.user.model.request.UserProfileRequest;
@@ -14,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.gntcyouthbe.common.exception.model.ExceptionCode.FILE_NOT_FOUND;
 import static com.gntcyouthbe.common.exception.model.ExceptionCode.USER_NOT_FOUND;
 
 
@@ -24,6 +27,7 @@ public class UserProfileService {
     private final UserProfileRepository userProfileRepository;
     private final UserRepository userRepository;
     private final ChurchRepository churchRepository;
+    private final UploadedFileRepository uploadedFileRepository;
 
     @Transactional(readOnly = true)
     public UserProfileResponse getMyProfile(final UserPrincipal userPrincipal) {
@@ -46,8 +50,19 @@ public class UserProfileService {
                 })
                 .orElseGet(() -> new UserProfile(user, request.getGeneration(), request.getPhoneNumber(), request.getGender()));
 
+        final UploadedFile profileImage = resolveProfileImage(request.getProfileImageId());
+        profile.updateProfileImage(profileImage);
+
         userProfileRepository.save(profile);
         return UserProfileResponse.from(user, profile);
+    }
+
+    private UploadedFile resolveProfileImage(Long profileImageId) {
+        if (profileImageId == null) {
+            return null;
+        }
+        return uploadedFileRepository.findById(profileImageId)
+                .orElseThrow(() -> new EntityNotFoundException(FILE_NOT_FOUND));
     }
 
     private User getUser(final UserPrincipal userPrincipal) {

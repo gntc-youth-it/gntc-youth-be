@@ -15,9 +15,12 @@ public class UserProfileResponse {
     private final String phoneNumber;
     private final String gender;
     private final String genderDisplay;
+    private final Long profileImageId;
+    private final String profileImagePath;
 
     private UserProfileResponse(String name, String churchId, String churchName,
-                                Integer generation, String phoneNumber, String gender, String genderDisplay) {
+                                Integer generation, String phoneNumber, String gender, String genderDisplay,
+                                Long profileImageId, String profileImagePath) {
         this.name = name;
         this.churchId = churchId;
         this.churchName = churchName;
@@ -25,6 +28,8 @@ public class UserProfileResponse {
         this.phoneNumber = phoneNumber;
         this.gender = gender;
         this.genderDisplay = genderDisplay;
+        this.profileImageId = profileImageId;
+        this.profileImagePath = profileImagePath;
     }
 
     public static UserProfileResponse from(User user, UserProfile profile) {
@@ -36,7 +41,9 @@ public class UserProfileResponse {
                 profile != null ? profile.getGeneration() : null,
                 profile != null ? profile.getPhoneNumber() : null,
                 profile != null && profile.getGender() != null ? profile.getGender().name() : null,
-                profile != null && profile.getGender() != null ? profile.getGender().getDisplayName() : null
+                profile != null && profile.getGender() != null ? profile.getGender().getDisplayName() : null,
+                profile != null && profile.getProfileImage() != null ? profile.getProfileImage().getId() : null,
+                profile != null && profile.getProfileImage() != null ? profile.getProfileImage().getFilePath() : null
         );
     }
 }
