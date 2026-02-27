@@ -52,12 +52,17 @@ public class CategoryStepDefs {
         assertThat(dates).isSortedAccordingTo(Comparator.reverseOrder());
     }
 
+    @SuppressWarnings("unchecked")
     @그리고("세부 카테고리에 말씀 정보가 포함되어 있다")
     public void 세부_카테고리에_말씀_정보가_포함되어_있다() {
         List<Map<String, Object>> responses = world.response.jsonPath().getList(".");
-        assertThat(responses).isNotEmpty();
 
-        Map<String, Object> verse = world.response.jsonPath().getMap("[0].verse");
+        Map<String, Object> retreat2026 = responses.stream()
+                .filter(r -> "RETREAT_2026_WINTER".equals(r.get("name")))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("RETREAT_2026_WINTER not found"));
+
+        Map<String, Object> verse = (Map<String, Object>) retreat2026.get("verse");
         assertThat(verse).isNotNull();
         assertThat((String) verse.get("bookName")).isEqualTo("ISAIAH");
         assertThat((String) verse.get("bookDisplayName")).isEqualTo("이사야");

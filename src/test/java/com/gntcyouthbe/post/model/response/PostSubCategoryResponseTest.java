@@ -36,14 +36,4 @@ class PostSubCategoryResponseTest {
         assertThat(response.endDate()).isNull();
         assertThat(response.verse()).isNull();
     }
-
-    @Test
-    @DisplayName("말씀이 없는 세부 카테고리는 verse가 null이다")
-    void from_withoutVerse_verseIsNull() {
-        // when
-        PostSubCategoryResponse response = PostSubCategoryResponse.from(PostSubCategory.RETREAT_2026_WINTER, null);
-
-        // then
-        assertThat(response.verse()).isNull();
-    }
 }

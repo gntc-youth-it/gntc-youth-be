@@ -27,6 +27,7 @@ import com.gntcyouthbe.user.domain.User;
 import com.gntcyouthbe.user.repository.UserRepository;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -54,20 +55,30 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public List<PostSubCategoryResponse> getSubCategories(PostCategory category) {
-        return Arrays.stream(PostSubCategory.values())
+        List<PostSubCategory> subCategories = Arrays.stream(PostSubCategory.values())
                 .filter(sub -> sub.getCategory() == category)
                 .sorted(Comparator.comparing(
                         PostSubCategory::getStartDate,
                         Comparator.nullsLast(Comparator.reverseOrder())))
-                .map(sub -> {
-                    Verse verse = sub.hasVerse()
-                            ? verseRepository.findByBook_BookNameAndChapterAndNumber(
-                                    sub.getBookName(), sub.getChapter(), sub.getVerseNumber())
-                                    .orElse(null)
-                            : null;
-                    return PostSubCategoryResponse.from(sub, verse);
-                })
                 .toList();
+
+        Map<PostSubCategory, Verse> verseMap = findVerses(subCategories);
+
+        return subCategories.stream()
+                .map(sub -> PostSubCategoryResponse.from(sub, verseMap.get(sub)))
+                .toList();
+    }
+
+    private Map<PostSubCategory, Verse> findVerses(List<PostSubCategory> subCategories) {
+        Map<PostSubCategory, Verse> verseMap = new EnumMap<>(PostSubCategory.class);
+        for (PostSubCategory sub : subCategories) {
+            if (sub.hasVerse()) {
+                verseRepository.findByBook_BookNameAndChapterAndNumber(
+                                sub.getBookName(), sub.getChapter(), sub.getVerseNumber())
+                        .ifPresent(verse -> verseMap.put(sub, verse));
+            }
+        }
+        return verseMap;
     }
 
     @Transactional
