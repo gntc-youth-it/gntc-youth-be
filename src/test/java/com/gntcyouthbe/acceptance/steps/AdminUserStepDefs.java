@@ -5,7 +5,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.gntcyouthbe.acceptance.support.api.AdminUserApi;
 import com.gntcyouthbe.acceptance.support.context.World;
 import io.cucumber.java.ko.그러면;
+import io.cucumber.java.ko.그리고;
 import io.cucumber.java.ko.만일;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -14,6 +16,7 @@ public class AdminUserStepDefs {
 
     private final World world;
     private final AdminUserApi adminUserApi;
+    private final List<Integer> previousPageUserIds = new ArrayList<>();
 
     public AdminUserStepDefs(World world, AdminUserApi adminUserApi) {
         this.world = world;
@@ -110,5 +113,51 @@ public class AdminUserStepDefs {
 
         int totalElements = world.response.jsonPath().getInt("totalElements");
         assertThat(totalElements).isEqualTo(count);
+    }
+
+    @만일("마스터가 사용자 목록을 페이지 {int} 사이즈 {int} 조건으로 조회한다")
+    public void 마스터가_사용자_목록을_페이지_사이즈_조건으로_조회한다(int page, int size) {
+        // 이전 페이지 userId 저장
+        if (world.response != null && world.response.statusCode() == HttpStatus.OK.value()) {
+            List<Map<String, Object>> prevUsers = world.response.jsonPath().getList("users");
+            previousPageUserIds.clear();
+            for (Map<String, Object> u : prevUsers) {
+                previousPageUserIds.add((Integer) u.get("userId"));
+            }
+        }
+        world.response = adminUserApi.getUsers(world.authToken, page, size);
+    }
+
+    @그러면("사용자 목록이 {int}명 반환되고 총 {int}명이다")
+    public void 사용자_목록이_n명_반환되고_총_m명이다(int count, int total) {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
+
+        List<Map<String, Object>> users = world.response.jsonPath().getList("users");
+        assertThat(users).hasSize(count);
+
+        int totalElements = world.response.jsonPath().getInt("totalElements");
+        assertThat(totalElements).isEqualTo(total);
+    }
+
+    @그리고("이전 페이지와 현재 페이지에 중복된 사용자가 없다")
+    public void 이전_페이지와_현재_페이지에_중복된_사용자가_없다() {
+        List<Map<String, Object>> currentUsers = world.response.jsonPath().getList("users");
+        List<Integer> currentUserIds = currentUsers.stream()
+                .map(u -> (Integer) u.get("userId"))
+                .toList();
+
+        assertThat(currentUserIds).doesNotContainAnyElementsOf(previousPageUserIds);
+    }
+
+    @그러면("사용자 목록이 ID 내림차순으로 정렬되어 있다")
+    public void 사용자_목록이_ID_내림차순으로_정렬되어_있다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
+
+        List<Integer> userIds = world.response.jsonPath().getList("users.userId");
+        assertThat(userIds).hasSizeGreaterThan(1);
+
+        for (int i = 0; i < userIds.size() - 1; i++) {
+            assertThat(userIds.get(i)).isGreaterThan(userIds.get(i + 1));
+        }
     }
 }
