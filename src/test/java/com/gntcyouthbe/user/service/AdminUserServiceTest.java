@@ -105,6 +105,91 @@ class AdminUserServiceTest {
     }
 
     @Test
+    @DisplayName("사용자 목록이 ID 내림차순으로 정렬되어 반환된다")
+    void getUsers_sortedByIdDesc() {
+        // given
+        User user1 = createUserWithIdAndChurch(1L, "유저1", Role.USER, ChurchId.ANYANG);
+        User user2 = createUserWithIdAndChurch(2L, "유저2", Role.USER, ChurchId.SUWON);
+        User user3 = createUserWithIdAndChurch(3L, "유저3", Role.LEADER, ChurchId.ANYANG);
+
+        PageRequest pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"));
+        given(userRepository.findAllWithChurch(pageRequest))
+                .willReturn(new PageImpl<>(List.of(user3, user2, user1), pageRequest, 3));
+        given(userProfileRepository.findByUserIdIn(List.of(3L, 2L, 1L)))
+                .willReturn(List.of());
+
+        // when
+        AdminUserListResponse response = adminUserService.getUsers(0, 10, null);
+
+        // then
+        assertThat(response.getUsers()).hasSize(3);
+        assertThat(response.getUsers().get(0).getUserId()).isEqualTo(3L);
+        assertThat(response.getUsers().get(1).getUserId()).isEqualTo(2L);
+        assertThat(response.getUsers().get(2).getUserId()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("페이지별 조회 시 데이터가 중복 없이 분리된다")
+    void getUsers_pagesDoNotOverlap() {
+        // given - page 0
+        User user3 = createUserWithIdAndChurch(3L, "유저3", Role.USER, ChurchId.ANYANG);
+        User user2 = createUserWithIdAndChurch(2L, "유저2", Role.USER, ChurchId.SUWON);
+
+        PageRequest page0Request = PageRequest.of(0, 2, Sort.by(Sort.Direction.DESC, "id"));
+        given(userRepository.findAllWithChurch(page0Request))
+                .willReturn(new PageImpl<>(List.of(user3, user2), page0Request, 3));
+        given(userProfileRepository.findByUserIdIn(List.of(3L, 2L)))
+                .willReturn(List.of());
+
+        // when
+        AdminUserListResponse page0 = adminUserService.getUsers(0, 2, null);
+
+        // given - page 1
+        User user1 = createUserWithIdAndChurch(1L, "유저1", Role.USER, ChurchId.ANYANG);
+
+        PageRequest page1Request = PageRequest.of(1, 2, Sort.by(Sort.Direction.DESC, "id"));
+        given(userRepository.findAllWithChurch(page1Request))
+                .willReturn(new PageImpl<>(List.of(user1), page1Request, 3));
+        given(userProfileRepository.findByUserIdIn(List.of(1L)))
+                .willReturn(List.of());
+
+        // when
+        AdminUserListResponse page1 = adminUserService.getUsers(1, 2, null);
+
+        // then - 페이지 간 데이터 중복 없음
+        List<Long> page0Ids = page0.getUsers().stream().map(AdminUserResponse::getUserId).toList();
+        List<Long> page1Ids = page1.getUsers().stream().map(AdminUserResponse::getUserId).toList();
+        assertThat(page0Ids).doesNotContainAnyElementsOf(page1Ids);
+
+        // then - 페이지 메타 정보
+        assertThat(page0.getTotalElements()).isEqualTo(3);
+        assertThat(page0.getTotalPages()).isEqualTo(2);
+        assertThat(page1.getUsers()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("이름 검색 시에도 ID 내림차순 정렬이 적용된다")
+    void getUsers_nameSearch_sortedByIdDesc() {
+        // given
+        User user2 = createUserWithIdAndChurch(2L, "김유저", Role.USER, ChurchId.ANYANG);
+        User user1 = createUserWithIdAndChurch(1L, "김테스트", Role.USER, ChurchId.SUWON);
+
+        PageRequest pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"));
+        given(userRepository.findAllWithChurchByNameContaining("김", pageRequest))
+                .willReturn(new PageImpl<>(List.of(user2, user1), pageRequest, 2));
+        given(userProfileRepository.findByUserIdIn(List.of(2L, 1L)))
+                .willReturn(List.of());
+
+        // when
+        AdminUserListResponse response = adminUserService.getUsers(0, 10, "김");
+
+        // then
+        assertThat(response.getUsers()).hasSize(2);
+        assertThat(response.getUsers().get(0).getUserId()).isEqualTo(2L);
+        assertThat(response.getUsers().get(1).getUserId()).isEqualTo(1L);
+    }
+
+    @Test
     @DisplayName("USER를 LEADER로 변경 성공 - 기존 LEADER 없음")
     void updateUserRole_toLeader_noExistingLeader() {
         // given
