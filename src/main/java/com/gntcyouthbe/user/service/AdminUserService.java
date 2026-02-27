@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -37,7 +38,7 @@ public class AdminUserService {
 
     @Transactional(readOnly = true)
     public AdminUserListResponse getUsers(int page, int size, String name) {
-        PageRequest pageRequest = PageRequest.of(page, size);
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
         Page<User> userPage = StringUtils.hasText(name)
                 ? userRepository.findAllWithChurchByNameContaining(name, pageRequest)
                 : userRepository.findAllWithChurch(pageRequest);

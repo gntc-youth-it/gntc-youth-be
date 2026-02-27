@@ -32,6 +32,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -56,7 +57,7 @@ class AdminUserServiceTest {
         User user = createUserWithIdAndChurch(1L, "리더유저", Role.LEADER, ChurchId.ANYANG);
         UserProfile profile = new UserProfile(user, 45, "01012345678", Gender.MALE);
 
-        PageRequest pageRequest = PageRequest.of(0, 10);
+        PageRequest pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"));
         given(userRepository.findAllWithChurch(pageRequest))
                 .willReturn(new PageImpl<>(List.of(user), pageRequest, 1));
         given(userProfileRepository.findByUserIdIn(List.of(1L)))
@@ -84,7 +85,7 @@ class AdminUserServiceTest {
         User user = new User("test@example.com", "테스트유저", AuthProvider.KAKAO, "kakao_123");
         ReflectionTestUtils.setField(user, "id", 2L);
 
-        PageRequest pageRequest = PageRequest.of(0, 10);
+        PageRequest pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"));
         given(userRepository.findAllWithChurch(pageRequest))
                 .willReturn(new PageImpl<>(List.of(user), pageRequest, 1));
         given(userProfileRepository.findByUserIdIn(List.of(2L)))
