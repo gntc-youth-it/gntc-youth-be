@@ -20,7 +20,7 @@ class PostSubCategoryResponseTest {
 
         // then
         assertThat(response.name()).isEqualTo("RETREAT_2026_WINTER");
-        assertThat(response.displayName()).isEqualTo("2026 겨울 수련회 (새 힘을 바라보라)");
+        assertThat(response.displayName()).isEqualTo("2026 겨울 수련회 (새 힘을 얻으라)");
         assertThat(response.imageUrl()).isEqualTo("assets/2026-winter-poster.webp");
         assertThat(response.startDate()).isEqualTo(LocalDate.of(2026, 1, 29));
         assertThat(response.endDate()).isEqualTo(LocalDate.of(2026, 1, 31));

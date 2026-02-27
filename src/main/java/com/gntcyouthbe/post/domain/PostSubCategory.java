@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Getter
 public enum PostSubCategory {
-    RETREAT_2026_WINTER("2026 겨울 수련회 (새 힘을 바라보라)", PostCategory.RETREAT,
+    RETREAT_2026_WINTER("2026 겨울 수련회 (새 힘을 얻으라)", PostCategory.RETREAT,
             LocalDate.of(2026, 1, 29), LocalDate.of(2026, 1, 31), "assets/2026-winter-poster.webp"),
     NONE("기타", PostCategory.NONE);
 
