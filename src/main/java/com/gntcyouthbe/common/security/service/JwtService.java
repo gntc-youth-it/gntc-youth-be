@@ -37,7 +37,8 @@ public class JwtService {
             String name,
             Role role,
             ChurchId church,
-            AuthProvider provider) {
+            AuthProvider provider,
+            String profileImagePath) {
         Instant now = Instant.now();
         Instant exp = now.plusSeconds(properties.getAccessTtlSeconds());
 
@@ -61,6 +62,10 @@ public class JwtService {
             builder.claim("provider", provider.name());
         }
 
+        if (profileImagePath != null) {
+            builder.claim("profileImagePath", profileImagePath);
+        }
+
         return builder
                 .signWith(key)
                 .compact();
@@ -73,7 +78,8 @@ public class JwtService {
                 principal.getName(),
                 principal.getRole(),
                 principal.getChurch(),
-                principal.getProvider()
+                principal.getProvider(),
+                principal.getProfileImagePath()
         );
     }
 

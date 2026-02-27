@@ -157,6 +157,6 @@ class UserProfileServiceTest {
     }
 
     private UserPrincipal createUserPrincipal() {
-        return new UserPrincipal(1L, "test@example.com", "테스트", Role.USER, null, AuthProvider.KAKAO);
+        return new UserPrincipal(1L, "test@example.com", "테스트", Role.USER, null, AuthProvider.KAKAO, null);
     }
 }

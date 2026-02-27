@@ -48,7 +48,7 @@ class ChurchInfoServiceTest {
     private ChurchInfoService churchInfoService;
 
     private UserPrincipal createPrincipal(Role role, ChurchId churchId) {
-        return new UserPrincipal(1L, "test@example.com", "테스트", role, churchId, AuthProvider.KAKAO);
+        return new UserPrincipal(1L, "test@example.com", "테스트", role, churchId, AuthProvider.KAKAO, null);
     }
 
     @Test
