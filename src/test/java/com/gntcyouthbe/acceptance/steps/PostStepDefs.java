@@ -131,4 +131,55 @@ public class PostStepDefs {
     public void 게시글_작성_인증_에러가_반환된다() {
         assertThat(world.response.statusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
     }
+
+    // --- 게시글 삭제 ---
+
+    @먼저("마스터가 게시글 삭제를 위해 로그인되어 있다")
+    public void 마스터가_게시글_삭제를_위해_로그인되어_있다() {
+        world.authToken = authApi.getAccessToken("master@example.com");
+        assertThat(world.authToken).isNotBlank();
+    }
+
+    @먼저("일반 사용자가 게시글 삭제를 위해 로그인되어 있다")
+    public void 일반_사용자가_게시글_삭제를_위해_로그인되어_있다() {
+        world.authToken = authApi.getAccessToken("test@example.com");
+        assertThat(world.authToken).isNotBlank();
+    }
+
+    @만일("마스터가 게시글을 삭제한다")
+    public void 마스터가_게시글을_삭제한다() {
+        world.response = postApi.deletePost(world.authToken, 904L);
+    }
+
+    @그러면("게시글이 삭제된다")
+    public void 게시글이_삭제된다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+    }
+
+    @그리고("삭제된 게시글은 피드에서 조회되지 않는다")
+    public void 삭제된_게시글은_피드에서_조회되지_않는다() {
+        world.response = postApi.getFeed(null, null, null, 20);
+        List<Long> postIds = world.response.jsonPath().getList("posts.id", Long.class);
+        assertThat(postIds).doesNotContain(904L);
+    }
+
+    @만일("일반 사용자가 게시글 삭제를 시도한다")
+    public void 일반_사용자가_게시글_삭제를_시도한다() {
+        world.response = postApi.deletePost(world.authToken, 901L);
+    }
+
+    @만일("미인증 사용자가 게시글 삭제를 시도한다")
+    public void 미인증_사용자가_게시글_삭제를_시도한다() {
+        world.response = postApi.deletePostWithoutAuth(901L);
+    }
+
+    @그러면("게시글 삭제 인증 에러가 반환된다")
+    public void 게시글_삭제_인증_에러가_반환된다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+    }
+
+    @만일("마스터가 존재하지 않는 게시글을 삭제한다")
+    public void 마스터가_존재하지_않는_게시글을_삭제한다() {
+        world.response = postApi.deletePost(world.authToken, 99999L);
+    }
 }

@@ -97,3 +97,26 @@ VALUES (904, 903, 904, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1);
 -- Church Tag: post 901 -> ANYANG, post 902 -> SUWON
 INSERT INTO post_church (post_id, church_id) VALUES (901, 'ANYANG');
 INSERT INTO post_church (post_id, church_id) VALUES (902, 'SUWON');
+
+-- Delete Test: Uploaded Files for post 904
+INSERT INTO uploaded_file (id, original_filename, stored_filename, file_path, content_type, file_size, created_at, updated_at)
+VALUES (905, 'delete1.jpg', 'stored_delete1.jpg', 'uploads/stored_delete1.jpg', 'image/jpeg', 1024, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT INTO uploaded_file (id, original_filename, stored_filename, file_path, content_type, file_size, created_at, updated_at)
+VALUES (906, 'delete2.jpg', 'stored_delete2.jpg', 'uploads/stored_delete2.jpg', 'image/jpeg', 1024, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- Delete Test: APPROVED post for deletion testing (NONE category, no church tag)
+INSERT INTO post (id, author_id, sub_category, status, content, is_author_public, created_at, updated_at, created_by, updated_by)
+VALUES (904, 3, 'NONE', 'APPROVED', '삭제 테스트용 게시글', false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
+
+INSERT INTO post_image (id, post_id, uploaded_file_id, sort_order, created_at, updated_at, created_by, updated_by)
+VALUES (905, 904, 905, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
+
+INSERT INTO post_image (id, post_id, uploaded_file_id, sort_order, created_at, updated_at, created_by, updated_by)
+VALUES (906, 904, 906, 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
+
+INSERT INTO post_comment (id, post_id, author_id, content, created_at, updated_at, created_by, updated_by)
+VALUES (901, 904, 1, '삭제 테스트 댓글', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1);
+
+INSERT INTO post_like (id, post_id, user_id, created_at, updated_at, created_by, updated_by)
+VALUES (901, 904, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1);
