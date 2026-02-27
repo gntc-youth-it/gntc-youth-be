@@ -42,7 +42,7 @@ public class PostController {
     @GetMapping("/categories/{category}/sub-categories")
     public ResponseEntity<List<PostSubCategoryResponse>> getSubCategories(
             @PathVariable PostCategory category) {
-        return ResponseEntity.ok(PostSubCategoryResponse.fromCategory(category));
+        return ResponseEntity.ok(postService.getSubCategories(category));
     }
 
     @GetMapping("/feed")

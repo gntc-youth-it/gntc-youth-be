@@ -11,6 +11,7 @@ DELETE FROM advent_verses;
 DELETE FROM advent_persons;
 DELETE FROM app_user;
 DELETE FROM church;
+DELETE FROM verses;
 DELETE FROM books;
 
 -- Test Church
@@ -46,6 +47,13 @@ ALTER TABLE user_profile ALTER COLUMN id RESTART WITH 101;
 -- Test Book
 INSERT INTO books (id, canon_order, book_name, name)
 VALUES (1, 1, 'GENESIS', '창세기');
+
+INSERT INTO books (id, canon_order, book_name, name)
+VALUES (23, 23, 'ISAIAH', '이사야');
+
+-- Test Verse (이사야 40:31)
+INSERT INTO verses (id, book_id, chapter, verse, content, sequence)
+VALUES (1, 23, 40, 31, '오직 여호와를 앙망하는 자는 새 힘을 얻으리니 독수리의 날개치며 올라감 같을 것이요 달음박질하여도 곤비치 아니하겠고 걸어가도 피곤치 아니하리로다', 23662);
 
 -- Test Advent Person and Verses
 INSERT INTO advent_persons (id, name, temple, batch)

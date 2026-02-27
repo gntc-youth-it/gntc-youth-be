@@ -1,5 +1,7 @@
 package com.gntcyouthbe.post.service;
 
+import com.gntcyouthbe.bible.domain.Verse;
+import com.gntcyouthbe.bible.repository.VerseRepository;
 import com.gntcyouthbe.church.domain.ChurchId;
 import com.gntcyouthbe.common.exception.EntityNotFoundException;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
@@ -7,6 +9,7 @@ import com.gntcyouthbe.file.domain.UploadedFile;
 import com.gntcyouthbe.file.repository.UploadedFileRepository;
 import com.gntcyouthbe.file.service.FileStorageService;
 import com.gntcyouthbe.post.domain.Post;
+import com.gntcyouthbe.post.domain.PostCategory;
 import com.gntcyouthbe.post.domain.PostImage;
 import com.gntcyouthbe.post.domain.PostStatus;
 import com.gntcyouthbe.post.domain.PostSubCategory;
@@ -14,6 +17,7 @@ import com.gntcyouthbe.post.model.request.PostCreateRequest;
 import com.gntcyouthbe.post.model.response.FeedResponse;
 import com.gntcyouthbe.post.model.response.GalleryResponse;
 import com.gntcyouthbe.post.model.response.PostResponse;
+import com.gntcyouthbe.post.model.response.PostSubCategoryResponse;
 import com.gntcyouthbe.post.repository.PostCommentRepository;
 import com.gntcyouthbe.post.repository.PostImageRepository;
 import com.gntcyouthbe.post.repository.PostLikeRepository;
@@ -21,6 +25,8 @@ import com.gntcyouthbe.post.repository.PostRepository;
 import com.gntcyouthbe.user.domain.Role;
 import com.gntcyouthbe.user.domain.User;
 import com.gntcyouthbe.user.repository.UserRepository;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -44,6 +50,25 @@ public class PostService {
     private final UserRepository userRepository;
     private final UploadedFileRepository uploadedFileRepository;
     private final FileStorageService fileStorageService;
+    private final VerseRepository verseRepository;
+
+    @Transactional(readOnly = true)
+    public List<PostSubCategoryResponse> getSubCategories(PostCategory category) {
+        return Arrays.stream(PostSubCategory.values())
+                .filter(sub -> sub.getCategory() == category)
+                .sorted(Comparator.comparing(
+                        PostSubCategory::getStartDate,
+                        Comparator.nullsLast(Comparator.reverseOrder())))
+                .map(sub -> {
+                    Verse verse = sub.hasVerse()
+                            ? verseRepository.findByBook_BookNameAndChapterAndNumber(
+                                    sub.getBookName(), sub.getChapter(), sub.getVerseNumber())
+                                    .orElse(null)
+                            : null;
+                    return PostSubCategoryResponse.from(sub, verse);
+                })
+                .toList();
+    }
 
     @Transactional
     public PostResponse createPost(UserPrincipal userPrincipal, PostCreateRequest request) {

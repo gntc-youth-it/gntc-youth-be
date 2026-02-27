@@ -51,4 +51,18 @@ public class CategoryStepDefs {
         List<LocalDate> dates = startDates.stream().map(LocalDate::parse).toList();
         assertThat(dates).isSortedAccordingTo(Comparator.reverseOrder());
     }
+
+    @그리고("세부 카테고리에 말씀 정보가 포함되어 있다")
+    public void 세부_카테고리에_말씀_정보가_포함되어_있다() {
+        List<Map<String, Object>> responses = world.response.jsonPath().getList(".");
+        assertThat(responses).isNotEmpty();
+
+        Map<String, Object> verse = world.response.jsonPath().getMap("[0].verse");
+        assertThat(verse).isNotNull();
+        assertThat((String) verse.get("bookName")).isEqualTo("ISAIAH");
+        assertThat((String) verse.get("bookDisplayName")).isEqualTo("이사야");
+        assertThat((Integer) verse.get("chapter")).isEqualTo(40);
+        assertThat((Integer) verse.get("verse")).isEqualTo(31);
+        assertThat((String) verse.get("content")).isNotBlank();
+    }
 }
