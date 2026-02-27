@@ -24,6 +24,8 @@ import com.gntcyouthbe.post.repository.PostLikeRepository;
 import com.gntcyouthbe.post.repository.PostRepository;
 import com.gntcyouthbe.user.domain.Role;
 import com.gntcyouthbe.user.domain.User;
+import com.gntcyouthbe.user.domain.UserProfile;
+import com.gntcyouthbe.user.repository.UserProfileRepository;
 import com.gntcyouthbe.user.repository.UserRepository;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -49,6 +51,7 @@ public class PostService {
     private final PostImageRepository postImageRepository;
     private final PostLikeRepository postLikeRepository;
     private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
     private final UploadedFileRepository uploadedFileRepository;
     private final FileStorageService fileStorageService;
     private final VerseRepository verseRepository;
@@ -133,7 +136,15 @@ public class PostService {
                         row -> (Long) row[1]
                 ));
 
-        return FeedResponse.of(posts, size, commentCounts);
+        List<Long> authorIds = posts.stream().map(post -> post.getAuthor().getId()).distinct().toList();
+        Map<Long, String> profileImageUrls = userProfileRepository.findByUserIdInWithProfileImage(authorIds).stream()
+                .filter(profile -> profile.getProfileImage() != null)
+                .collect(Collectors.toMap(
+                        profile -> profile.getUser().getId(),
+                        profile -> profile.getProfileImage().getFilePath()
+                ));
+
+        return FeedResponse.of(posts, size, commentCounts, profileImageUrls);
     }
 
     @Transactional(readOnly = true)

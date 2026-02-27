@@ -18,12 +18,16 @@ public class FeedResponse {
         this.hasNext = hasNext;
     }
 
-    public static FeedResponse of(List<Post> posts, int size, Map<Long, Long> commentCounts) {
+    public static FeedResponse of(List<Post> posts, int size, Map<Long, Long> commentCounts,
+            Map<Long, String> profileImageUrls) {
         boolean hasNext = posts.size() > size;
         List<Post> content = hasNext ? posts.subList(0, size) : posts;
 
         List<PostResponse> postResponses = content.stream()
-                .map(post -> PostResponse.from(post, commentCounts.getOrDefault(post.getId(), 0L)))
+                .map(post -> PostResponse.from(
+                        post,
+                        commentCounts.getOrDefault(post.getId(), 0L),
+                        profileImageUrls.get(post.getAuthor().getId())))
                 .toList();
 
         Long nextCursor = content.isEmpty() ? null : content.getLast().getId();

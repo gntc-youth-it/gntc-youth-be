@@ -33,6 +33,11 @@ public class FeedStepDefs {
         assertThat(postIds).contains(901L, 902L);
         // 검수대기 게시글 (903)는 미포함
         assertThat(postIds).doesNotContain(903L);
+
+        // 마스터유저(id=3)의 프로필 이미지 URL이 포함된다
+        List<String> profileImageUrls = world.response.jsonPath()
+                .getList("posts.authorProfileImageUrl", String.class);
+        assertThat(profileImageUrls).allMatch(url -> url.equals("uploads/profile.jpg"));
     }
 
     @만일("소분류 {string}로 피드를 조회한다")

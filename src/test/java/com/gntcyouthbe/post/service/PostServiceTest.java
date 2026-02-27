@@ -26,8 +26,11 @@ import com.gntcyouthbe.post.repository.PostImageRepository;
 import com.gntcyouthbe.post.repository.PostLikeRepository;
 import com.gntcyouthbe.post.repository.PostRepository;
 import com.gntcyouthbe.user.domain.AuthProvider;
+import com.gntcyouthbe.user.domain.Gender;
 import com.gntcyouthbe.user.domain.Role;
 import com.gntcyouthbe.user.domain.User;
+import com.gntcyouthbe.user.domain.UserProfile;
+import com.gntcyouthbe.user.repository.UserProfileRepository;
 import com.gntcyouthbe.user.repository.UserRepository;
 import java.util.List;
 import java.util.Optional;
@@ -56,6 +59,9 @@ class PostServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private UserProfileRepository userProfileRepository;
 
     @Mock
     private UploadedFileRepository uploadedFileRepository;
@@ -309,6 +315,8 @@ class PostServiceTest {
                 .willReturn(List.of(post1, post2));
         given(postCommentRepository.countByPostIds(List.of(10L, 9L)))
                 .willReturn(List.of());
+        given(userProfileRepository.findByUserIdInWithProfileImage(List.of(1L)))
+                .willReturn(List.of());
 
         // when
         FeedResponse response = postService.getFeed(null, null, Long.MAX_VALUE, 4);
@@ -316,6 +324,56 @@ class PostServiceTest {
         // then
         assertThat(response.getPosts()).hasSize(2);
         assertThat(response.isHasNext()).isFalse();
+    }
+
+    @Test
+    @DisplayName("피드 조회 시 작성자의 프로필 이미지 URL이 포함된다")
+    void getFeed_withAuthorProfileImage() {
+        // given
+        User author = createUser(1L, "작성자", Role.MASTER);
+        Post post = createPost(10L, author, PostSubCategory.RETREAT_2026_WINTER);
+
+        UploadedFile profileImage = createUploadedFile(50L, "profile.jpg", "uploads/profile.jpg");
+        UserProfile profile = new UserProfile(author, 45, "010-1234-5678", Gender.MALE);
+        profile.updateProfileImage(profileImage);
+
+        given(postRepository.findFeed(PostStatus.APPROVED, Long.MAX_VALUE, 5))
+                .willReturn(List.of(post));
+        given(postCommentRepository.countByPostIds(List.of(10L)))
+                .willReturn(List.of());
+        given(userProfileRepository.findByUserIdInWithProfileImage(List.of(1L)))
+                .willReturn(List.of(profile));
+
+        // when
+        FeedResponse response = postService.getFeed(null, null, Long.MAX_VALUE, 4);
+
+        // then
+        assertThat(response.getPosts()).hasSize(1);
+        assertThat(response.getPosts().get(0).getAuthorProfileImageUrl()).isEqualTo("uploads/profile.jpg");
+    }
+
+    @Test
+    @DisplayName("프로필 이미지가 없는 작성자는 null이 반환된다")
+    void getFeed_withoutAuthorProfileImage() {
+        // given
+        User author = createUser(1L, "작성자", Role.MASTER);
+        Post post = createPost(10L, author, PostSubCategory.RETREAT_2026_WINTER);
+
+        UserProfile profile = new UserProfile(author, 45, "010-1234-5678", Gender.MALE);
+
+        given(postRepository.findFeed(PostStatus.APPROVED, Long.MAX_VALUE, 5))
+                .willReturn(List.of(post));
+        given(postCommentRepository.countByPostIds(List.of(10L)))
+                .willReturn(List.of());
+        given(userProfileRepository.findByUserIdInWithProfileImage(List.of(1L)))
+                .willReturn(List.of(profile));
+
+        // when
+        FeedResponse response = postService.getFeed(null, null, Long.MAX_VALUE, 4);
+
+        // then
+        assertThat(response.getPosts()).hasSize(1);
+        assertThat(response.getPosts().get(0).getAuthorProfileImageUrl()).isNull();
     }
 
     @Test
@@ -328,6 +386,8 @@ class PostServiceTest {
         given(postRepository.findFeedByChurch(PostStatus.APPROVED, ChurchId.ANYANG, Long.MAX_VALUE, 5))
                 .willReturn(List.of(post));
         given(postCommentRepository.countByPostIds(List.of(10L)))
+                .willReturn(List.of());
+        given(userProfileRepository.findByUserIdInWithProfileImage(List.of(1L)))
                 .willReturn(List.of());
 
         // when
@@ -349,6 +409,8 @@ class PostServiceTest {
                 PostStatus.APPROVED, PostSubCategory.RETREAT_2026_WINTER, ChurchId.ANYANG, Long.MAX_VALUE, 5))
                 .willReturn(List.of(post));
         given(postCommentRepository.countByPostIds(List.of(10L)))
+                .willReturn(List.of());
+        given(userProfileRepository.findByUserIdInWithProfileImage(List.of(1L)))
                 .willReturn(List.of());
 
         // when
@@ -372,6 +434,8 @@ class PostServiceTest {
         given(postRepository.findFeed(PostStatus.APPROVED, Long.MAX_VALUE, 3))
                 .willReturn(List.of(post1, post2, post3));
         given(postCommentRepository.countByPostIds(List.of(10L, 9L, 8L)))
+                .willReturn(List.of());
+        given(userProfileRepository.findByUserIdInWithProfileImage(List.of(1L)))
                 .willReturn(List.of());
 
         // when

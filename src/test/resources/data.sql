@@ -39,10 +39,18 @@ VALUES (4, 'suwon-user@example.com', '수원유저', 'KAKAO', 'kakao_111222', 'U
 INSERT INTO app_user (id, email, name, provider, provider_user_id, role, church_id, created_at, updated_at)
 VALUES (5, 'anyang-user@example.com', '안양유저', 'KAKAO', 'kakao_333444', 'USER', 'ANYANG', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
+-- Profile Image for master user
+INSERT INTO uploaded_file (id, original_filename, stored_filename, file_path, content_type, file_size, created_at, updated_at)
+VALUES (800, 'profile.jpg', 'stored_profile.jpg', 'uploads/profile.jpg', 'image/jpeg', 512, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
 -- Test UserProfile (리더유저에게 프로필 추가)
 INSERT INTO user_profile (id, user_id, generation, phone_number, gender, created_at, updated_at)
 VALUES (100, 2, 45, '010-1234-5678', 'MALE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
-ALTER TABLE user_profile ALTER COLUMN id RESTART WITH 101;
+
+-- Test UserProfile (마스터유저에게 프로필 + 프로필 이미지 추가)
+INSERT INTO user_profile (id, user_id, generation, phone_number, gender, profile_image_id, created_at, updated_at)
+VALUES (101, 3, 44, '010-9876-5432', 'MALE', 800, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+ALTER TABLE user_profile ALTER COLUMN id RESTART WITH 102;
 
 -- Test Book
 INSERT INTO books (id, canon_order, book_name, name)
