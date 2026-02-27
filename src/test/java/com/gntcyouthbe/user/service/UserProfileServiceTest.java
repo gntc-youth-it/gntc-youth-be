@@ -5,6 +5,7 @@ import com.gntcyouthbe.church.domain.ChurchId;
 import com.gntcyouthbe.church.repository.ChurchRepository;
 import com.gntcyouthbe.common.exception.EntityNotFoundException;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
+import com.gntcyouthbe.file.domain.UploadedFile;
 import com.gntcyouthbe.file.repository.UploadedFileRepository;
 import com.gntcyouthbe.user.domain.AuthProvider;
 import com.gntcyouthbe.user.domain.Gender;
@@ -140,6 +141,50 @@ class UserProfileServiceTest {
         assertThat(response.getPhoneNumber()).isEqualTo("010-9876-5432");
         assertThat(response.getGender()).isEqualTo("FEMALE");
         assertThat(response.getGenderDisplay()).isEqualTo("여");
+    }
+
+    @Test
+    @DisplayName("프로필 저장 - 프로필 이미지 설정")
+    void saveProfile_withProfileImage() {
+        // given
+        UserPrincipal principal = createUserPrincipal();
+        User user = new User("test@example.com", "테스트", AuthProvider.KAKAO, "kakao_123");
+        Church church = mock(Church.class);
+        UploadedFile uploadedFile = new UploadedFile("profile.jpg", "stored.jpg", "uploads/stored.jpg", "image/jpeg", 1024L);
+        org.springframework.test.util.ReflectionTestUtils.setField(uploadedFile, "id", 10L);
+        UserProfileRequest request = new UserProfileRequest("홍길동", ChurchId.ANYANG, 45, "010-1234-5678", Gender.MALE, 10L);
+
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+        given(churchRepository.getReferenceById(ChurchId.ANYANG)).willReturn(church);
+        given(userProfileRepository.findByUserId(1L)).willReturn(Optional.empty());
+        given(uploadedFileRepository.findById(10L)).willReturn(Optional.of(uploadedFile));
+        given(userProfileRepository.save(any(UserProfile.class))).willAnswer(invocation -> invocation.getArgument(0));
+
+        // when
+        UserProfileResponse response = userProfileService.saveProfile(principal, request);
+
+        // then
+        assertThat(response.getProfileImageId()).isEqualTo(10L);
+        assertThat(response.getProfileImagePath()).isEqualTo("uploads/stored.jpg");
+    }
+
+    @Test
+    @DisplayName("프로필 저장 실패 - 존재하지 않는 이미지 ID")
+    void saveProfile_invalidImageId_throwsException() {
+        // given
+        UserPrincipal principal = createUserPrincipal();
+        User user = new User("test@example.com", "테스트", AuthProvider.KAKAO, "kakao_123");
+        Church church = mock(Church.class);
+        UserProfileRequest request = new UserProfileRequest("홍길동", ChurchId.ANYANG, 45, "010-1234-5678", Gender.MALE, 999L);
+
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+        given(churchRepository.getReferenceById(ChurchId.ANYANG)).willReturn(church);
+        given(userProfileRepository.findByUserId(1L)).willReturn(Optional.empty());
+        given(uploadedFileRepository.findById(999L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> userProfileService.saveProfile(principal, request))
+                .isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test

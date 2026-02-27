@@ -1,6 +1,7 @@
 package com.gntcyouthbe.user.model.response;
 
 import com.gntcyouthbe.church.domain.ChurchId;
+import com.gntcyouthbe.file.domain.UploadedFile;
 import com.gntcyouthbe.user.domain.User;
 import com.gntcyouthbe.user.domain.UserProfile;
 import lombok.Getter;
@@ -34,6 +35,7 @@ public class UserProfileResponse {
 
     public static UserProfileResponse from(User user, UserProfile profile) {
         ChurchId church = user.getChurchId();
+        UploadedFile profileImage = profile != null ? profile.getProfileImage() : null;
         return new UserProfileResponse(
                 user.getName(),
                 church != null ? church.name() : null,
@@ -42,8 +44,8 @@ public class UserProfileResponse {
                 profile != null ? profile.getPhoneNumber() : null,
                 profile != null && profile.getGender() != null ? profile.getGender().name() : null,
                 profile != null && profile.getGender() != null ? profile.getGender().getDisplayName() : null,
-                profile != null && profile.getProfileImage() != null ? profile.getProfileImage().getId() : null,
-                profile != null && profile.getProfileImage() != null ? profile.getProfileImage().getFilePath() : null
+                profileImage != null ? profileImage.getId() : null,
+                profileImage != null ? profileImage.getFilePath() : null
         );
     }
 }
