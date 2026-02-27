@@ -5,6 +5,7 @@ import com.gntcyouthbe.common.exception.EntityNotFoundException;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.file.domain.UploadedFile;
 import com.gntcyouthbe.file.repository.UploadedFileRepository;
+import com.gntcyouthbe.file.service.FileStorageService;
 import com.gntcyouthbe.post.domain.Post;
 import com.gntcyouthbe.post.domain.PostImage;
 import com.gntcyouthbe.post.domain.PostStatus;
@@ -15,6 +16,7 @@ import com.gntcyouthbe.post.model.response.GalleryResponse;
 import com.gntcyouthbe.post.model.response.PostResponse;
 import com.gntcyouthbe.post.repository.PostCommentRepository;
 import com.gntcyouthbe.post.repository.PostImageRepository;
+import com.gntcyouthbe.post.repository.PostLikeRepository;
 import com.gntcyouthbe.post.repository.PostRepository;
 import com.gntcyouthbe.user.domain.Role;
 import com.gntcyouthbe.user.domain.User;
@@ -28,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import static com.gntcyouthbe.common.exception.model.ExceptionCode.FILE_NOT_FOUND;
+import static com.gntcyouthbe.common.exception.model.ExceptionCode.POST_NOT_FOUND;
 import static com.gntcyouthbe.common.exception.model.ExceptionCode.USER_NOT_FOUND;
 
 @Service
@@ -37,8 +40,10 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostCommentRepository postCommentRepository;
     private final PostImageRepository postImageRepository;
+    private final PostLikeRepository postLikeRepository;
     private final UserRepository userRepository;
     private final UploadedFileRepository uploadedFileRepository;
+    private final FileStorageService fileStorageService;
 
     @Transactional
     public PostResponse createPost(UserPrincipal userPrincipal, PostCreateRequest request) {
@@ -58,6 +63,27 @@ public class PostService {
         postRepository.save(post);
 
         return PostResponse.from(post);
+    }
+
+    @Transactional
+    public void deletePost(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new EntityNotFoundException(POST_NOT_FOUND));
+
+        List<UploadedFile> uploadedFiles = post.getImages().stream()
+                .map(PostImage::getUploadedFile)
+                .toList();
+
+        List<String> filePaths = uploadedFiles.stream()
+                .map(UploadedFile::getFilePath)
+                .toList();
+
+        postLikeRepository.deleteByPostId(postId);
+        postCommentRepository.deleteByPostId(postId);
+        postRepository.delete(post);
+        uploadedFileRepository.deleteAll(uploadedFiles);
+
+        fileStorageService.deleteFiles(filePaths);
     }
 
     @Transactional(readOnly = true)

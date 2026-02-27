@@ -4,12 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.never;
 
 import com.gntcyouthbe.church.domain.ChurchId;
 import com.gntcyouthbe.common.exception.EntityNotFoundException;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.file.domain.UploadedFile;
 import com.gntcyouthbe.file.repository.UploadedFileRepository;
+import com.gntcyouthbe.file.service.FileStorageService;
 import com.gntcyouthbe.post.domain.Post;
 import com.gntcyouthbe.post.domain.PostImage;
 import com.gntcyouthbe.post.domain.PostStatus;
@@ -20,6 +23,7 @@ import com.gntcyouthbe.post.model.response.GalleryResponse;
 import com.gntcyouthbe.post.model.response.PostResponse;
 import com.gntcyouthbe.post.repository.PostCommentRepository;
 import com.gntcyouthbe.post.repository.PostImageRepository;
+import com.gntcyouthbe.post.repository.PostLikeRepository;
 import com.gntcyouthbe.post.repository.PostRepository;
 import com.gntcyouthbe.user.domain.AuthProvider;
 import com.gntcyouthbe.user.domain.Role;
@@ -48,10 +52,16 @@ class PostServiceTest {
     private PostImageRepository postImageRepository;
 
     @Mock
+    private PostLikeRepository postLikeRepository;
+
+    @Mock
     private UserRepository userRepository;
 
     @Mock
     private UploadedFileRepository uploadedFileRepository;
+
+    @Mock
+    private FileStorageService fileStorageService;
 
     @InjectMocks
     private PostService postService;
@@ -371,6 +381,67 @@ class PostServiceTest {
         assertThat(response.getPosts()).hasSize(2);
         assertThat(response.isHasNext()).isTrue();
         assertThat(response.getNextCursor()).isEqualTo(9L);
+    }
+
+    // --- 게시글 삭제 테스트 ---
+
+    @Test
+    @DisplayName("게시글을 삭제하면 좋아요, 댓글, 게시글, 파일이 모두 삭제된다")
+    void deletePost_withImages_deletesAll() {
+        // given
+        User author = createUser(1L, "작성자", Role.MASTER);
+        Post post = createPost(100L, author, PostSubCategory.RETREAT_2026_WINTER);
+
+        UploadedFile file1 = createUploadedFile(10L, "photo1.jpg", "uploads/stored_photo1.jpg");
+        UploadedFile file2 = createUploadedFile(20L, "photo2.jpg", "uploads/stored_photo2.jpg");
+        post.addImage(new PostImage(file1, 1));
+        post.addImage(new PostImage(file2, 2));
+
+        given(postRepository.findById(100L)).willReturn(Optional.of(post));
+
+        // when
+        postService.deletePost(100L);
+
+        // then
+        then(postLikeRepository).should().deleteByPostId(100L);
+        then(postCommentRepository).should().deleteByPostId(100L);
+        then(postRepository).should().delete(post);
+        then(uploadedFileRepository).should().deleteAll(List.of(file1, file2));
+        then(fileStorageService).should().deleteFiles(List.of("uploads/stored_photo1.jpg", "uploads/stored_photo2.jpg"));
+    }
+
+    @Test
+    @DisplayName("이미지가 없는 게시글도 정상적으로 삭제된다")
+    void deletePost_withoutImages_deletesPost() {
+        // given
+        User author = createUser(1L, "작성자", Role.MASTER);
+        Post post = createPost(100L, author, PostSubCategory.NONE);
+
+        given(postRepository.findById(100L)).willReturn(Optional.of(post));
+
+        // when
+        postService.deletePost(100L);
+
+        // then
+        then(postLikeRepository).should().deleteByPostId(100L);
+        then(postCommentRepository).should().deleteByPostId(100L);
+        then(postRepository).should().delete(post);
+        then(uploadedFileRepository).should().deleteAll(List.of());
+        then(fileStorageService).should().deleteFiles(List.of());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 게시글을 삭제하면 예외가 발생한다")
+    void deletePost_notFound_throwsException() {
+        // given
+        given(postRepository.findById(999L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> postService.deletePost(999L))
+                .isInstanceOf(EntityNotFoundException.class);
+
+        then(postRepository).should(never()).delete(any());
+        then(fileStorageService).should(never()).deleteFiles(any());
     }
 
     private User createUser(Long id, String name, Role role) {
