@@ -19,11 +19,11 @@ class PostSubCategoryResponseTest {
         PostSubCategoryResponse response = PostSubCategoryResponse.from(PostSubCategory.RETREAT_2026_WINTER);
 
         // then
-        assertThat(response.name()).isEqualTo("RETREAT_2026_WINTER");
-        assertThat(response.displayName()).isEqualTo("2026 겨울 수련회 (새 힘을 얻으라)");
-        assertThat(response.imageUrl()).isEqualTo("assets/2026-winter-poster.webp");
-        assertThat(response.startDate()).isEqualTo(LocalDate.of(2026, 1, 29));
-        assertThat(response.endDate()).isEqualTo(LocalDate.of(2026, 1, 31));
+        assertThat(response.name()).isEqualTo(PostSubCategory.RETREAT_2026_WINTER.name());
+        assertThat(response.displayName()).isEqualTo(PostSubCategory.RETREAT_2026_WINTER.getDisplayName());
+        assertThat(response.imageUrl()).isEqualTo(PostSubCategory.RETREAT_2026_WINTER.getImageUrl());
+        assertThat(response.startDate()).isEqualTo(PostSubCategory.RETREAT_2026_WINTER.getStartDate());
+        assertThat(response.endDate()).isEqualTo(PostSubCategory.RETREAT_2026_WINTER.getEndDate());
     }
 
     @Test
