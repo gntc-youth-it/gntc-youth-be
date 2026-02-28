@@ -301,6 +301,82 @@ class PostServiceTest {
         assertThat(response.getNextCursor()).isEqualTo(2L);
     }
 
+    // --- 검수대기 피드 조회 테스트 ---
+
+    @Test
+    @DisplayName("검수대기 피드를 조회하면 PENDING_REVIEW 상태의 게시글이 반환된다")
+    void getPendingFeed_returnsPendingReviewPosts() {
+        // given
+        User author = createUser(1L, "작성자", Role.USER);
+        Post post = createPost(10L, author, PostSubCategory.RETREAT_2026_WINTER, PostStatus.PENDING_REVIEW);
+
+        given(postRepository.findFeed(PostStatus.PENDING_REVIEW, Long.MAX_VALUE, 5))
+                .willReturn(List.of(post));
+        given(postCommentRepository.countByPostIds(List.of(10L)))
+                .willReturn(List.of());
+        given(userProfileRepository.findByUserIdInWithProfileImage(List.of(1L)))
+                .willReturn(List.of());
+
+        // when
+        FeedResponse response = postService.getPendingFeed(Long.MAX_VALUE, 4);
+
+        // then
+        assertThat(response.getPosts()).hasSize(1);
+        assertThat(response.getPosts().get(0).getStatus()).isEqualTo(PostStatus.PENDING_REVIEW);
+        assertThat(response.isHasNext()).isFalse();
+    }
+
+    @Test
+    @DisplayName("검수대기 피드 조회 시 작성자의 프로필 이미지 URL이 포함된다")
+    void getPendingFeed_withAuthorProfileImage() {
+        // given
+        User author = createUser(1L, "작성자", Role.USER);
+        Post post = createPost(10L, author, PostSubCategory.RETREAT_2026_WINTER, PostStatus.PENDING_REVIEW);
+
+        UploadedFile profileImage = createUploadedFile(50L, "profile.jpg", "uploads/profile.jpg");
+        UserProfile profile = new UserProfile(author, 45, "010-1234-5678", Gender.MALE);
+        profile.updateProfileImage(profileImage);
+
+        given(postRepository.findFeed(PostStatus.PENDING_REVIEW, Long.MAX_VALUE, 5))
+                .willReturn(List.of(post));
+        given(postCommentRepository.countByPostIds(List.of(10L)))
+                .willReturn(List.of());
+        given(userProfileRepository.findByUserIdInWithProfileImage(List.of(1L)))
+                .willReturn(List.of(profile));
+
+        // when
+        FeedResponse response = postService.getPendingFeed(Long.MAX_VALUE, 4);
+
+        // then
+        assertThat(response.getPosts()).hasSize(1);
+        assertThat(response.getPosts().get(0).getAuthorProfileImageUrl()).isEqualTo("uploads/profile.jpg");
+    }
+
+    @Test
+    @DisplayName("검수대기 피드 결과가 size보다 많으면 hasNext가 true이다")
+    void getPendingFeed_hasNextTrue() {
+        // given
+        User author = createUser(1L, "작성자", Role.USER);
+        Post post1 = createPost(10L, author, PostSubCategory.RETREAT_2026_WINTER, PostStatus.PENDING_REVIEW);
+        Post post2 = createPost(9L, author, PostSubCategory.NONE, PostStatus.PENDING_REVIEW);
+        Post post3 = createPost(8L, author, PostSubCategory.NONE, PostStatus.PENDING_REVIEW);
+
+        given(postRepository.findFeed(PostStatus.PENDING_REVIEW, Long.MAX_VALUE, 3))
+                .willReturn(List.of(post1, post2, post3));
+        given(postCommentRepository.countByPostIds(List.of(10L, 9L, 8L)))
+                .willReturn(List.of());
+        given(userProfileRepository.findByUserIdInWithProfileImage(List.of(1L)))
+                .willReturn(List.of());
+
+        // when
+        FeedResponse response = postService.getPendingFeed(Long.MAX_VALUE, 2);
+
+        // then
+        assertThat(response.getPosts()).hasSize(2);
+        assertThat(response.isHasNext()).isTrue();
+        assertThat(response.getNextCursor()).isEqualTo(9L);
+    }
+
     // --- 피드 조회 테스트 ---
 
     @Test
@@ -530,7 +606,11 @@ class PostServiceTest {
     }
 
     private Post createPost(Long id, User author, PostSubCategory subCategory) {
-        Post post = new Post(author, subCategory, PostStatus.APPROVED, "테스트 게시글", false);
+        return createPost(id, author, subCategory, PostStatus.APPROVED);
+    }
+
+    private Post createPost(Long id, User author, PostSubCategory subCategory, PostStatus status) {
+        Post post = new Post(author, subCategory, status, "테스트 게시글", false);
         ReflectionTestUtils.setField(post, "id", id);
         return post;
     }

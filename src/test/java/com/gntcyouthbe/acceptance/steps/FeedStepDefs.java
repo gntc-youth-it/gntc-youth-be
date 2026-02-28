@@ -2,20 +2,24 @@ package com.gntcyouthbe.acceptance.steps;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.gntcyouthbe.acceptance.support.api.AuthApi;
 import com.gntcyouthbe.acceptance.support.api.PostApi;
 import com.gntcyouthbe.acceptance.support.context.World;
 import io.cucumber.java.ko.그러면;
 import io.cucumber.java.ko.만일;
+import io.cucumber.java.ko.먼저;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 
 public class FeedStepDefs {
 
     private final World world;
+    private final AuthApi authApi;
     private final PostApi postApi;
 
-    public FeedStepDefs(World world, PostApi postApi) {
+    public FeedStepDefs(World world, AuthApi authApi, PostApi postApi) {
         this.world = world;
+        this.authApi = authApi;
         this.postApi = postApi;
     }
 
@@ -111,5 +115,53 @@ public class FeedStepDefs {
     public void 다음_게시글이_반환된다() {
         assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
         assertThat(world.response.jsonPath().getList("posts")).hasSize(1);
+    }
+
+    // --- 검수대기 피드 조회 ---
+
+    @먼저("마스터가 검수대기 피드 조회를 위해 로그인되어 있다")
+    public void 마스터가_검수대기_피드_조회를_위해_로그인되어_있다() {
+        world.authToken = authApi.getAccessToken("master@example.com");
+        assertThat(world.authToken).isNotBlank();
+    }
+
+    @먼저("일반 사용자가 검수대기 피드 조회를 위해 로그인되어 있다")
+    public void 일반_사용자가_검수대기_피드_조회를_위해_로그인되어_있다() {
+        world.authToken = authApi.getAccessToken("test@example.com");
+        assertThat(world.authToken).isNotBlank();
+    }
+
+    @만일("마스터가 검수대기 피드를 조회한다")
+    public void 마스터가_검수대기_피드를_조회한다() {
+        world.response = postApi.getPendingFeed(world.authToken, null, null);
+    }
+
+    @그러면("검수대기 게시글만 반환된다")
+    public void 검수대기_게시글만_반환된다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
+
+        List<Long> postIds = world.response.jsonPath().getList("posts.id", Long.class);
+        // 검수대기 게시글 (903)만 포함
+        assertThat(postIds).contains(903L);
+        // 승인된 게시글 (901, 902)는 미포함
+        assertThat(postIds).doesNotContain(901L, 902L);
+
+        List<String> statuses = world.response.jsonPath().getList("posts.status", String.class);
+        assertThat(statuses).allMatch(status -> status.equals("PENDING_REVIEW"));
+    }
+
+    @만일("미인증 사용자가 검수대기 피드를 조회한다")
+    public void 미인증_사용자가_검수대기_피드를_조회한다() {
+        world.response = postApi.getPendingFeedWithoutAuth(null, null);
+    }
+
+    @만일("일반 사용자가 검수대기 피드를 조회한다")
+    public void 일반_사용자가_검수대기_피드를_조회한다() {
+        world.response = postApi.getPendingFeed(world.authToken, null, null);
+    }
+
+    @그러면("검수대기 피드 인증 에러가 반환된다")
+    public void 검수대기_피드_인증_에러가_반환된다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
     }
 }

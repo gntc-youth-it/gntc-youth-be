@@ -58,6 +58,25 @@ public class PostApi {
                 .then().extract();
     }
 
+    public ExtractableResponse<Response> getPendingFeed(String authToken, Long cursor, Integer size) {
+        var request = given()
+                .header("Authorization", "Bearer " + authToken);
+        if (cursor != null) request.queryParam("cursor", cursor);
+        if (size != null) request.queryParam("size", size);
+        return request
+                .when().get("/posts/feed/pending")
+                .then().extract();
+    }
+
+    public ExtractableResponse<Response> getPendingFeedWithoutAuth(Long cursor, Integer size) {
+        var request = given();
+        if (cursor != null) request.queryParam("cursor", cursor);
+        if (size != null) request.queryParam("size", size);
+        return request
+                .when().get("/posts/feed/pending")
+                .then().extract();
+    }
+
     public ExtractableResponse<Response> getFeed(String subCategory, String churchId, Long cursor,
             Integer size) {
         var request = given();
