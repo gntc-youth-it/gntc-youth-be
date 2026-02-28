@@ -45,6 +45,17 @@ public class PostController {
         return ResponseEntity.ok(postService.getSubCategories(category));
     }
 
+    @GetMapping("/feed/pending")
+    @PreAuthorize("hasAuthority('MASTER')")
+    public ResponseEntity<FeedResponse> getPendingFeed(
+            @RequestParam(required = false) Long cursor,
+            @RequestParam(defaultValue = "4") int size) {
+        if (cursor == null) {
+            cursor = Long.MAX_VALUE;
+        }
+        return ResponseEntity.ok(postService.getPendingFeed(cursor, size));
+    }
+
     @GetMapping("/feed")
     public ResponseEntity<FeedResponse> getFeed(
             @RequestParam(required = false) PostSubCategory subCategory,

@@ -126,9 +126,25 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
+    public FeedResponse getPendingFeed(Long cursor, int size) {
+        List<Post> posts = postRepository.findFeed(PostStatus.PENDING_REVIEW, cursor, size + 1);
+        return buildFeedResponse(posts, size);
+    }
+
+    @Transactional(readOnly = true)
     public FeedResponse getFeed(PostSubCategory subCategory, ChurchId churchId, Long cursor, int size) {
         List<Post> posts = findFeedPosts(subCategory, churchId, cursor, size + 1);
+        return buildFeedResponse(posts, size);
+    }
 
+    @Transactional(readOnly = true)
+    public GalleryResponse getGalleryImages(PostSubCategory subCategory, ChurchId churchId, Long cursor, int size) {
+        List<PostImage> postImages = findGalleryImages(subCategory, churchId, cursor, size + 1);
+
+        return GalleryResponse.of(postImages, size);
+    }
+
+    private FeedResponse buildFeedResponse(List<Post> posts, int size) {
         List<Long> postIds = posts.stream().map(Post::getId).toList();
         Map<Long, Long> commentCounts = postCommentRepository.countByPostIds(postIds).stream()
                 .collect(Collectors.toMap(
@@ -145,13 +161,6 @@ public class PostService {
                 ));
 
         return FeedResponse.of(posts, size, commentCounts, profileImageUrls);
-    }
-
-    @Transactional(readOnly = true)
-    public GalleryResponse getGalleryImages(PostSubCategory subCategory, ChurchId churchId, Long cursor, int size) {
-        List<PostImage> postImages = findGalleryImages(subCategory, churchId, cursor, size + 1);
-
-        return GalleryResponse.of(postImages, size);
     }
 
     private List<Post> findFeedPosts(PostSubCategory subCategory, ChurchId churchId, Long cursor, int size) {
