@@ -164,4 +164,43 @@ public class FeedStepDefs {
     public void 검수대기_피드_인증_에러가_반환된다() {
         assertThat(world.response.statusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
     }
+
+    // --- 게시글 승인 ---
+
+    @먼저("마스터가 게시글 승인을 위해 로그인되어 있다")
+    public void 마스터가_게시글_승인을_위해_로그인되어_있다() {
+        world.authToken = authApi.getAccessToken("master@example.com");
+        assertThat(world.authToken).isNotBlank();
+    }
+
+    @먼저("일반 사용자가 게시글 승인을 위해 로그인되어 있다")
+    public void 일반_사용자가_게시글_승인을_위해_로그인되어_있다() {
+        world.authToken = authApi.getAccessToken("test@example.com");
+        assertThat(world.authToken).isNotBlank();
+    }
+
+    @만일("마스터가 검수대기 게시글을 승인한다")
+    public void 마스터가_검수대기_게시글을_승인한다() {
+        world.response = postApi.approvePost(world.authToken, 905L);
+    }
+
+    @그러면("게시글이 승인 처리된다")
+    public void 게시글이_승인_처리된다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
+    }
+
+    @만일("미인증 사용자가 게시글을 승인한다")
+    public void 미인증_사용자가_게시글을_승인한다() {
+        world.response = postApi.approvePostWithoutAuth(905L);
+    }
+
+    @만일("일반 사용자가 게시글을 승인한다")
+    public void 일반_사용자가_게시글을_승인한다() {
+        world.response = postApi.approvePost(world.authToken, 905L);
+    }
+
+    @그러면("게시글 승인 인증 에러가 반환된다")
+    public void 게시글_승인_인증_에러가_반환된다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+    }
 }

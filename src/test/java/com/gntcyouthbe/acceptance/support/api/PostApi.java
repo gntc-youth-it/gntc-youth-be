@@ -77,6 +77,19 @@ public class PostApi {
                 .then().extract();
     }
 
+    public ExtractableResponse<Response> approvePost(String authToken, Long postId) {
+        return given()
+                .header("Authorization", "Bearer " + authToken)
+                .when().patch("/posts/" + postId + "/approve")
+                .then().extract();
+    }
+
+    public ExtractableResponse<Response> approvePostWithoutAuth(Long postId) {
+        return given()
+                .when().patch("/posts/" + postId + "/approve")
+                .then().extract();
+    }
+
     public ExtractableResponse<Response> getFeed(String subCategory, String churchId, Long cursor,
             Integer size) {
         var request = given();

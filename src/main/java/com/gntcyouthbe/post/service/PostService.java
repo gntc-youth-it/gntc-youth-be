@@ -105,6 +105,14 @@ public class PostService {
     }
 
     @Transactional
+    public void approvePost(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new EntityNotFoundException(POST_NOT_FOUND));
+
+        post.updateStatus(PostStatus.APPROVED);
+    }
+
+    @Transactional
     public void deletePost(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException(POST_NOT_FOUND));
