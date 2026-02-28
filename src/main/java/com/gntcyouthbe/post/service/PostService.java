@@ -3,6 +3,7 @@ package com.gntcyouthbe.post.service;
 import com.gntcyouthbe.bible.domain.Verse;
 import com.gntcyouthbe.bible.repository.VerseRepository;
 import com.gntcyouthbe.church.domain.ChurchId;
+import com.gntcyouthbe.common.exception.BadRequestException;
 import com.gntcyouthbe.common.exception.EntityNotFoundException;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.file.domain.UploadedFile;
@@ -40,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static com.gntcyouthbe.common.exception.model.ExceptionCode.FILE_NOT_FOUND;
 import static com.gntcyouthbe.common.exception.model.ExceptionCode.POST_NOT_FOUND;
+import static com.gntcyouthbe.common.exception.model.ExceptionCode.POST_NOT_PENDING_REVIEW;
 import static com.gntcyouthbe.common.exception.model.ExceptionCode.USER_NOT_FOUND;
 
 @Service
@@ -102,6 +104,18 @@ public class PostService {
         postRepository.save(post);
 
         return PostResponse.from(post);
+    }
+
+    @Transactional
+    public void approvePost(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new EntityNotFoundException(POST_NOT_FOUND));
+
+        if (post.getStatus() != PostStatus.PENDING_REVIEW) {
+            throw new BadRequestException(POST_NOT_PENDING_REVIEW);
+        }
+
+        post.updateStatus(PostStatus.APPROVED);
     }
 
     @Transactional

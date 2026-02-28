@@ -136,3 +136,7 @@ VALUES (901, 904, 1, '삭제 테스트 댓글', CURRENT_TIMESTAMP, CURRENT_TIMES
 
 INSERT INTO post_like (id, post_id, user_id, created_at, updated_at, created_by, updated_by)
 VALUES (901, 904, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1);
+
+-- Approve Test: PENDING_REVIEW post for approval testing
+INSERT INTO post (id, author_id, sub_category, status, content, is_author_public, created_at, updated_at, created_by, updated_by)
+VALUES (905, 1, 'RETREAT_2026_WINTER', 'PENDING_REVIEW', '승인 테스트용 검수대기 게시글', false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1);

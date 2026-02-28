@@ -8,6 +8,7 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 
 import com.gntcyouthbe.church.domain.ChurchId;
+import com.gntcyouthbe.common.exception.BadRequestException;
 import com.gntcyouthbe.common.exception.EntityNotFoundException;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.file.domain.UploadedFile;
@@ -521,6 +522,49 @@ class PostServiceTest {
         assertThat(response.getPosts()).hasSize(2);
         assertThat(response.isHasNext()).isTrue();
         assertThat(response.getNextCursor()).isEqualTo(9L);
+    }
+
+    // --- 게시글 승인 테스트 ---
+
+    @Test
+    @DisplayName("검수대기 게시글을 승인하면 APPROVED 상태로 변경된다")
+    void approvePost_pendingReview_changesStatusToApproved() {
+        // given
+        User author = createUser(1L, "작성자", Role.USER);
+        Post post = createPost(10L, author, PostSubCategory.RETREAT_2026_WINTER, PostStatus.PENDING_REVIEW);
+
+        given(postRepository.findById(10L)).willReturn(Optional.of(post));
+
+        // when
+        postService.approvePost(10L);
+
+        // then
+        assertThat(post.getStatus()).isEqualTo(PostStatus.APPROVED);
+    }
+
+    @Test
+    @DisplayName("검수대기 상태가 아닌 게시글을 승인하면 예외가 발생한다")
+    void approvePost_notPendingReview_throwsException() {
+        // given
+        User author = createUser(1L, "작성자", Role.MASTER);
+        Post post = createPost(10L, author, PostSubCategory.RETREAT_2026_WINTER, PostStatus.APPROVED);
+
+        given(postRepository.findById(10L)).willReturn(Optional.of(post));
+
+        // when & then
+        assertThatThrownBy(() -> postService.approvePost(10L))
+                .isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 게시글을 승인하면 예외가 발생한다")
+    void approvePost_notFound_throwsException() {
+        // given
+        given(postRepository.findById(999L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> postService.approvePost(999L))
+                .isInstanceOf(EntityNotFoundException.class);
     }
 
     // --- 게시글 삭제 테스트 ---
