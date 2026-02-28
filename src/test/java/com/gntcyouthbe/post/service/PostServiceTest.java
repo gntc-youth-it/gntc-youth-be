@@ -8,6 +8,7 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 
 import com.gntcyouthbe.church.domain.ChurchId;
+import com.gntcyouthbe.common.exception.BadRequestException;
 import com.gntcyouthbe.common.exception.EntityNotFoundException;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.file.domain.UploadedFile;
@@ -539,6 +540,20 @@ class PostServiceTest {
 
         // then
         assertThat(post.getStatus()).isEqualTo(PostStatus.APPROVED);
+    }
+
+    @Test
+    @DisplayName("검수대기 상태가 아닌 게시글을 승인하면 예외가 발생한다")
+    void approvePost_notPendingReview_throwsException() {
+        // given
+        User author = createUser(1L, "작성자", Role.MASTER);
+        Post post = createPost(10L, author, PostSubCategory.RETREAT_2026_WINTER, PostStatus.APPROVED);
+
+        given(postRepository.findById(10L)).willReturn(Optional.of(post));
+
+        // when & then
+        assertThatThrownBy(() -> postService.approvePost(10L))
+                .isInstanceOf(BadRequestException.class);
     }
 
     @Test
