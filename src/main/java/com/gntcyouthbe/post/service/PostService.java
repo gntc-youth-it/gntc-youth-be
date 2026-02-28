@@ -128,45 +128,13 @@ public class PostService {
     @Transactional(readOnly = true)
     public FeedResponse getPendingFeed(Long cursor, int size) {
         List<Post> posts = postRepository.findFeed(PostStatus.PENDING_REVIEW, cursor, size + 1);
-
-        List<Long> postIds = posts.stream().map(Post::getId).toList();
-        Map<Long, Long> commentCounts = postCommentRepository.countByPostIds(postIds).stream()
-                .collect(Collectors.toMap(
-                        row -> (Long) row[0],
-                        row -> (Long) row[1]
-                ));
-
-        List<Long> authorIds = posts.stream().map(post -> post.getAuthor().getId()).distinct().toList();
-        Map<Long, String> profileImageUrls = userProfileRepository.findByUserIdInWithProfileImage(authorIds).stream()
-                .filter(profile -> profile.getProfileImage() != null)
-                .collect(Collectors.toMap(
-                        profile -> profile.getUser().getId(),
-                        profile -> profile.getProfileImage().getFilePath()
-                ));
-
-        return FeedResponse.of(posts, size, commentCounts, profileImageUrls);
+        return buildFeedResponse(posts, size);
     }
 
     @Transactional(readOnly = true)
     public FeedResponse getFeed(PostSubCategory subCategory, ChurchId churchId, Long cursor, int size) {
         List<Post> posts = findFeedPosts(subCategory, churchId, cursor, size + 1);
-
-        List<Long> postIds = posts.stream().map(Post::getId).toList();
-        Map<Long, Long> commentCounts = postCommentRepository.countByPostIds(postIds).stream()
-                .collect(Collectors.toMap(
-                        row -> (Long) row[0],
-                        row -> (Long) row[1]
-                ));
-
-        List<Long> authorIds = posts.stream().map(post -> post.getAuthor().getId()).distinct().toList();
-        Map<Long, String> profileImageUrls = userProfileRepository.findByUserIdInWithProfileImage(authorIds).stream()
-                .filter(profile -> profile.getProfileImage() != null)
-                .collect(Collectors.toMap(
-                        profile -> profile.getUser().getId(),
-                        profile -> profile.getProfileImage().getFilePath()
-                ));
-
-        return FeedResponse.of(posts, size, commentCounts, profileImageUrls);
+        return buildFeedResponse(posts, size);
     }
 
     @Transactional(readOnly = true)
@@ -174,6 +142,25 @@ public class PostService {
         List<PostImage> postImages = findGalleryImages(subCategory, churchId, cursor, size + 1);
 
         return GalleryResponse.of(postImages, size);
+    }
+
+    private FeedResponse buildFeedResponse(List<Post> posts, int size) {
+        List<Long> postIds = posts.stream().map(Post::getId).toList();
+        Map<Long, Long> commentCounts = postCommentRepository.countByPostIds(postIds).stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> (Long) row[1]
+                ));
+
+        List<Long> authorIds = posts.stream().map(post -> post.getAuthor().getId()).distinct().toList();
+        Map<Long, String> profileImageUrls = userProfileRepository.findByUserIdInWithProfileImage(authorIds).stream()
+                .filter(profile -> profile.getProfileImage() != null)
+                .collect(Collectors.toMap(
+                        profile -> profile.getUser().getId(),
+                        profile -> profile.getProfileImage().getFilePath()
+                ));
+
+        return FeedResponse.of(posts, size, commentCounts, profileImageUrls);
     }
 
     private List<Post> findFeedPosts(PostSubCategory subCategory, ChurchId churchId, Long cursor, int size) {
