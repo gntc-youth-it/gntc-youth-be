@@ -12,6 +12,7 @@ import com.gntcyouthbe.common.exception.ForbiddenException;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.file.domain.UploadedFile;
 import com.gntcyouthbe.file.repository.UploadedFileRepository;
+import com.gntcyouthbe.post.repository.PostImageRepository;
 import com.gntcyouthbe.user.domain.Role;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class ChurchInfoService {
     private final ChurchInfoRepository churchInfoRepository;
     private final PrayerTopicRepository prayerTopicRepository;
     private final UploadedFileRepository uploadedFileRepository;
+    private final PostImageRepository postImageRepository;
 
     @Transactional
     public ChurchInfoResponse saveChurchInfo(UserPrincipal userPrincipal, ChurchId churchId, ChurchInfoRequest request) {
@@ -50,7 +52,8 @@ public class ChurchInfoService {
                 .toList();
         prayerTopicRepository.saveAll(prayerTopics);
 
-        return ChurchInfoResponse.from(churchInfo, prayerTopics);
+        List<String> randomPhotos = postImageRepository.findRandomImagePathsByChurch(churchId.name());
+        return ChurchInfoResponse.from(churchInfo, prayerTopics, randomPhotos);
     }
 
     private void validateChurchAccess(UserPrincipal userPrincipal, ChurchId churchId) {
@@ -67,6 +70,7 @@ public class ChurchInfoService {
         List<PrayerTopic> prayerTopics = prayerTopicRepository
                 .findByChurchInfoOrderBySortOrderAsc(churchInfo);
 
-        return ChurchInfoResponse.from(churchInfo, prayerTopics);
+        List<String> randomPhotos = postImageRepository.findRandomImagePathsByChurch(churchId.name());
+        return ChurchInfoResponse.from(churchInfo, prayerTopics, randomPhotos);
     }
 }

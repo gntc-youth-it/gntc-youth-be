@@ -65,4 +65,16 @@ public interface PostImageRepository extends JpaRepository<PostImage, Long> {
             @Param("churchId") ChurchId churchId,
             @Param("cursor") Long cursor,
             @Param("size") int size);
+
+    @Query(value = """
+            SELECT uf.file_path FROM post_image pi
+            JOIN post p ON pi.post_id = p.id
+            JOIN post_church pc ON pc.post_id = p.id
+            JOIN uploaded_file uf ON pi.uploaded_file_id = uf.id
+            WHERE pc.church_id = :churchId
+            AND p.status = 'APPROVED'
+            ORDER BY RANDOM()
+            LIMIT 7
+            """, nativeQuery = true)
+    List<String> findRandomImagePathsByChurch(@Param("churchId") String churchId);
 }

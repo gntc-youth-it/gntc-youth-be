@@ -140,3 +140,36 @@ VALUES (901, 904, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1);
 -- Approve Test: PENDING_REVIEW post for approval testing
 INSERT INTO post (id, author_id, sub_category, status, content, is_author_public, created_at, updated_at, created_by, updated_by)
 VALUES (905, 1, 'RETREAT_2026_WINTER', 'PENDING_REVIEW', '승인 테스트용 검수대기 게시글', false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1);
+
+-- Random Photos Test: Additional uploaded files for ANYANG church
+INSERT INTO uploaded_file (id, original_filename, stored_filename, file_path, content_type, file_size, created_at, updated_at)
+VALUES (907, 'random1.jpg', 'stored_random1.jpg', 'uploads/random1.jpg', 'image/jpeg', 1024, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO uploaded_file (id, original_filename, stored_filename, file_path, content_type, file_size, created_at, updated_at)
+VALUES (908, 'random2.jpg', 'stored_random2.jpg', 'uploads/random2.jpg', 'image/jpeg', 1024, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO uploaded_file (id, original_filename, stored_filename, file_path, content_type, file_size, created_at, updated_at)
+VALUES (909, 'random3.jpg', 'stored_random3.jpg', 'uploads/random3.jpg', 'image/jpeg', 1024, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO uploaded_file (id, original_filename, stored_filename, file_path, content_type, file_size, created_at, updated_at)
+VALUES (910, 'random4.jpg', 'stored_random4.jpg', 'uploads/random4.jpg', 'image/jpeg', 1024, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO uploaded_file (id, original_filename, stored_filename, file_path, content_type, file_size, created_at, updated_at)
+VALUES (911, 'random5.jpg', 'stored_random5.jpg', 'uploads/random5.jpg', 'image/jpeg', 1024, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO uploaded_file (id, original_filename, stored_filename, file_path, content_type, file_size, created_at, updated_at)
+VALUES (912, 'random6.jpg', 'stored_random6.jpg', 'uploads/random6.jpg', 'image/jpeg', 1024, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- Random Photos Test: APPROVED post for ANYANG with 6 images
+INSERT INTO post (id, author_id, sub_category, status, content, is_author_public, created_at, updated_at, created_by, updated_by)
+VALUES (906, 3, 'NONE', 'APPROVED', '안양 랜덤 사진 테스트 게시글', false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
+
+INSERT INTO post_church (post_id, church_id) VALUES (906, 'ANYANG');
+
+INSERT INTO post_image (id, post_id, uploaded_file_id, sort_order, created_at, updated_at, created_by, updated_by)
+VALUES (907, 906, 907, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
+INSERT INTO post_image (id, post_id, uploaded_file_id, sort_order, created_at, updated_at, created_by, updated_by)
+VALUES (908, 906, 908, 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
+INSERT INTO post_image (id, post_id, uploaded_file_id, sort_order, created_at, updated_at, created_by, updated_by)
+VALUES (909, 906, 909, 3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
+INSERT INTO post_image (id, post_id, uploaded_file_id, sort_order, created_at, updated_at, created_by, updated_by)
+VALUES (910, 906, 910, 4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
+INSERT INTO post_image (id, post_id, uploaded_file_id, sort_order, created_at, updated_at, created_by, updated_by)
+VALUES (911, 906, 911, 5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
+INSERT INTO post_image (id, post_id, uploaded_file_id, sort_order, created_at, updated_at, created_by, updated_by)
+VALUES (912, 906, 912, 6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
