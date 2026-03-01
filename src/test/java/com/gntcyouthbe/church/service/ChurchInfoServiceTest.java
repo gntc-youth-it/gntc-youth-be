@@ -71,7 +71,7 @@ class ChurchInfoServiceTest {
         given(churchInfoRepository.save(any(ChurchInfo.class))).willReturn(churchInfo);
         given(uploadedFileRepository.findById(1L)).willReturn(Optional.of(file));
         given(prayerTopicRepository.saveAll(anyList())).willAnswer(invocation -> invocation.getArgument(0));
-        given(postImageRepository.findRandomImagePathsByChurch("ANYANG")).willReturn(List.of("/uploads/img1.jpg"));
+        given(postImageRepository.findRandomImagePathsByChurch("ANYANG", "APPROVED", 7)).willReturn(List.of("/uploads/img1.jpg"));
 
         // when
         ChurchInfoResponse response = churchInfoService.saveChurchInfo(principal, ChurchId.ANYANG, request);
@@ -96,7 +96,7 @@ class ChurchInfoServiceTest {
 
         given(churchInfoRepository.findByChurchId(ChurchId.SUWON)).willReturn(Optional.of(churchInfo));
         given(prayerTopicRepository.saveAll(anyList())).willAnswer(invocation -> invocation.getArgument(0));
-        given(postImageRepository.findRandomImagePathsByChurch("SUWON")).willReturn(List.of());
+        given(postImageRepository.findRandomImagePathsByChurch("SUWON", "APPROVED", 7)).willReturn(List.of());
 
         // when
         ChurchInfoResponse response = churchInfoService.saveChurchInfo(principal, ChurchId.SUWON, request);
@@ -151,7 +151,7 @@ class ChurchInfoServiceTest {
 
         given(churchInfoRepository.findByChurchId(ChurchId.SUWON)).willReturn(Optional.of(churchInfo));
         given(prayerTopicRepository.saveAll(anyList())).willAnswer(invocation -> invocation.getArgument(0));
-        given(postImageRepository.findRandomImagePathsByChurch("SUWON")).willReturn(List.of());
+        given(postImageRepository.findRandomImagePathsByChurch("SUWON", "APPROVED", 7)).willReturn(List.of());
 
         // when
         ChurchInfoResponse response = churchInfoService.saveChurchInfo(principal, ChurchId.SUWON, request);
@@ -172,7 +172,7 @@ class ChurchInfoServiceTest {
 
         given(churchInfoRepository.findByChurchId(ChurchId.ANYANG)).willReturn(Optional.of(churchInfo));
         given(prayerTopicRepository.findByChurchInfoOrderBySortOrderAsc(churchInfo)).willReturn(prayerTopics);
-        given(postImageRepository.findRandomImagePathsByChurch("ANYANG"))
+        given(postImageRepository.findRandomImagePathsByChurch("ANYANG", "APPROVED", 7))
                 .willReturn(List.of("/uploads/img1.jpg", "/uploads/img2.jpg"));
 
         // when
@@ -209,7 +209,7 @@ class ChurchInfoServiceTest {
 
         given(churchInfoRepository.findByChurchId(ChurchId.ANYANG)).willReturn(Optional.of(churchInfo));
         given(prayerTopicRepository.findByChurchInfoOrderBySortOrderAsc(churchInfo)).willReturn(prayerTopics);
-        given(postImageRepository.findRandomImagePathsByChurch("ANYANG")).willReturn(randomPhotos);
+        given(postImageRepository.findRandomImagePathsByChurch("ANYANG", "APPROVED", 7)).willReturn(randomPhotos);
 
         // when
         ChurchInfoResponse response = churchInfoService.getChurchInfo(ChurchId.ANYANG);
@@ -228,7 +228,7 @@ class ChurchInfoServiceTest {
 
         given(churchInfoRepository.findByChurchId(ChurchId.SUWON)).willReturn(Optional.of(churchInfo));
         given(prayerTopicRepository.findByChurchInfoOrderBySortOrderAsc(churchInfo)).willReturn(prayerTopics);
-        given(postImageRepository.findRandomImagePathsByChurch("SUWON")).willReturn(List.of());
+        given(postImageRepository.findRandomImagePathsByChurch("SUWON", "APPROVED", 7)).willReturn(List.of());
 
         // when
         ChurchInfoResponse response = churchInfoService.getChurchInfo(ChurchId.SUWON);

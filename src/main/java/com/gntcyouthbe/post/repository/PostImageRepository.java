@@ -72,9 +72,10 @@ public interface PostImageRepository extends JpaRepository<PostImage, Long> {
             JOIN post_church pc ON pc.post_id = p.id
             JOIN uploaded_file uf ON pi.uploaded_file_id = uf.id
             WHERE pc.church_id = :churchId
-            AND p.status = 'APPROVED'
+            AND p.status = :status
             ORDER BY RANDOM()
-            LIMIT 7
+            LIMIT :limit
             """, nativeQuery = true)
-    List<String> findRandomImagePathsByChurch(@Param("churchId") String churchId);
+    List<String> findRandomImagePathsByChurch(@Param("churchId") String churchId,
+            @Param("status") String status, @Param("limit") int limit);
 }

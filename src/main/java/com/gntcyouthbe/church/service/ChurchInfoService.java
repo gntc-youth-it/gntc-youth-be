@@ -12,6 +12,7 @@ import com.gntcyouthbe.common.exception.ForbiddenException;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.file.domain.UploadedFile;
 import com.gntcyouthbe.file.repository.UploadedFileRepository;
+import com.gntcyouthbe.post.domain.PostStatus;
 import com.gntcyouthbe.post.repository.PostImageRepository;
 import com.gntcyouthbe.user.domain.Role;
 import java.util.List;
@@ -31,6 +32,8 @@ public class ChurchInfoService {
     private final PrayerTopicRepository prayerTopicRepository;
     private final UploadedFileRepository uploadedFileRepository;
     private final PostImageRepository postImageRepository;
+
+    private static final int RANDOM_PHOTO_LIMIT = 7;
 
     @Transactional
     public ChurchInfoResponse saveChurchInfo(UserPrincipal userPrincipal, ChurchId churchId, ChurchInfoRequest request) {
@@ -52,8 +55,7 @@ public class ChurchInfoService {
                 .toList();
         prayerTopicRepository.saveAll(prayerTopics);
 
-        List<String> randomPhotos = postImageRepository.findRandomImagePathsByChurch(churchId.name());
-        return ChurchInfoResponse.from(churchInfo, prayerTopics, randomPhotos);
+        return buildChurchInfoResponse(churchInfo, prayerTopics);
     }
 
     private void validateChurchAccess(UserPrincipal userPrincipal, ChurchId churchId) {
@@ -70,7 +72,12 @@ public class ChurchInfoService {
         List<PrayerTopic> prayerTopics = prayerTopicRepository
                 .findByChurchInfoOrderBySortOrderAsc(churchInfo);
 
-        List<String> randomPhotos = postImageRepository.findRandomImagePathsByChurch(churchId.name());
+        return buildChurchInfoResponse(churchInfo, prayerTopics);
+    }
+
+    private ChurchInfoResponse buildChurchInfoResponse(ChurchInfo churchInfo, List<PrayerTopic> prayerTopics) {
+        List<String> randomPhotos = postImageRepository.findRandomImagePathsByChurch(
+                churchInfo.getChurchId().name(), PostStatus.APPROVED.name(), RANDOM_PHOTO_LIMIT);
         return ChurchInfoResponse.from(churchInfo, prayerTopics, randomPhotos);
     }
 }
