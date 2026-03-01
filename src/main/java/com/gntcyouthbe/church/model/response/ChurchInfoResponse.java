@@ -16,14 +16,17 @@ public class ChurchInfoResponse {
     private final ChurchId churchId;
     private final String groupPhotoPath;
     private final List<PrayerTopicResponse> prayerTopics;
+    private final List<String> randomPhotos;
 
-    public static ChurchInfoResponse from(ChurchInfo churchInfo, List<PrayerTopic> prayerTopics) {
+    public static ChurchInfoResponse from(ChurchInfo churchInfo, List<PrayerTopic> prayerTopics,
+            List<String> randomPhotos) {
         return new ChurchInfoResponse(
                 churchInfo.getChurchId(),
                 Optional.ofNullable(churchInfo.getGroupPhoto()).map(UploadedFile::getFilePath).orElse(null),
                 prayerTopics.stream()
                         .map(PrayerTopicResponse::from)
-                        .toList()
+                        .toList(),
+                randomPhotos
         );
     }
 }

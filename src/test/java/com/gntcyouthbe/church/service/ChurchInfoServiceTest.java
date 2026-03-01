@@ -13,6 +13,7 @@ import com.gntcyouthbe.common.exception.ForbiddenException;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.file.domain.UploadedFile;
 import com.gntcyouthbe.file.repository.UploadedFileRepository;
+import com.gntcyouthbe.post.repository.PostImageRepository;
 import com.gntcyouthbe.user.domain.AuthProvider;
 import com.gntcyouthbe.user.domain.Role;
 import org.junit.jupiter.api.DisplayName;
@@ -44,6 +45,9 @@ class ChurchInfoServiceTest {
     @Mock
     private UploadedFileRepository uploadedFileRepository;
 
+    @Mock
+    private PostImageRepository postImageRepository;
+
     @InjectMocks
     private ChurchInfoService churchInfoService;
 
@@ -67,6 +71,7 @@ class ChurchInfoServiceTest {
         given(churchInfoRepository.save(any(ChurchInfo.class))).willReturn(churchInfo);
         given(uploadedFileRepository.findById(1L)).willReturn(Optional.of(file));
         given(prayerTopicRepository.saveAll(anyList())).willAnswer(invocation -> invocation.getArgument(0));
+        given(postImageRepository.findRandomImagePathsByChurch("ANYANG", "APPROVED", 7)).willReturn(List.of("/uploads/img1.jpg"));
 
         // when
         ChurchInfoResponse response = churchInfoService.saveChurchInfo(principal, ChurchId.ANYANG, request);
@@ -91,6 +96,7 @@ class ChurchInfoServiceTest {
 
         given(churchInfoRepository.findByChurchId(ChurchId.SUWON)).willReturn(Optional.of(churchInfo));
         given(prayerTopicRepository.saveAll(anyList())).willAnswer(invocation -> invocation.getArgument(0));
+        given(postImageRepository.findRandomImagePathsByChurch("SUWON", "APPROVED", 7)).willReturn(List.of());
 
         // when
         ChurchInfoResponse response = churchInfoService.saveChurchInfo(principal, ChurchId.SUWON, request);
@@ -145,6 +151,7 @@ class ChurchInfoServiceTest {
 
         given(churchInfoRepository.findByChurchId(ChurchId.SUWON)).willReturn(Optional.of(churchInfo));
         given(prayerTopicRepository.saveAll(anyList())).willAnswer(invocation -> invocation.getArgument(0));
+        given(postImageRepository.findRandomImagePathsByChurch("SUWON", "APPROVED", 7)).willReturn(List.of());
 
         // when
         ChurchInfoResponse response = churchInfoService.saveChurchInfo(principal, ChurchId.SUWON, request);
@@ -165,6 +172,8 @@ class ChurchInfoServiceTest {
 
         given(churchInfoRepository.findByChurchId(ChurchId.ANYANG)).willReturn(Optional.of(churchInfo));
         given(prayerTopicRepository.findByChurchInfoOrderBySortOrderAsc(churchInfo)).willReturn(prayerTopics);
+        given(postImageRepository.findRandomImagePathsByChurch("ANYANG", "APPROVED", 7))
+                .willReturn(List.of("/uploads/img1.jpg", "/uploads/img2.jpg"));
 
         // when
         ChurchInfoResponse response = churchInfoService.getChurchInfo(ChurchId.ANYANG);
@@ -172,6 +181,7 @@ class ChurchInfoServiceTest {
         // then
         assertThat(response.getChurchId()).isEqualTo(ChurchId.ANYANG);
         assertThat(response.getPrayerTopics()).hasSize(2);
+        assertThat(response.getRandomPhotos()).containsExactly("/uploads/img1.jpg", "/uploads/img2.jpg");
     }
 
     @Test
@@ -183,5 +193,47 @@ class ChurchInfoServiceTest {
         // when & then
         assertThatThrownBy(() -> churchInfoService.getChurchInfo(ChurchId.ANYANG))
                 .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("성전 정보 조회 시 랜덤 사진이 포함된다")
+    void getChurchInfo_withRandomPhotos() {
+        // given
+        ChurchInfo churchInfo = new ChurchInfo(ChurchId.ANYANG);
+        List<PrayerTopic> prayerTopics = List.of(new PrayerTopic(churchInfo, "기도제목", 1));
+        List<String> randomPhotos = List.of(
+                "/uploads/img1.jpg", "/uploads/img2.jpg", "/uploads/img3.jpg",
+                "/uploads/img4.jpg", "/uploads/img5.jpg", "/uploads/img6.jpg",
+                "/uploads/img7.jpg"
+        );
+
+        given(churchInfoRepository.findByChurchId(ChurchId.ANYANG)).willReturn(Optional.of(churchInfo));
+        given(prayerTopicRepository.findByChurchInfoOrderBySortOrderAsc(churchInfo)).willReturn(prayerTopics);
+        given(postImageRepository.findRandomImagePathsByChurch("ANYANG", "APPROVED", 7)).willReturn(randomPhotos);
+
+        // when
+        ChurchInfoResponse response = churchInfoService.getChurchInfo(ChurchId.ANYANG);
+
+        // then
+        assertThat(response.getRandomPhotos()).hasSize(7);
+        assertThat(response.getRandomPhotos()).containsExactlyElementsOf(randomPhotos);
+    }
+
+    @Test
+    @DisplayName("성전에 사진이 없을 경우 빈 배열이 반환된다")
+    void getChurchInfo_noPhotos() {
+        // given
+        ChurchInfo churchInfo = new ChurchInfo(ChurchId.SUWON);
+        List<PrayerTopic> prayerTopics = List.of(new PrayerTopic(churchInfo, "기도제목", 1));
+
+        given(churchInfoRepository.findByChurchId(ChurchId.SUWON)).willReturn(Optional.of(churchInfo));
+        given(prayerTopicRepository.findByChurchInfoOrderBySortOrderAsc(churchInfo)).willReturn(prayerTopics);
+        given(postImageRepository.findRandomImagePathsByChurch("SUWON", "APPROVED", 7)).willReturn(List.of());
+
+        // when
+        ChurchInfoResponse response = churchInfoService.getChurchInfo(ChurchId.SUWON);
+
+        // then
+        assertThat(response.getRandomPhotos()).isEmpty();
     }
 }

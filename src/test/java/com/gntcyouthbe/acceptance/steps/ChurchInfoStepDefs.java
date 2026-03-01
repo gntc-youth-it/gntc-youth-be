@@ -151,4 +151,14 @@ public class ChurchInfoStepDefs {
         assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
         assertThat(world.response.jsonPath().getString("churchId")).isEqualTo("SUWON");
     }
+
+    @그러면("성전 정보에 랜덤 사진이 최대 7개 포함된다")
+    public void 성전_정보에_랜덤_사진이_최대_7개_포함된다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
+        List<String> randomPhotos = world.response.jsonPath().getList("randomPhotos");
+        assertThat(randomPhotos).isNotNull();
+        assertThat(randomPhotos).hasSizeLessThanOrEqualTo(7);
+        assertThat(randomPhotos).isNotEmpty();
+        randomPhotos.forEach(photo -> assertThat(photo).isNotBlank());
+    }
 }
