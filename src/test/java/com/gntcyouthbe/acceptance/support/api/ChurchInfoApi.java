@@ -12,10 +12,14 @@ import org.springframework.stereotype.Component;
 public class ChurchInfoApi {
 
     public ExtractableResponse<Response> saveChurchInfo(
-            String authToken, String churchId, Long groupPhotoFileId, List<Map<String, Object>> prayerTopics) {
+            String authToken, String churchId, Long groupPhotoFileId, String instagramId,
+            List<Map<String, Object>> prayerTopics) {
         Map<String, Object> body = new java.util.HashMap<>();
         if (groupPhotoFileId != null) {
             body.put("groupPhotoFileId", groupPhotoFileId);
+        }
+        if (instagramId != null) {
+            body.put("instagramId", instagramId);
         }
         body.put("prayerTopics", prayerTopics);
 

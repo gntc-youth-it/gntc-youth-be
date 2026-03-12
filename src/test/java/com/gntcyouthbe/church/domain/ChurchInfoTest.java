@@ -36,6 +36,19 @@ class ChurchInfoTest {
     }
 
     @Test
+    @DisplayName("인스타그램 아이디 업데이트 성공")
+    void updateInstagramId() {
+        // given
+        ChurchInfo churchInfo = new ChurchInfo(ChurchId.ANYANG);
+
+        // when
+        churchInfo.updateInstagramId("gntc_anyang");
+
+        // then
+        assertThat(churchInfo.getInstagramId()).isEqualTo("gntc_anyang");
+    }
+
+    @Test
     @DisplayName("단체사진을 null로 업데이트하면 사진 제거")
     void updateGroupPhoto_null() {
         // given

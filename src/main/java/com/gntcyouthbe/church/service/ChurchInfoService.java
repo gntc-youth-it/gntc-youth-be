@@ -48,6 +48,8 @@ public class ChurchInfoService {
             churchInfo.updateGroupPhoto(file);
         }
 
+        churchInfo.updateInstagramId(request.getInstagramId());
+
         prayerTopicRepository.deleteByChurchInfo(churchInfo);
 
         List<PrayerTopic> prayerTopics = request.getPrayerTopics().stream()
