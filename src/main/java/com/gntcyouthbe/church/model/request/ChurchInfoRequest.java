@@ -18,6 +18,8 @@ public class ChurchInfoRequest {
     @Size(max = 30)
     private String instagramId;
 
+    private Long themeVerseId;
+
     @NotNull
     @Valid
     private List<PrayerTopicRequest> prayerTopics;

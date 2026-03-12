@@ -166,4 +166,43 @@ public class ChurchInfoStepDefs {
         assertThat(randomPhotos).isNotEmpty();
         randomPhotos.forEach(photo -> assertThat(photo).isNotBlank());
     }
+
+    @만일("리더가 주제말씀과 함께 성전 정보를 저장한다")
+    public void 리더가_주제말씀과_함께_성전_정보를_저장한다() {
+        world.response = churchInfoApi.saveChurchInfo(
+                world.authToken,
+                "ANYANG",
+                null,
+                null,
+                List.of(Map.of("content", "기도제목", "sortOrder", 1)),
+                1L // 이사야 40:31 (test data)
+        );
+    }
+
+    @그러면("성전 정보에 주제말씀이 포함된다")
+    public void 성전_정보에_주제말씀이_포함된다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(world.response.jsonPath().getString("themeVerse.bookName")).isEqualTo("이사야");
+        assertThat(world.response.jsonPath().getInt("themeVerse.chapter")).isEqualTo(40);
+        assertThat(world.response.jsonPath().getInt("themeVerse.verseNumber")).isEqualTo(31);
+        assertThat(world.response.jsonPath().getString("themeVerse.content")).isNotBlank();
+    }
+
+    @만일("리더가 주제말씀 없이 성전 정보를 수정한다")
+    public void 리더가_주제말씀_없이_성전_정보를_수정한다() {
+        world.response = churchInfoApi.saveChurchInfo(
+                world.authToken,
+                "ANYANG",
+                null,
+                null,
+                List.of(Map.of("content", "기도제목", "sortOrder", 1)),
+                null
+        );
+    }
+
+    @그러면("성전 정보에 주제말씀이 없다")
+    public void 성전_정보에_주제말씀이_없다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat((Object) world.response.jsonPath().getJsonObject("themeVerse")).isNull();
+    }
 }

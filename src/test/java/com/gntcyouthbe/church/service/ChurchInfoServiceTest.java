@@ -1,5 +1,8 @@
 package com.gntcyouthbe.church.service;
 
+import com.gntcyouthbe.bible.domain.Book;
+import com.gntcyouthbe.bible.domain.Verse;
+import com.gntcyouthbe.bible.repository.VerseRepository;
 import com.gntcyouthbe.church.domain.ChurchId;
 import com.gntcyouthbe.church.domain.ChurchInfo;
 import com.gntcyouthbe.church.domain.PrayerTopic;
@@ -31,7 +34,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ChurchInfoServiceTest {
@@ -44,6 +49,9 @@ class ChurchInfoServiceTest {
 
     @Mock
     private UploadedFileRepository uploadedFileRepository;
+
+    @Mock
+    private VerseRepository verseRepository;
 
     @Mock
     private PostImageRepository postImageRepository;
@@ -62,7 +70,7 @@ class ChurchInfoServiceTest {
         UserPrincipal principal = createPrincipal(Role.LEADER, ChurchId.ANYANG);
         ChurchInfo churchInfo = new ChurchInfo(ChurchId.ANYANG);
         UploadedFile file = new UploadedFile("photo.jpg", "stored.jpg", "/uploads/stored.jpg", "image/jpeg", 1024L);
-        ChurchInfoRequest request = new ChurchInfoRequest(1L, "gntc_anyang", List.of(
+        ChurchInfoRequest request = new ChurchInfoRequest(1L, "gntc_anyang", null, List.of(
                 new PrayerTopicRequest("교회의 부흥을 위해", 1),
                 new PrayerTopicRequest("청년들의 신앙 성장을 위해", 2)
         ));
@@ -82,6 +90,7 @@ class ChurchInfoServiceTest {
         assertThat(response.getPrayerTopics()).hasSize(2);
         assertThat(response.getPrayerTopics().get(0).getContent()).isEqualTo("교회의 부흥을 위해");
         assertThat(response.getPrayerTopics().get(1).getContent()).isEqualTo("청년들의 신앙 성장을 위해");
+        assertThat(response.getThemeVerse()).isNull();
     }
 
     @Test
@@ -90,7 +99,7 @@ class ChurchInfoServiceTest {
         // given
         UserPrincipal principal = createPrincipal(Role.LEADER, ChurchId.SUWON);
         ChurchInfo churchInfo = new ChurchInfo(ChurchId.SUWON);
-        ChurchInfoRequest request = new ChurchInfoRequest(null, null, List.of(
+        ChurchInfoRequest request = new ChurchInfoRequest(null, null, null, List.of(
                 new PrayerTopicRequest("수정된 기도제목", 1)
         ));
 
@@ -113,7 +122,7 @@ class ChurchInfoServiceTest {
         // given
         UserPrincipal principal = createPrincipal(Role.LEADER, ChurchId.ANYANG);
         ChurchInfo churchInfo = new ChurchInfo(ChurchId.ANYANG);
-        ChurchInfoRequest request = new ChurchInfoRequest(999L, null, List.of(
+        ChurchInfoRequest request = new ChurchInfoRequest(999L, null, null, List.of(
                 new PrayerTopicRequest("기도제목", 1)
         ));
 
@@ -130,7 +139,7 @@ class ChurchInfoServiceTest {
     void saveChurchInfo_leaderAccessDenied() {
         // given
         UserPrincipal principal = createPrincipal(Role.LEADER, ChurchId.ANYANG);
-        ChurchInfoRequest request = new ChurchInfoRequest(null, null, List.of(
+        ChurchInfoRequest request = new ChurchInfoRequest(null, null, null, List.of(
                 new PrayerTopicRequest("기도제목", 1)
         ));
 
@@ -145,7 +154,7 @@ class ChurchInfoServiceTest {
         // given
         UserPrincipal principal = createPrincipal(Role.MASTER, ChurchId.ANYANG);
         ChurchInfo churchInfo = new ChurchInfo(ChurchId.SUWON);
-        ChurchInfoRequest request = new ChurchInfoRequest(null, null, List.of(
+        ChurchInfoRequest request = new ChurchInfoRequest(null, null, null, List.of(
                 new PrayerTopicRequest("기도제목", 1)
         ));
 
@@ -235,5 +244,88 @@ class ChurchInfoServiceTest {
 
         // then
         assertThat(response.getRandomPhotos()).isEmpty();
+    }
+
+    private Verse createMockVerse() {
+        Book book = mock(Book.class);
+        when(book.getName()).thenReturn("이사야");
+        Verse verse = mock(Verse.class);
+        when(verse.getId()).thenReturn(1L);
+        when(verse.getBook()).thenReturn(book);
+        when(verse.getChapter()).thenReturn(40);
+        when(verse.getNumber()).thenReturn(31);
+        when(verse.getContent()).thenReturn("오직 여호와를 앙망하는 자는 새 힘을 얻으리니");
+        return verse;
+    }
+
+    @Test
+    @DisplayName("주제말씀과 함께 성전 정보 저장 성공")
+    void saveChurchInfo_withThemeVerse() {
+        // given
+        UserPrincipal principal = createPrincipal(Role.LEADER, ChurchId.ANYANG);
+        ChurchInfo churchInfo = new ChurchInfo(ChurchId.ANYANG);
+        Verse verse = createMockVerse();
+        ChurchInfoRequest request = new ChurchInfoRequest(null, null, 1L, List.of(
+                new PrayerTopicRequest("기도제목", 1)
+        ));
+
+        given(churchInfoRepository.findByChurchId(ChurchId.ANYANG)).willReturn(Optional.of(churchInfo));
+        given(verseRepository.findById(1L)).willReturn(Optional.of(verse));
+        given(prayerTopicRepository.saveAll(anyList())).willAnswer(invocation -> invocation.getArgument(0));
+        given(postImageRepository.findRandomImagePathsByChurch("ANYANG", "APPROVED", 7)).willReturn(List.of());
+
+        // when
+        ChurchInfoResponse response = churchInfoService.saveChurchInfo(principal, ChurchId.ANYANG, request);
+
+        // then
+        assertThat(response.getChurchId()).isEqualTo(ChurchId.ANYANG);
+        assertThat(churchInfo.getThemeVerse()).isEqualTo(verse);
+        assertThat(response.getThemeVerse()).isNotNull();
+        assertThat(response.getThemeVerse().getBookName()).isEqualTo("이사야");
+        assertThat(response.getThemeVerse().getChapter()).isEqualTo(40);
+        assertThat(response.getThemeVerse().getVerseNumber()).isEqualTo(31);
+    }
+
+    @Test
+    @DisplayName("주제말씀 해제 성공 - themeVerseId가 null이면 주제말씀 제거")
+    void saveChurchInfo_removeThemeVerse() {
+        // given
+        UserPrincipal principal = createPrincipal(Role.LEADER, ChurchId.ANYANG);
+        ChurchInfo churchInfo = new ChurchInfo(ChurchId.ANYANG);
+        Verse verse = mock(Verse.class);
+        churchInfo.updateThemeVerse(verse);
+
+        ChurchInfoRequest request = new ChurchInfoRequest(null, null, null, List.of(
+                new PrayerTopicRequest("기도제목", 1)
+        ));
+
+        given(churchInfoRepository.findByChurchId(ChurchId.ANYANG)).willReturn(Optional.of(churchInfo));
+        given(prayerTopicRepository.saveAll(anyList())).willAnswer(invocation -> invocation.getArgument(0));
+        given(postImageRepository.findRandomImagePathsByChurch("ANYANG", "APPROVED", 7)).willReturn(List.of());
+
+        // when
+        ChurchInfoResponse response = churchInfoService.saveChurchInfo(principal, ChurchId.ANYANG, request);
+
+        // then
+        assertThat(churchInfo.getThemeVerse()).isNull();
+        assertThat(response.getThemeVerse()).isNull();
+    }
+
+    @Test
+    @DisplayName("주제말씀 저장 실패 - 존재하지 않는 절")
+    void saveChurchInfo_verseNotFound() {
+        // given
+        UserPrincipal principal = createPrincipal(Role.LEADER, ChurchId.ANYANG);
+        ChurchInfo churchInfo = new ChurchInfo(ChurchId.ANYANG);
+        ChurchInfoRequest request = new ChurchInfoRequest(null, null, 999L, List.of(
+                new PrayerTopicRequest("기도제목", 1)
+        ));
+
+        given(churchInfoRepository.findByChurchId(ChurchId.ANYANG)).willReturn(Optional.of(churchInfo));
+        given(verseRepository.findById(999L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> churchInfoService.saveChurchInfo(principal, ChurchId.ANYANG, request))
+                .isInstanceOf(EntityNotFoundException.class);
     }
 }

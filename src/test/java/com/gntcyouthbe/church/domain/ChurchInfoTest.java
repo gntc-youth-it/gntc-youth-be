@@ -1,10 +1,12 @@
 package com.gntcyouthbe.church.domain;
 
+import com.gntcyouthbe.bible.domain.Verse;
 import com.gntcyouthbe.file.domain.UploadedFile;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 class ChurchInfoTest {
 
@@ -46,6 +48,35 @@ class ChurchInfoTest {
 
         // then
         assertThat(churchInfo.getInstagramId()).isEqualTo("gntc_anyang");
+    }
+
+    @Test
+    @DisplayName("주제말씀 업데이트 성공")
+    void updateThemeVerse() {
+        // given
+        ChurchInfo churchInfo = new ChurchInfo(ChurchId.ANYANG);
+        Verse verse = mock(Verse.class);
+
+        // when
+        churchInfo.updateThemeVerse(verse);
+
+        // then
+        assertThat(churchInfo.getThemeVerse()).isEqualTo(verse);
+    }
+
+    @Test
+    @DisplayName("주제말씀을 null로 업데이트하면 주제말씀 제거")
+    void updateThemeVerse_null() {
+        // given
+        ChurchInfo churchInfo = new ChurchInfo(ChurchId.ANYANG);
+        Verse verse = mock(Verse.class);
+        churchInfo.updateThemeVerse(verse);
+
+        // when
+        churchInfo.updateThemeVerse(null);
+
+        // then
+        assertThat(churchInfo.getThemeVerse()).isNull();
     }
 
     @Test
