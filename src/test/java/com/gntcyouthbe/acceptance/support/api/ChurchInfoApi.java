@@ -14,12 +14,21 @@ public class ChurchInfoApi {
     public ExtractableResponse<Response> saveChurchInfo(
             String authToken, String churchId, Long groupPhotoFileId, String instagramId,
             List<Map<String, Object>> prayerTopics) {
+        return saveChurchInfo(authToken, churchId, groupPhotoFileId, instagramId, prayerTopics, null);
+    }
+
+    public ExtractableResponse<Response> saveChurchInfo(
+            String authToken, String churchId, Long groupPhotoFileId, String instagramId,
+            List<Map<String, Object>> prayerTopics, Long themeVerseId) {
         Map<String, Object> body = new java.util.HashMap<>();
         if (groupPhotoFileId != null) {
             body.put("groupPhotoFileId", groupPhotoFileId);
         }
         if (instagramId != null) {
             body.put("instagramId", instagramId);
+        }
+        if (themeVerseId != null) {
+            body.put("themeVerseId", themeVerseId);
         }
         body.put("prayerTopics", prayerTopics);
 

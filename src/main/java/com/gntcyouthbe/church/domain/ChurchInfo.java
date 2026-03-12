@@ -1,5 +1,6 @@
 package com.gntcyouthbe.church.domain;
 
+import com.gntcyouthbe.bible.domain.Verse;
 import com.gntcyouthbe.common.orm.domain.BaseEntity;
 import com.gntcyouthbe.file.domain.UploadedFile;
 import jakarta.persistence.Column;
@@ -13,6 +14,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -46,6 +48,11 @@ public class ChurchInfo extends BaseEntity {
     @Column(name = "instagram_id", length = 30)
     private String instagramId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "theme_verse_id",
+        foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    private Verse themeVerse;
+
     public ChurchInfo(ChurchId churchId) {
         this.churchId = churchId;
     }
@@ -56,5 +63,9 @@ public class ChurchInfo extends BaseEntity {
 
     public void updateInstagramId(String instagramId) {
         this.instagramId = instagramId;
+    }
+
+    public void updateThemeVerse(Verse themeVerse) {
+        this.themeVerse = themeVerse;
     }
 }
