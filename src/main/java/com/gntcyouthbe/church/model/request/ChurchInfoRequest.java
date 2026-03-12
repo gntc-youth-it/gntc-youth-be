@@ -14,6 +14,8 @@ public class ChurchInfoRequest {
 
     private Long groupPhotoFileId;
 
+    private String instagramId;
+
     @NotNull
     @Valid
     private List<PrayerTopicRequest> prayerTopics;
