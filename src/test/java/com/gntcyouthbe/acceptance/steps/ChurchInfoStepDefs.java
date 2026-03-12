@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatus;
 
 public class ChurchInfoStepDefs {
 
+    private static final Long ISAIAH_40_31_VERSE_ID = 1L;
+
     private final World world;
     private final AuthApi authApi;
     private final FileApi fileApi;
@@ -175,7 +177,7 @@ public class ChurchInfoStepDefs {
                 null,
                 null,
                 List.of(Map.of("content", "기도제목", "sortOrder", 1)),
-                1L // 이사야 40:31 (test data)
+                ISAIAH_40_31_VERSE_ID
         );
     }
 

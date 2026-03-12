@@ -54,12 +54,13 @@ public class ChurchInfoService {
 
         churchInfo.updateInstagramId(request.getInstagramId());
 
-        if (request.getThemeVerseId() != null) {
-            Verse verse = verseRepository.findById(request.getThemeVerseId())
-                    .orElseThrow(() -> new EntityNotFoundException(VERSE_NOT_FOUND));
-            churchInfo.updateThemeVerse(verse);
-        } else {
-            churchInfo.updateThemeVerse(null);
+        if (request.isThemeVerseIdPresent()) {
+            Verse themeVerse = null;
+            if (request.getThemeVerseId() != null) {
+                themeVerse = verseRepository.findById(request.getThemeVerseId())
+                        .orElseThrow(() -> new EntityNotFoundException(VERSE_NOT_FOUND));
+            }
+            churchInfo.updateThemeVerse(themeVerse);
         }
 
         prayerTopicRepository.deleteByChurchInfo(churchInfo);

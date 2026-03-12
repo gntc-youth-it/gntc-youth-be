@@ -312,6 +312,39 @@ class ChurchInfoServiceTest {
     }
 
     @Test
+    @DisplayName("themeVerseId 미전송 시 기존 주제말씀 유지")
+    void saveChurchInfo_themeVerseIdAbsent_keepExisting() {
+        // given
+        UserPrincipal principal = createPrincipal(Role.LEADER, ChurchId.ANYANG);
+        ChurchInfo churchInfo = new ChurchInfo(ChurchId.ANYANG);
+        Verse existingVerse = createMockVerse();
+        churchInfo.updateThemeVerse(existingVerse);
+
+        ChurchInfoRequest request = new ChurchInfoRequest();
+        // themeVerseId를 세팅하지 않으면 themeVerseIdPresent = false
+
+        given(churchInfoRepository.findByChurchId(ChurchId.ANYANG)).willReturn(Optional.of(churchInfo));
+        given(prayerTopicRepository.saveAll(anyList())).willAnswer(invocation -> invocation.getArgument(0));
+        given(postImageRepository.findRandomImagePathsByChurch("ANYANG", "APPROVED", 7)).willReturn(List.of());
+
+        // when - prayerTopics가 null이면 NPE가 나니 직접 세팅
+        // NoArgsConstructor로 생성 후 필드가 null이므로 reflection으로 prayerTopics만 세팅
+        java.lang.reflect.Field field;
+        try {
+            field = ChurchInfoRequest.class.getDeclaredField("prayerTopics");
+            field.setAccessible(true);
+            field.set(request, List.of(new PrayerTopicRequest("기도제목", 1)));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        ChurchInfoResponse response = churchInfoService.saveChurchInfo(principal, ChurchId.ANYANG, request);
+
+        // then - 기존 주제말씀이 유지되어야 함
+        assertThat(churchInfo.getThemeVerse()).isEqualTo(existingVerse);
+    }
+
+    @Test
     @DisplayName("주제말씀 저장 실패 - 존재하지 않는 절")
     void saveChurchInfo_verseNotFound() {
         // given
