@@ -1,7 +1,5 @@
 package com.gntcyouthbe.church.service;
 
-import com.gntcyouthbe.bible.domain.Verse;
-import com.gntcyouthbe.bible.repository.VerseRepository;
 import com.gntcyouthbe.church.domain.ChurchId;
 import com.gntcyouthbe.church.domain.ChurchInfo;
 import com.gntcyouthbe.church.domain.PrayerTopic;
@@ -25,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 import static com.gntcyouthbe.common.exception.model.ExceptionCode.CHURCH_ACCESS_DENIED;
 import static com.gntcyouthbe.common.exception.model.ExceptionCode.CHURCH_INFO_NOT_FOUND;
 import static com.gntcyouthbe.common.exception.model.ExceptionCode.FILE_NOT_FOUND;
-import static com.gntcyouthbe.common.exception.model.ExceptionCode.VERSE_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +31,6 @@ public class ChurchInfoService {
     private final ChurchInfoRepository churchInfoRepository;
     private final PrayerTopicRepository prayerTopicRepository;
     private final UploadedFileRepository uploadedFileRepository;
-    private final VerseRepository verseRepository;
     private final PostImageRepository postImageRepository;
 
     private static final int RANDOM_PHOTO_LIMIT = 7;
@@ -53,15 +49,6 @@ public class ChurchInfoService {
         }
 
         churchInfo.updateInstagramId(request.getInstagramId());
-
-        if (request.isThemeVerseIdPresent()) {
-            Verse themeVerse = null;
-            if (request.getThemeVerseId() != null) {
-                themeVerse = verseRepository.findById(request.getThemeVerseId())
-                        .orElseThrow(() -> new EntityNotFoundException(VERSE_NOT_FOUND));
-            }
-            churchInfo.updateThemeVerse(themeVerse);
-        }
 
         prayerTopicRepository.deleteByChurchInfo(churchInfo);
 
