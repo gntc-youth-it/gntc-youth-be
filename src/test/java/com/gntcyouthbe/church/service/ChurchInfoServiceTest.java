@@ -62,7 +62,7 @@ class ChurchInfoServiceTest {
         UserPrincipal principal = createPrincipal(Role.LEADER, ChurchId.ANYANG);
         ChurchInfo churchInfo = new ChurchInfo(ChurchId.ANYANG);
         UploadedFile file = new UploadedFile("photo.jpg", "stored.jpg", "/uploads/stored.jpg", "image/jpeg", 1024L);
-        ChurchInfoRequest request = new ChurchInfoRequest(1L, "gntc_anyang", List.of(
+        ChurchInfoRequest request = new ChurchInfoRequest(1L, List.of(
                 new PrayerTopicRequest("교회의 부흥을 위해", 1),
                 new PrayerTopicRequest("청년들의 신앙 성장을 위해", 2)
         ));
@@ -90,7 +90,7 @@ class ChurchInfoServiceTest {
         // given
         UserPrincipal principal = createPrincipal(Role.LEADER, ChurchId.SUWON);
         ChurchInfo churchInfo = new ChurchInfo(ChurchId.SUWON);
-        ChurchInfoRequest request = new ChurchInfoRequest(null, null, List.of(
+        ChurchInfoRequest request = new ChurchInfoRequest(null, List.of(
                 new PrayerTopicRequest("수정된 기도제목", 1)
         ));
 
@@ -113,7 +113,7 @@ class ChurchInfoServiceTest {
         // given
         UserPrincipal principal = createPrincipal(Role.LEADER, ChurchId.ANYANG);
         ChurchInfo churchInfo = new ChurchInfo(ChurchId.ANYANG);
-        ChurchInfoRequest request = new ChurchInfoRequest(999L, null, List.of(
+        ChurchInfoRequest request = new ChurchInfoRequest(999L, List.of(
                 new PrayerTopicRequest("기도제목", 1)
         ));
 
@@ -130,7 +130,7 @@ class ChurchInfoServiceTest {
     void saveChurchInfo_leaderAccessDenied() {
         // given
         UserPrincipal principal = createPrincipal(Role.LEADER, ChurchId.ANYANG);
-        ChurchInfoRequest request = new ChurchInfoRequest(null, null, List.of(
+        ChurchInfoRequest request = new ChurchInfoRequest(null, List.of(
                 new PrayerTopicRequest("기도제목", 1)
         ));
 
@@ -145,7 +145,7 @@ class ChurchInfoServiceTest {
         // given
         UserPrincipal principal = createPrincipal(Role.MASTER, ChurchId.ANYANG);
         ChurchInfo churchInfo = new ChurchInfo(ChurchId.SUWON);
-        ChurchInfoRequest request = new ChurchInfoRequest(null, null, List.of(
+        ChurchInfoRequest request = new ChurchInfoRequest(null, List.of(
                 new PrayerTopicRequest("기도제목", 1)
         ));
 
