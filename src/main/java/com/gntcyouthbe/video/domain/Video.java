@@ -13,6 +13,7 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.URL;
 
 @Entity
 @Table(name = "video")
@@ -27,6 +28,7 @@ public class Video extends BaseEntity {
     @Column(nullable = false, length = 100)
     private String title;
 
+    @URL
     @Column(nullable = false, length = 2048)
     private String link;
 
