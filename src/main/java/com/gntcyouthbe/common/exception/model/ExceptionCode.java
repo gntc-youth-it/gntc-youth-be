@@ -41,6 +41,7 @@ public enum ExceptionCode {
 
     // 40xx: 게시글 관련 예외
     POST_NOT_FOUND(4001, "해당 게시글이 존재하지 않습니다."),
+    VIDEO_NOT_FOUND(4010, "해당 영상이 존재하지 않습니다."),
     POST_ACCESS_DENIED(4002, "해당 게시글에 대한 권한이 없습니다."),
     POST_NOT_PENDING_REVIEW(4003, "검수대기 상태의 게시글만 승인할 수 있습니다."),
 

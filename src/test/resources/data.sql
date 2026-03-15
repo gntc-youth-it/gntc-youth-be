@@ -1,4 +1,5 @@
 -- Clean up existing data
+DELETE FROM video;
 DELETE FROM post_image;
 DELETE FROM post_hashtag;
 DELETE FROM post_church;
@@ -173,3 +174,15 @@ INSERT INTO post_image (id, post_id, uploaded_file_id, sort_order, created_at, u
 VALUES (911, 906, 911, 5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
 INSERT INTO post_image (id, post_id, uploaded_file_id, sort_order, created_at, updated_at, created_by, updated_by)
 VALUES (912, 906, 912, 6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
+
+-- Video Test: 삭제 테스트용 영상
+INSERT INTO video (id, title, link, sub_category, created_at, updated_at, created_by, updated_by)
+VALUES (1001, '수련회 찬양 모음', 'https://www.youtube.com/watch?v=video1', 'RETREAT_2026_WINTER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
+
+-- Video Test: 삭제 권한 테스트용 영상
+INSERT INTO video (id, title, link, sub_category, created_at, updated_at, created_by, updated_by)
+VALUES (1002, '수련회 설교 영상', 'https://www.youtube.com/watch?v=video2', 'RETREAT_2026_WINTER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
+
+-- Video Test: 기타 카테고리 영상 (필터링 테스트용)
+INSERT INTO video (id, title, link, sub_category, created_at, updated_at, created_by, updated_by)
+VALUES (1003, '기타 영상', 'https://www.youtube.com/watch?v=video3', 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
