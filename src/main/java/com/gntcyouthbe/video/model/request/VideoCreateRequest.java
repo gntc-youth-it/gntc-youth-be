@@ -4,6 +4,7 @@ import com.gntcyouthbe.post.domain.PostSubCategory;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import org.hibernate.validator.constraints.URL;
 
 @Getter
 public class VideoCreateRequest {
@@ -12,6 +13,7 @@ public class VideoCreateRequest {
     private String title;
 
     @NotBlank
+    @URL
     private String link;
 
     @NotNull

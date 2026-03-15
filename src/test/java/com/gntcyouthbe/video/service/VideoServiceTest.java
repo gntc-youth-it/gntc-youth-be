@@ -59,7 +59,7 @@ class VideoServiceTest {
         // given
         Video video = createVideo(1L, "수련회 영상", "https://youtube.com/watch?v=1", PostSubCategory.RETREAT_2026_WINTER);
 
-        given(videoRepository.findBySubCategory(PostSubCategory.RETREAT_2026_WINTER))
+        given(videoRepository.findBySubCategoryOrderByIdDesc(PostSubCategory.RETREAT_2026_WINTER))
                 .willReturn(List.of(video));
 
         // when
@@ -77,7 +77,7 @@ class VideoServiceTest {
         Video video1 = createVideo(1L, "수련회 영상", "https://youtube.com/watch?v=1", PostSubCategory.RETREAT_2026_WINTER);
         Video video2 = createVideo(2L, "기타 영상", "https://youtube.com/watch?v=2", PostSubCategory.NONE);
 
-        given(videoRepository.findAll()).willReturn(List.of(video1, video2));
+        given(videoRepository.findAllByOrderByIdDesc()).willReturn(List.of(video1, video2));
 
         // when
         List<VideoResponse> responses = videoService.getVideos(null);

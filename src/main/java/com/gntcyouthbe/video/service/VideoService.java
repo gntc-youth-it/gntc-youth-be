@@ -30,9 +30,9 @@ public class VideoService {
     public List<VideoResponse> getVideos(PostSubCategory subCategory) {
         List<Video> videos;
         if (subCategory != null) {
-            videos = videoRepository.findBySubCategory(subCategory);
+            videos = videoRepository.findBySubCategoryOrderByIdDesc(subCategory);
         } else {
-            videos = videoRepository.findAll();
+            videos = videoRepository.findAllByOrderByIdDesc();
         }
         return videos.stream().map(VideoResponse::from).toList();
     }
