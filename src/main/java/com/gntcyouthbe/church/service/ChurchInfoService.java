@@ -61,15 +61,13 @@ public class ChurchInfoService {
     private void validateChurchAccess(UserPrincipal userPrincipal, ChurchId churchId) {
         Role role = userPrincipal.getRole();
 
-        if (role == Role.MASTER || role == Role.ADMIN) {
-            return;
-        }
+        boolean canAccess = role == Role.MASTER ||
+                role == Role.ADMIN ||
+                ((role == Role.LEADER || role == Role.MANAGER) && churchId.equals(userPrincipal.getChurch()));
 
-        if ((role == Role.LEADER || role == Role.MANAGER) && churchId.equals(userPrincipal.getChurch())) {
-            return;
+        if (!canAccess) {
+            throw new ForbiddenException(CHURCH_ACCESS_DENIED);
         }
-
-        throw new ForbiddenException(CHURCH_ACCESS_DENIED);
     }
 
     @Transactional(readOnly = true)

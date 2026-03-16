@@ -82,19 +82,15 @@ public class AdminUserService {
 
         Optional<User> demotedLeader = Optional.empty();
 
-        if (newRole == Role.LEADER) {
+        if (newRole == Role.LEADER || newRole == Role.MANAGER) {
             if (user.getChurchId() == null) {
                 throw new BadRequestException(ExceptionCode.USER_NO_CHURCH);
             }
-
-            demotedLeader = userRepository.findLeaderByChurchId(user.getChurchId());
-            demotedLeader.ifPresent(leader -> leader.updateRole(Role.USER));
         }
 
-        if (newRole == Role.MANAGER) {
-            if (user.getChurchId() == null) {
-                throw new BadRequestException(ExceptionCode.USER_NO_CHURCH);
-            }
+        if (newRole == Role.LEADER) {
+            demotedLeader = userRepository.findLeaderByChurchId(user.getChurchId());
+            demotedLeader.ifPresent(leader -> leader.updateRole(Role.USER));
         }
 
         user.updateRole(newRole);
