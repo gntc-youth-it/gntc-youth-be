@@ -45,6 +45,48 @@ public class ChurchInfoStepDefs {
         assertThat(world.response.jsonPath().getString("presignedUrl")).isNotBlank();
     }
 
+    @먼저("담당자가 로그인되어 있다")
+    public void 담당자가_로그인되어_있다() {
+        world.authToken = authApi.getAccessToken("manager@example.com");
+        assertThat(world.authToken).isNotBlank();
+    }
+
+    @만일("담당자가 파일 업로드 URL을 요청한다")
+    public void 담당자가_파일_업로드_URL을_요청한다() {
+        world.response = fileApi.requestPresignedUrl(world.authToken, "group_photo.jpg", "image/jpeg");
+    }
+
+    @만일("담당자가 성전 정보를 저장한다")
+    public void 담당자가_성전_정보를_저장한다() {
+        Long fileId = world.response.jsonPath().getLong("fileId");
+        world.response = churchInfoApi.saveChurchInfo(
+                world.authToken,
+                "ANYANG",
+                fileId,
+                List.of(
+                        Map.of("content", "담당자 기도제목", "sortOrder", 1)
+                )
+        );
+    }
+
+    @그러면("담당자 성전 정보 저장이 성공한다")
+    public void 담당자_성전_정보_저장이_성공한다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(world.response.jsonPath().getString("churchId")).isEqualTo("ANYANG");
+        assertThat(world.response.jsonPath().getList("prayerTopics")).hasSize(1);
+        assertThat(world.response.jsonPath().getString("prayerTopics[0].content")).isEqualTo("담당자 기도제목");
+    }
+
+    @만일("담당자가 다른 성전 정보를 저장한다")
+    public void 담당자가_다른_성전_정보를_저장한다() {
+        world.response = churchInfoApi.saveChurchInfo(
+                world.authToken,
+                "SUWON",
+                null,
+                List.of(Map.of("content", "기도제목", "sortOrder", 1))
+        );
+    }
+
     @만일("일반 사용자가 파일 업로드 URL을 요청한다")
     public void 일반_사용자가_파일_업로드_URL을_요청한다() {
         world.response = fileApi.requestPresignedUrl(world.authToken, "group_photo.jpg", "image/jpeg");

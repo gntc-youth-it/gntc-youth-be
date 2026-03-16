@@ -59,7 +59,13 @@ public class ChurchInfoService {
     }
 
     private void validateChurchAccess(UserPrincipal userPrincipal, ChurchId churchId) {
-        if (userPrincipal.getRole() == Role.LEADER && !churchId.equals(userPrincipal.getChurch())) {
+        Role role = userPrincipal.getRole();
+
+        boolean canAccess = role == Role.MASTER ||
+                role == Role.ADMIN ||
+                ((role == Role.LEADER || role == Role.MANAGER) && churchId.equals(userPrincipal.getChurch()));
+
+        if (!canAccess) {
             throw new ForbiddenException(CHURCH_ACCESS_DENIED);
         }
     }

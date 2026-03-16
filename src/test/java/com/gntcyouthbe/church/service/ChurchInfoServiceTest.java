@@ -126,6 +126,41 @@ class ChurchInfoServiceTest {
     }
 
     @Test
+    @DisplayName("MANAGER가 자기 성전 정보 저장 성공")
+    void saveChurchInfo_managerCanAccessOwnChurch() {
+        // given
+        UserPrincipal principal = createPrincipal(Role.MANAGER, ChurchId.ANYANG);
+        ChurchInfo churchInfo = new ChurchInfo(ChurchId.ANYANG);
+        ChurchInfoRequest request = new ChurchInfoRequest(null, List.of(
+                new PrayerTopicRequest("담당자 기도제목", 1)
+        ));
+
+        given(churchInfoRepository.findByChurchId(ChurchId.ANYANG)).willReturn(Optional.of(churchInfo));
+        given(prayerTopicRepository.saveAll(anyList())).willAnswer(invocation -> invocation.getArgument(0));
+        given(postImageRepository.findRandomImagePathsByChurch("ANYANG", "APPROVED", 7)).willReturn(List.of());
+
+        // when
+        ChurchInfoResponse response = churchInfoService.saveChurchInfo(principal, ChurchId.ANYANG, request);
+
+        // then
+        assertThat(response.getChurchId()).isEqualTo(ChurchId.ANYANG);
+    }
+
+    @Test
+    @DisplayName("MANAGER가 다른 성전 정보 수정 시 실패")
+    void saveChurchInfo_managerAccessDenied() {
+        // given
+        UserPrincipal principal = createPrincipal(Role.MANAGER, ChurchId.ANYANG);
+        ChurchInfoRequest request = new ChurchInfoRequest(null, List.of(
+                new PrayerTopicRequest("기도제목", 1)
+        ));
+
+        // when & then
+        assertThatThrownBy(() -> churchInfoService.saveChurchInfo(principal, ChurchId.SUWON, request))
+                .isInstanceOf(ForbiddenException.class);
+    }
+
+    @Test
     @DisplayName("LEADER가 다른 성전 정보 수정 시 실패")
     void saveChurchInfo_leaderAccessDenied() {
         // given

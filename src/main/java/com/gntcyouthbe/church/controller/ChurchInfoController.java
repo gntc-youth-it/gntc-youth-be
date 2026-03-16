@@ -25,7 +25,7 @@ public class ChurchInfoController {
     private final ChurchInfoService churchInfoService;
 
     @PutMapping
-    @PreAuthorize("hasAnyAuthority('LEADER', 'MASTER')")
+    @PreAuthorize("hasAnyAuthority('LEADER', 'MANAGER', 'MASTER')")
     public ResponseEntity<ChurchInfoResponse> saveChurchInfo(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable ChurchId churchId,
