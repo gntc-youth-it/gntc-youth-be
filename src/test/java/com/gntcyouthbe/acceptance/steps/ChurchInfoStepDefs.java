@@ -57,7 +57,6 @@ public class ChurchInfoStepDefs {
                 world.authToken,
                 "ANYANG",
                 fileId,
-                "gntc_anyang",
                 List.of(
                         Map.of("content", "교회의 부흥을 위해", "sortOrder", 1),
                         Map.of("content", "청년들의 신앙 성장을 위해", "sortOrder", 2)
@@ -93,7 +92,6 @@ public class ChurchInfoStepDefs {
                 world.authToken,
                 "ANYANG",
                 null,
-                null,
                 List.of(
                         Map.of("content", "수정된 기도제목", "sortOrder", 1)
                 )
@@ -113,7 +111,6 @@ public class ChurchInfoStepDefs {
                 world.authToken,
                 "ANYANG",
                 null,
-                null,
                 List.of(Map.of("content", "기도제목", "sortOrder", 1))
         );
     }
@@ -123,7 +120,6 @@ public class ChurchInfoStepDefs {
         world.response = churchInfoApi.saveChurchInfo(
                 world.authToken,
                 "SUWON",
-                null,
                 null,
                 List.of(Map.of("content", "기도제목", "sortOrder", 1))
         );
@@ -145,7 +141,6 @@ public class ChurchInfoStepDefs {
         world.response = churchInfoApi.saveChurchInfo(
                 world.authToken,
                 "SUWON",
-                null,
                 null,
                 List.of(Map.of("content", "마스터 기도제목", "sortOrder", 1))
         );

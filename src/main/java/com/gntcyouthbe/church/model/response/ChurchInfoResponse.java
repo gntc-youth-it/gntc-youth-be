@@ -15,7 +15,6 @@ public class ChurchInfoResponse {
 
     private final ChurchId churchId;
     private final String groupPhotoPath;
-    private final String instagramId;
     private final List<PrayerTopicResponse> prayerTopics;
     private final List<String> randomPhotos;
 
@@ -24,7 +23,6 @@ public class ChurchInfoResponse {
         return new ChurchInfoResponse(
                 churchInfo.getChurchId(),
                 Optional.ofNullable(churchInfo.getGroupPhoto()).map(UploadedFile::getFilePath).orElse(null),
-                churchInfo.getInstagramId(),
                 prayerTopics.stream()
                         .map(PrayerTopicResponse::from)
                         .toList(),

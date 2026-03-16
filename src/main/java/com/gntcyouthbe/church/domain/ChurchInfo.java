@@ -43,18 +43,11 @@ public class ChurchInfo extends BaseEntity {
         foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private UploadedFile groupPhoto;
 
-    @Column(name = "instagram_id", length = 30)
-    private String instagramId;
-
     public ChurchInfo(ChurchId churchId) {
         this.churchId = churchId;
     }
 
     public void updateGroupPhoto(UploadedFile groupPhoto) {
         this.groupPhoto = groupPhoto;
-    }
-
-    public void updateInstagramId(String instagramId) {
-        this.instagramId = instagramId;
     }
 }
