@@ -69,7 +69,7 @@ public class AdminUserService {
     @Transactional
     public UserRoleUpdateResponse updateUserRole(Long userId, UserRoleUpdateRequest request) {
         Role newRole = request.getRole();
-        if (newRole != Role.LEADER && newRole != Role.USER) {
+        if (newRole != Role.LEADER && newRole != Role.MANAGER && newRole != Role.USER) {
             throw new BadRequestException(ExceptionCode.INVALID_ROLE);
         }
 
@@ -89,6 +89,12 @@ public class AdminUserService {
 
             demotedLeader = userRepository.findLeaderByChurchId(user.getChurchId());
             demotedLeader.ifPresent(leader -> leader.updateRole(Role.USER));
+        }
+
+        if (newRole == Role.MANAGER) {
+            if (user.getChurchId() == null) {
+                throw new BadRequestException(ExceptionCode.USER_NO_CHURCH);
+            }
         }
 
         user.updateRole(newRole);

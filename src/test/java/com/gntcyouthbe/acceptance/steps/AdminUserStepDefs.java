@@ -48,10 +48,10 @@ public class AdminUserStepDefs {
         assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
 
         List<Map<String, Object>> users = world.response.jsonPath().getList("users");
-        assertThat(users).hasSize(5);
+        assertThat(users).hasSize(6);
 
         int totalElements = world.response.jsonPath().getInt("totalElements");
-        assertThat(totalElements).isEqualTo(5);
+        assertThat(totalElements).isEqualTo(6);
 
         // 각 사용자에게 필수 필드가 존재하는지 검증
         for (Map<String, Object> user : users) {

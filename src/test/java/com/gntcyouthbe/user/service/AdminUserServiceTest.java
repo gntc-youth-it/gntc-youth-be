@@ -280,6 +280,49 @@ class AdminUserServiceTest {
     }
 
     @Test
+    @DisplayName("USER를 MANAGER로 변경 성공")
+    void updateUserRole_toManager() {
+        // given
+        User user = createUserWithChurch("테스트", Role.USER, ChurchId.ANYANG);
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+
+        // when
+        UserRoleUpdateResponse response = adminUserService.updateUserRole(1L, new UserRoleUpdateRequest(Role.MANAGER));
+
+        // then
+        assertThat(response.getRole()).isEqualTo("MANAGER");
+        assertThat(response.getPreviousLeader()).isNull();
+        assertThat(user.getRole()).isEqualTo(Role.MANAGER);
+    }
+
+    @Test
+    @DisplayName("성전이 없는 사용자를 MANAGER로 변경하면 예외")
+    void updateUserRole_toManager_noChurch() {
+        // given
+        User user = new User("test@example.com", "테스트", AuthProvider.KAKAO, "kakao_123");
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+
+        // when & then
+        assertThatThrownBy(() -> adminUserService.updateUserRole(1L, new UserRoleUpdateRequest(Role.MANAGER)))
+                .isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
+    @DisplayName("MANAGER를 USER로 변경 성공")
+    void updateUserRole_managerToUser() {
+        // given
+        User user = createUserWithChurch("담당자", Role.MANAGER, ChurchId.ANYANG);
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+
+        // when
+        UserRoleUpdateResponse response = adminUserService.updateUserRole(1L, new UserRoleUpdateRequest(Role.USER));
+
+        // then
+        assertThat(response.getRole()).isEqualTo("USER");
+        assertThat(user.getRole()).isEqualTo(Role.USER);
+    }
+
+    @Test
     @DisplayName("MASTER 역할로 변경 시도하면 예외")
     void updateUserRole_invalidRole_master() {
         // when & then

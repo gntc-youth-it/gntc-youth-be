@@ -40,6 +40,10 @@ VALUES (4, 'suwon-user@example.com', '수원유저', 'KAKAO', 'kakao_111222', 'U
 INSERT INTO app_user (id, email, name, provider, provider_user_id, role, church_id, created_at, updated_at)
 VALUES (5, 'anyang-user@example.com', '안양유저', 'KAKAO', 'kakao_333444', 'USER', 'ANYANG', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
+-- 안양 성전 소속 담당자 (MANAGER 권한 테스트용)
+INSERT INTO app_user (id, email, name, provider, provider_user_id, role, church_id, created_at, updated_at)
+VALUES (6, 'manager@example.com', '담당자유저', 'KAKAO', 'kakao_555666', 'MANAGER', 'ANYANG', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
 -- Profile Image for master user
 INSERT INTO uploaded_file (id, original_filename, stored_filename, file_path, content_type, file_size, created_at, updated_at)
 VALUES (800, 'profile.jpg', 'stored_profile.jpg', 'uploads/profile.jpg', 'image/jpeg', 512, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

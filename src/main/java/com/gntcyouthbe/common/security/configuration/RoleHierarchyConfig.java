@@ -10,9 +10,10 @@ public class RoleHierarchyConfig {
     @Bean
     RoleHierarchy roleHierarchy() {
         return RoleHierarchyImpl.withDefaultRolePrefix()
-                .role("MASTER").implies("ADMIN", "LEADER", "USER")
+                .role("MASTER").implies("ADMIN", "LEADER", "MANAGER", "USER")
                 .role("ADMIN").implies("USER")
                 .role("LEADER").implies("USER")
+                .role("MANAGER").implies("USER")
                 .build();
     }
 }
