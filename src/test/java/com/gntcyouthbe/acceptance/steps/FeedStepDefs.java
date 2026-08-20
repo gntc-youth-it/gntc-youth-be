@@ -25,7 +25,7 @@ public class FeedStepDefs {
 
     @만일("피드를 조회한다")
     public void 피드를_조회한다() {
-        world.response = postApi.getFeed(null, null, null, null);
+        world.response = postApi.getFeed(null, null, null, 20);
     }
 
     @그러면("승인된 게시글만 반환된다")
@@ -60,6 +60,17 @@ public class FeedStepDefs {
         assertThat(postIds).doesNotContain(902L);
         // 검수대기 게시글 (903)도 미포함
         assertThat(postIds).doesNotContain(903L);
+    }
+
+    @그러면("여름 수련회 모든 프로그램의 게시글이 반환된다")
+    public void 여름_수련회_모든_프로그램의_게시글이_반환된다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
+
+        List<Long> postIds = world.response.jsonPath().getList("posts.id", Long.class);
+        // 체육대회(907), 함께걷장(908), 그외 활동(909) 게시글 모두 포함
+        assertThat(postIds).contains(907L, 908L, 909L);
+        // 겨울 수련회 게시글 (901)는 미포함
+        assertThat(postIds).doesNotContain(901L);
     }
 
     @만일("성전 {string}으로 피드를 조회한다")

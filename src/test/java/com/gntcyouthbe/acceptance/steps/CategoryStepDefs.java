@@ -53,21 +53,54 @@ public class CategoryStepDefs {
     }
 
     @SuppressWarnings("unchecked")
+    @그러면("여름 수련회에 하위 프로그램 목록이 포함되어 있다")
+    public void 여름_수련회에_하위_프로그램_목록이_포함되어_있다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
+
+        List<Map<String, Object>> responses = world.response.jsonPath().getList(".");
+
+        Map<String, Object> summerRetreat = responses.stream()
+                .filter(r -> "RETREAT_2026_SUMMER".equals(r.get("name")))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("RETREAT_2026_SUMMER not found"));
+
+        List<Map<String, Object>> children = (List<Map<String, Object>>) summerRetreat.get("children");
+        assertThat(children).extracting("name")
+                .containsExactly("RETREAT_2026_SUMMER_SPORTS", "RETREAT_2026_SUMMER_WALK",
+                        "RETREAT_2026_SUMMER_ETC");
+        assertThat(children).extracting("displayName")
+                .containsExactly("체육대회", "함께걷장", "그외 활동");
+    }
+
+    @그리고("하위 프로그램은 세부 카테고리 목록에 별도 항목으로 나타나지 않는다")
+    public void 하위_프로그램은_세부_카테고리_목록에_별도_항목으로_나타나지_않는다() {
+        List<String> names = world.response.jsonPath().getList("name", String.class);
+        assertThat(names).doesNotContain("RETREAT_2026_SUMMER_SPORTS", "RETREAT_2026_SUMMER_WALK",
+                "RETREAT_2026_SUMMER_ETC");
+    }
+
     @그리고("세부 카테고리에 말씀 정보가 포함되어 있다")
     public void 세부_카테고리에_말씀_정보가_포함되어_있다() {
         List<Map<String, Object>> responses = world.response.jsonPath().getList(".");
 
-        Map<String, Object> retreat2026 = responses.stream()
-                .filter(r -> "RETREAT_2026_WINTER".equals(r.get("name")))
-                .findFirst()
-                .orElseThrow(() -> new AssertionError("RETREAT_2026_WINTER not found"));
+        assertVerse(responses, "RETREAT_2026_WINTER", "ISAIAH", "이사야", 40, 31);
+        assertVerse(responses, "RETREAT_2026_SUMMER", "JOSHUA", "여호수아", 1, 7);
+    }
 
-        Map<String, Object> verse = (Map<String, Object>) retreat2026.get("verse");
+    @SuppressWarnings("unchecked")
+    private void assertVerse(List<Map<String, Object>> responses, String name,
+            String bookName, String bookDisplayName, int chapter, int verseNumber) {
+        Map<String, Object> subCategory = responses.stream()
+                .filter(r -> name.equals(r.get("name")))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError(name + " not found"));
+
+        Map<String, Object> verse = (Map<String, Object>) subCategory.get("verse");
         assertThat(verse).isNotNull();
-        assertThat((String) verse.get("bookName")).isEqualTo("ISAIAH");
-        assertThat((String) verse.get("bookDisplayName")).isEqualTo("이사야");
-        assertThat((Integer) verse.get("chapter")).isEqualTo(40);
-        assertThat((Integer) verse.get("verse")).isEqualTo(31);
+        assertThat((String) verse.get("bookName")).isEqualTo(bookName);
+        assertThat((String) verse.get("bookDisplayName")).isEqualTo(bookDisplayName);
+        assertThat((Integer) verse.get("chapter")).isEqualTo(chapter);
+        assertThat((Integer) verse.get("verse")).isEqualTo(verseNumber);
         assertThat((String) verse.get("content")).isNotBlank();
     }
 }

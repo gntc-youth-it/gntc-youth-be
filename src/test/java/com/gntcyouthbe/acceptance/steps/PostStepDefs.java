@@ -102,6 +102,21 @@ public class PostStepDefs {
         assertThat(world.response.jsonPath().getList("churches")).containsExactly("ANYANG", "SUWON");
     }
 
+    @만일("사용자가 체육대회 프로그램으로 게시글을 작성한다")
+    public void 사용자가_체육대회_프로그램으로_게시글을_작성한다() {
+        world.response = postApi.createPost(world.authToken, Map.of(
+                "subCategory", "RETREAT_2026_SUMMER_SPORTS",
+                "content", "체육대회 사진입니다"
+        ));
+    }
+
+    @그러면("게시글이 체육대회 프로그램 카테고리로 생성된다")
+    public void 게시글이_체육대회_프로그램_카테고리로_생성된다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.CREATED.value());
+        assertThat(world.response.jsonPath().getString("subCategory")).isEqualTo("RETREAT_2026_SUMMER_SPORTS");
+        assertThat(world.response.jsonPath().getString("category")).isEqualTo("RETREAT");
+    }
+
     @만일("사용자가 이미지를 포함하여 게시글을 작성한다")
     public void 사용자가_이미지를_포함하여_게시글을_작성한다() {
         world.response = postApi.createPost(world.authToken, Map.of(

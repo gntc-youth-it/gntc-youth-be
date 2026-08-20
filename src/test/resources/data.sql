@@ -62,11 +62,18 @@ INSERT INTO books (id, canon_order, book_name, name)
 VALUES (1, 1, 'GENESIS', '창세기');
 
 INSERT INTO books (id, canon_order, book_name, name)
+VALUES (6, 6, 'JOSHUA', '여호수아');
+
+INSERT INTO books (id, canon_order, book_name, name)
 VALUES (23, 23, 'ISAIAH', '이사야');
 
 -- Test Verse (이사야 40:31)
 INSERT INTO verses (id, book_id, chapter, verse, content, sequence)
 VALUES (1, 23, 40, 31, '오직 여호와를 앙망하는 자는 새 힘을 얻으리니 독수리의 날개치며 올라감 같을 것이요 달음박질하여도 곤비치 아니하겠고 걸어가도 피곤치 아니하리로다', 23662);
+
+-- Test Verse (여호수아 1:7)
+INSERT INTO verses (id, book_id, chapter, verse, content, sequence)
+VALUES (2, 6, 1, 7, '오직 너는 마음을 강하게 하고 극히 담대히 하여 나의 종 모세가 네게 명한 율법을 다 지켜 행하고 좌로나 우로나 치우치지 말라 그리하면 어디로 가든지 형통하리니', 5859);
 
 -- Test Advent Person and Verses
 INSERT INTO advent_persons (id, name, temple, batch)
@@ -190,3 +197,38 @@ VALUES (1002, '수련회 설교 영상', 'https://www.youtube.com/watch?v=video2
 -- Video Test: 기타 카테고리 영상 (필터링 테스트용)
 INSERT INTO video (id, title, link, sub_category, created_at, updated_at, created_by, updated_by)
 VALUES (1003, '기타 영상', 'https://www.youtube.com/watch?v=video3', 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
+
+-- 여름 수련회 Test: 프로그램별 게시글 이미지
+INSERT INTO uploaded_file (id, original_filename, stored_filename, file_path, content_type, file_size, created_at, updated_at)
+VALUES (913, 'summer-sports.jpg', 'stored_summer-sports.jpg', 'uploads/summer-sports.jpg', 'image/jpeg', 1024, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT INTO uploaded_file (id, original_filename, stored_filename, file_path, content_type, file_size, created_at, updated_at)
+VALUES (914, 'summer-walk.jpg', 'stored_summer-walk.jpg', 'uploads/summer-walk.jpg', 'image/jpeg', 1024, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT INTO uploaded_file (id, original_filename, stored_filename, file_path, content_type, file_size, created_at, updated_at)
+VALUES (915, 'summer-etc.jpg', 'stored_summer-etc.jpg', 'uploads/summer-etc.jpg', 'image/jpeg', 1024, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- 여름 수련회 Test: 체육대회 게시글 (APPROVED)
+INSERT INTO post (id, author_id, sub_category, status, content, is_author_public, created_at, updated_at, created_by, updated_by)
+VALUES (907, 3, 'RETREAT_2026_SUMMER_SPORTS', 'APPROVED', '체육대회 게시글', false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
+
+-- 여름 수련회 Test: 함께걷장 게시글 (APPROVED)
+INSERT INTO post (id, author_id, sub_category, status, content, is_author_public, created_at, updated_at, created_by, updated_by)
+VALUES (908, 3, 'RETREAT_2026_SUMMER_WALK', 'APPROVED', '함께걷장 게시글', false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
+
+-- 여름 수련회 Test: 그외 활동 게시글 (APPROVED)
+INSERT INTO post (id, author_id, sub_category, status, content, is_author_public, created_at, updated_at, created_by, updated_by)
+VALUES (909, 3, 'RETREAT_2026_SUMMER_ETC', 'APPROVED', '그외 활동 게시글', false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
+
+INSERT INTO post_image (id, post_id, uploaded_file_id, sort_order, created_at, updated_at, created_by, updated_by)
+VALUES (913, 907, 913, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
+
+INSERT INTO post_image (id, post_id, uploaded_file_id, sort_order, created_at, updated_at, created_by, updated_by)
+VALUES (914, 908, 914, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
+
+INSERT INTO post_image (id, post_id, uploaded_file_id, sort_order, created_at, updated_at, created_by, updated_by)
+VALUES (915, 909, 915, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
+
+-- 여름 수련회 Test: 프로그램별 영상
+INSERT INTO video (id, title, link, sub_category, created_at, updated_at, created_by, updated_by)
+VALUES (1004, '체육대회 하이라이트', 'https://www.youtube.com/watch?v=video4', 'RETREAT_2026_SUMMER_SPORTS', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 3, 3);
