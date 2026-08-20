@@ -62,6 +62,7 @@ public class PostService {
     public List<PostSubCategoryResponse> getSubCategories(PostCategory category) {
         List<PostSubCategory> subCategories = Arrays.stream(PostSubCategory.values())
                 .filter(sub -> sub.getCategory() == category)
+                .filter(PostSubCategory::isTopLevel)
                 .sorted(Comparator.comparing(
                         PostSubCategory::getStartDate,
                         Comparator.nullsLast(Comparator.reverseOrder())))
@@ -179,10 +180,10 @@ public class PostService {
 
     private List<Post> findFeedPosts(PostSubCategory subCategory, ChurchId churchId, Long cursor, int size) {
         if (subCategory != null && churchId != null) {
-            return postRepository.findFeedBySubCategoryAndChurch(PostStatus.APPROVED, subCategory, churchId, cursor, size);
+            return postRepository.findFeedBySubCategoriesAndChurch(PostStatus.APPROVED, subCategory.withChildren(), churchId, cursor, size);
         }
         if (subCategory != null) {
-            return postRepository.findFeedBySubCategory(PostStatus.APPROVED, subCategory, cursor, size);
+            return postRepository.findFeedBySubCategories(PostStatus.APPROVED, subCategory.withChildren(), cursor, size);
         }
         if (churchId != null) {
             return postRepository.findFeedByChurch(PostStatus.APPROVED, churchId, cursor, size);
@@ -192,10 +193,10 @@ public class PostService {
 
     private List<PostImage> findGalleryImages(PostSubCategory subCategory, ChurchId churchId, Long cursor, int size) {
         if (subCategory != null && churchId != null) {
-            return postImageRepository.findGalleryImagesBySubCategoryAndChurch(PostStatus.APPROVED, subCategory, churchId, cursor, size);
+            return postImageRepository.findGalleryImagesBySubCategoriesAndChurch(PostStatus.APPROVED, subCategory.withChildren(), churchId, cursor, size);
         }
         if (subCategory != null) {
-            return postImageRepository.findGalleryImagesBySubCategory(PostStatus.APPROVED, subCategory, cursor, size);
+            return postImageRepository.findGalleryImagesBySubCategories(PostStatus.APPROVED, subCategory.withChildren(), cursor, size);
         }
         if (churchId != null) {
             return postImageRepository.findGalleryImagesByChurch(PostStatus.APPROVED, churchId, cursor, size);

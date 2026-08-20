@@ -53,6 +53,28 @@ public class GalleryStepDefs {
         assertThat(imageIds).doesNotContain(904L);
     }
 
+    @그러면("여름 수련회 모든 프로그램의 이미지가 반환된다")
+    public void 여름_수련회_모든_프로그램의_이미지가_반환된다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
+
+        List<Long> imageIds = world.response.jsonPath().getList("images.id", Long.class);
+        // 체육대회(913), 함께걷장(914), 그외 활동(915) 이미지 모두 포함
+        assertThat(imageIds).contains(913L, 914L, 915L);
+        // 겨울 수련회 이미지 (901)는 미포함
+        assertThat(imageIds).doesNotContain(901L);
+    }
+
+    @그러면("체육대회 프로그램의 이미지만 반환된다")
+    public void 체육대회_프로그램의_이미지만_반환된다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
+
+        List<Long> imageIds = world.response.jsonPath().getList("images.id", Long.class);
+        // 체육대회 이미지 (913)만 포함
+        assertThat(imageIds).contains(913L);
+        // 다른 프로그램 이미지 (914, 915)는 미포함
+        assertThat(imageIds).doesNotContain(914L, 915L);
+    }
+
     @만일("성전 {string}으로 갤러리를 조회한다")
     public void 성전으로_갤러리를_조회한다(String churchId) {
         world.response = postApi.getGallery(null, churchId, null, null);

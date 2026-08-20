@@ -20,6 +20,23 @@ class PostSubCategoryResponseTest {
         assertThat(response.imageUrl()).isEqualTo(PostSubCategory.RETREAT_2026_WINTER.getImageUrl());
         assertThat(response.startDate()).isEqualTo(PostSubCategory.RETREAT_2026_WINTER.getStartDate());
         assertThat(response.endDate()).isEqualTo(PostSubCategory.RETREAT_2026_WINTER.getEndDate());
+        assertThat(response.children()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("하위 프로그램이 있는 세부 카테고리는 children에 프로그램 목록이 포함된다")
+    void from_withChildren() {
+        // when
+        PostSubCategoryResponse response = PostSubCategoryResponse.from(PostSubCategory.RETREAT_2026_SUMMER, null);
+
+        // then
+        assertThat(response.children())
+                .extracting(PostSubCategoryResponse.ChildInfo::name)
+                .containsExactly("RETREAT_2026_SUMMER_SPORTS", "RETREAT_2026_SUMMER_WALK",
+                        "RETREAT_2026_SUMMER_ETC");
+        assertThat(response.children())
+                .extracting(PostSubCategoryResponse.ChildInfo::displayName)
+                .containsExactly("체육대회", "함께걷장", "그외 활동");
     }
 
     @Test

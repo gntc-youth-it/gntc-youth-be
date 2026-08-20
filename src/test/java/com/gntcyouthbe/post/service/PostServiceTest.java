@@ -228,8 +228,8 @@ class PostServiceTest {
                 createPostImage(2L, "uploads/b.jpg"),
                 createPostImage(1L, "uploads/a.jpg")
         );
-        given(postImageRepository.findGalleryImagesBySubCategory(
-                PostStatus.APPROVED, PostSubCategory.RETREAT_2026_WINTER, Long.MAX_VALUE, 21))
+        given(postImageRepository.findGalleryImagesBySubCategories(
+                PostStatus.APPROVED, List.of(PostSubCategory.RETREAT_2026_WINTER), Long.MAX_VALUE, 21))
                 .willReturn(postImages);
 
         // when
@@ -238,6 +238,52 @@ class PostServiceTest {
 
         // then
         assertThat(response.getImages()).hasSize(2);
+        assertThat(response.isHasNext()).isFalse();
+    }
+
+    @Test
+    @DisplayName("상위 소분류로 갤러리를 조회하면 하위 프로그램의 이미지도 함께 조회된다")
+    void getGalleryImages_withParentSubCategory_includesChildPrograms() {
+        // given
+        List<PostImage> postImages = List.of(
+                createPostImage(2L, "uploads/sports.jpg"),
+                createPostImage(1L, "uploads/walk.jpg")
+        );
+        given(postImageRepository.findGalleryImagesBySubCategories(
+                PostStatus.APPROVED,
+                List.of(PostSubCategory.RETREAT_2026_SUMMER,
+                        PostSubCategory.RETREAT_2026_SUMMER_SPORTS,
+                        PostSubCategory.RETREAT_2026_SUMMER_WALK,
+                        PostSubCategory.RETREAT_2026_SUMMER_ETC),
+                Long.MAX_VALUE, 21))
+                .willReturn(postImages);
+
+        // when
+        GalleryResponse response = postService.getGalleryImages(
+                PostSubCategory.RETREAT_2026_SUMMER, null, Long.MAX_VALUE, 20);
+
+        // then
+        assertThat(response.getImages()).hasSize(2);
+        assertThat(response.isHasNext()).isFalse();
+    }
+
+    @Test
+    @DisplayName("하위 프로그램 소분류로 갤러리를 조회하면 해당 프로그램의 이미지만 조회된다")
+    void getGalleryImages_withChildSubCategory() {
+        // given
+        List<PostImage> postImages = List.of(
+                createPostImage(1L, "uploads/sports.jpg")
+        );
+        given(postImageRepository.findGalleryImagesBySubCategories(
+                PostStatus.APPROVED, List.of(PostSubCategory.RETREAT_2026_SUMMER_SPORTS), Long.MAX_VALUE, 21))
+                .willReturn(postImages);
+
+        // when
+        GalleryResponse response = postService.getGalleryImages(
+                PostSubCategory.RETREAT_2026_SUMMER_SPORTS, null, Long.MAX_VALUE, 20);
+
+        // then
+        assertThat(response.getImages()).hasSize(1);
         assertThat(response.isHasNext()).isFalse();
     }
 
@@ -268,8 +314,8 @@ class PostServiceTest {
         List<PostImage> postImages = List.of(
                 createPostImage(1L, "uploads/a.jpg")
         );
-        given(postImageRepository.findGalleryImagesBySubCategoryAndChurch(
-                PostStatus.APPROVED, PostSubCategory.RETREAT_2026_WINTER, ChurchId.ANYANG, Long.MAX_VALUE, 21))
+        given(postImageRepository.findGalleryImagesBySubCategoriesAndChurch(
+                PostStatus.APPROVED, List.of(PostSubCategory.RETREAT_2026_WINTER), ChurchId.ANYANG, Long.MAX_VALUE, 21))
                 .willReturn(postImages);
 
         // when
@@ -482,8 +528,8 @@ class PostServiceTest {
         User author = createUser(1L, "작성자", Role.MASTER);
         Post post = createPost(10L, author, PostSubCategory.RETREAT_2026_WINTER);
 
-        given(postRepository.findFeedBySubCategoryAndChurch(
-                PostStatus.APPROVED, PostSubCategory.RETREAT_2026_WINTER, ChurchId.ANYANG, Long.MAX_VALUE, 5))
+        given(postRepository.findFeedBySubCategoriesAndChurch(
+                PostStatus.APPROVED, List.of(PostSubCategory.RETREAT_2026_WINTER), ChurchId.ANYANG, Long.MAX_VALUE, 5))
                 .willReturn(List.of(post));
         given(postCommentRepository.countByPostIds(List.of(10L)))
                 .willReturn(List.of());
@@ -496,6 +542,36 @@ class PostServiceTest {
 
         // then
         assertThat(response.getPosts()).hasSize(1);
+        assertThat(response.isHasNext()).isFalse();
+    }
+
+    @Test
+    @DisplayName("상위 소분류로 피드를 조회하면 하위 프로그램의 게시글도 함께 조회된다")
+    void getFeed_withParentSubCategory_includesChildPrograms() {
+        // given
+        User author = createUser(1L, "작성자", Role.MASTER);
+        Post post1 = createPost(10L, author, PostSubCategory.RETREAT_2026_SUMMER_SPORTS);
+        Post post2 = createPost(9L, author, PostSubCategory.RETREAT_2026_SUMMER_WALK);
+
+        given(postRepository.findFeedBySubCategories(
+                PostStatus.APPROVED,
+                List.of(PostSubCategory.RETREAT_2026_SUMMER,
+                        PostSubCategory.RETREAT_2026_SUMMER_SPORTS,
+                        PostSubCategory.RETREAT_2026_SUMMER_WALK,
+                        PostSubCategory.RETREAT_2026_SUMMER_ETC),
+                Long.MAX_VALUE, 5))
+                .willReturn(List.of(post1, post2));
+        given(postCommentRepository.countByPostIds(List.of(10L, 9L)))
+                .willReturn(List.of());
+        given(userProfileRepository.findByUserIdInWithProfileImage(List.of(1L)))
+                .willReturn(List.of());
+
+        // when
+        FeedResponse response = postService.getFeed(
+                PostSubCategory.RETREAT_2026_SUMMER, null, Long.MAX_VALUE, 4);
+
+        // then
+        assertThat(response.getPosts()).hasSize(2);
         assertThat(response.isHasNext()).isFalse();
     }
 

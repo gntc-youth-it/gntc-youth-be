@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface VideoRepository extends JpaRepository<Video, Long> {
 
-    List<Video> findBySubCategoryOrderByIdDesc(PostSubCategory subCategory);
+    List<Video> findBySubCategoryInOrderByIdDesc(List<PostSubCategory> subCategories);
 
     List<Video> findAllByOrderByIdDesc();
 }

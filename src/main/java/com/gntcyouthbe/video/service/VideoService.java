@@ -30,7 +30,7 @@ public class VideoService {
     public List<VideoResponse> getVideos(PostSubCategory subCategory) {
         List<Video> videos;
         if (subCategory != null) {
-            videos = videoRepository.findBySubCategoryOrderByIdDesc(subCategory);
+            videos = videoRepository.findBySubCategoryInOrderByIdDesc(subCategory.withChildren());
         } else {
             videos = videoRepository.findAllByOrderByIdDesc();
         }

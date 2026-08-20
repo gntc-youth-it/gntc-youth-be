@@ -59,7 +59,7 @@ class VideoServiceTest {
         // given
         Video video = createVideo(1L, "수련회 영상", "https://youtube.com/watch?v=1", PostSubCategory.RETREAT_2026_WINTER);
 
-        given(videoRepository.findBySubCategoryOrderByIdDesc(PostSubCategory.RETREAT_2026_WINTER))
+        given(videoRepository.findBySubCategoryInOrderByIdDesc(List.of(PostSubCategory.RETREAT_2026_WINTER)))
                 .willReturn(List.of(video));
 
         // when
@@ -68,6 +68,28 @@ class VideoServiceTest {
         // then
         assertThat(responses).hasSize(1);
         assertThat(responses.get(0).getSubCategory()).isEqualTo(PostSubCategory.RETREAT_2026_WINTER);
+    }
+
+    @Test
+    @DisplayName("상위 행사로 조회하면 하위 프로그램의 영상도 함께 반환된다")
+    void getVideos_withParentSubCategory_includesChildPrograms() {
+        // given
+        Video video = createVideo(1L, "체육대회 영상", "https://youtube.com/watch?v=1",
+                PostSubCategory.RETREAT_2026_SUMMER_SPORTS);
+
+        given(videoRepository.findBySubCategoryInOrderByIdDesc(
+                List.of(PostSubCategory.RETREAT_2026_SUMMER,
+                        PostSubCategory.RETREAT_2026_SUMMER_SPORTS,
+                        PostSubCategory.RETREAT_2026_SUMMER_WALK,
+                        PostSubCategory.RETREAT_2026_SUMMER_ETC)))
+                .willReturn(List.of(video));
+
+        // when
+        List<VideoResponse> responses = videoService.getVideos(PostSubCategory.RETREAT_2026_SUMMER);
+
+        // then
+        assertThat(responses).hasSize(1);
+        assertThat(responses.get(0).getSubCategory()).isEqualTo(PostSubCategory.RETREAT_2026_SUMMER_SPORTS);
     }
 
     @Test

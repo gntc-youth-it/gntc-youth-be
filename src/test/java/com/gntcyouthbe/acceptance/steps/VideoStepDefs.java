@@ -110,6 +110,21 @@ public class VideoStepDefs {
         );
     }
 
+    @만일("여름 수련회 전체 영상 목록을 조회한다")
+    public void 여름_수련회_전체_영상_목록을_조회한다() {
+        world.response = videoApi.getVideos("RETREAT_2026_SUMMER");
+    }
+
+    @그러면("여름 수련회 프로그램 영상이 포함되어 있다")
+    public void 여름_수련회_프로그램_영상이_포함되어_있다() {
+        assertThat(world.response.statusCode()).isEqualTo(HttpStatus.OK.value());
+        // 체육대회 프로그램 영상 (1004)이 포함
+        List<Long> videoIds = world.response.jsonPath().getList("id", Long.class);
+        assertThat(videoIds).contains(1004L);
+        // 겨울 수련회 영상 (1002)는 미포함
+        assertThat(videoIds).doesNotContain(1002L);
+    }
+
     // --- 영상 삭제 ---
 
     @먼저("마스터가 영상 삭제를 위해 로그인되어 있다")

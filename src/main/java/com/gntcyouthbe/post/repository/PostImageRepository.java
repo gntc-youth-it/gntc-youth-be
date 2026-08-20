@@ -26,13 +26,13 @@ public interface PostImageRepository extends JpaRepository<PostImage, Long> {
             SELECT pi FROM PostImage pi
             JOIN FETCH pi.uploadedFile
             WHERE pi.post.status = :status
-            AND pi.post.subCategory = :subCategory
+            AND pi.post.subCategory IN :subCategories
             AND pi.id < :cursor
             ORDER BY pi.id DESC
             LIMIT :size
             """)
-    List<PostImage> findGalleryImagesBySubCategory(@Param("status") PostStatus status,
-            @Param("subCategory") PostSubCategory subCategory,
+    List<PostImage> findGalleryImagesBySubCategories(@Param("status") PostStatus status,
+            @Param("subCategories") List<PostSubCategory> subCategories,
             @Param("cursor") Long cursor,
             @Param("size") int size);
 
@@ -54,14 +54,14 @@ public interface PostImageRepository extends JpaRepository<PostImage, Long> {
             SELECT pi FROM PostImage pi
             JOIN FETCH pi.uploadedFile
             WHERE pi.post.status = :status
-            AND pi.post.subCategory = :subCategory
+            AND pi.post.subCategory IN :subCategories
             AND :churchId MEMBER OF pi.post.churches
             AND pi.id < :cursor
             ORDER BY pi.id DESC
             LIMIT :size
             """)
-    List<PostImage> findGalleryImagesBySubCategoryAndChurch(@Param("status") PostStatus status,
-            @Param("subCategory") PostSubCategory subCategory,
+    List<PostImage> findGalleryImagesBySubCategoriesAndChurch(@Param("status") PostStatus status,
+            @Param("subCategories") List<PostSubCategory> subCategories,
             @Param("churchId") ChurchId churchId,
             @Param("cursor") Long cursor,
             @Param("size") int size);

@@ -26,13 +26,13 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             SELECT p FROM Post p
             JOIN FETCH p.author
             WHERE p.status = :status
-            AND p.subCategory = :subCategory
+            AND p.subCategory IN :subCategories
             AND p.id < :cursor
             ORDER BY p.id DESC
             LIMIT :size
             """)
-    List<Post> findFeedBySubCategory(@Param("status") PostStatus status,
-            @Param("subCategory") PostSubCategory subCategory,
+    List<Post> findFeedBySubCategories(@Param("status") PostStatus status,
+            @Param("subCategories") List<PostSubCategory> subCategories,
             @Param("cursor") Long cursor, @Param("size") int size);
 
     @Query("""
@@ -52,14 +52,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             SELECT p FROM Post p
             JOIN FETCH p.author
             WHERE p.status = :status
-            AND p.subCategory = :subCategory
+            AND p.subCategory IN :subCategories
             AND :churchId MEMBER OF p.churches
             AND p.id < :cursor
             ORDER BY p.id DESC
             LIMIT :size
             """)
-    List<Post> findFeedBySubCategoryAndChurch(@Param("status") PostStatus status,
-            @Param("subCategory") PostSubCategory subCategory,
+    List<Post> findFeedBySubCategoriesAndChurch(@Param("status") PostStatus status,
+            @Param("subCategories") List<PostSubCategory> subCategories,
             @Param("churchId") ChurchId churchId,
             @Param("cursor") Long cursor, @Param("size") int size);
 }
