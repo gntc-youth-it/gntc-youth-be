@@ -20,6 +20,18 @@ class PostSubCategoryResponseTest {
         assertThat(response.imageUrl()).isEqualTo(PostSubCategory.RETREAT_2026_WINTER.getImageUrl());
         assertThat(response.startDate()).isEqualTo(PostSubCategory.RETREAT_2026_WINTER.getStartDate());
         assertThat(response.endDate()).isEqualTo(PostSubCategory.RETREAT_2026_WINTER.getEndDate());
+        assertThat(response.children())
+                .extracting(PostSubCategoryResponse.ChildInfo::name)
+                .containsExactly("RETREAT_2026_WINTER_SING");
+    }
+
+    @Test
+    @DisplayName("하위 프로그램이 없는 세부 카테고리는 children이 비어 있다")
+    void from_withoutChildren() {
+        // when
+        PostSubCategoryResponse response = PostSubCategoryResponse.from(PostSubCategory.NONE, null);
+
+        // then
         assertThat(response.children()).isEmpty();
     }
 

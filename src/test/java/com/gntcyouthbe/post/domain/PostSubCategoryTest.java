@@ -29,10 +29,23 @@ class PostSubCategoryTest {
     @Test
     @DisplayName("하위 프로그램이 없는 카테고리의 withChildren()은 자신만 반환한다")
     void withChildren_withoutChildren_returnsSelfOnly() {
-        assertThat(PostSubCategory.RETREAT_2026_WINTER.withChildren())
-                .containsExactly(PostSubCategory.RETREAT_2026_WINTER);
+        assertThat(PostSubCategory.NONE.withChildren())
+                .containsExactly(PostSubCategory.NONE);
         assertThat(PostSubCategory.RETREAT_2026_SUMMER_SPORTS.withChildren())
                 .containsExactly(PostSubCategory.RETREAT_2026_SUMMER_SPORTS);
+    }
+
+    @Test
+    @DisplayName("겨울 수련회는 하위 프로그램으로 새 힘을 노래하라를 가진다")
+    void winterRetreat_hasSingProgram() {
+        assertThat(PostSubCategory.RETREAT_2026_WINTER.withChildren()).containsExactly(
+                PostSubCategory.RETREAT_2026_WINTER,
+                PostSubCategory.RETREAT_2026_WINTER_SING);
+        assertThat(PostSubCategory.RETREAT_2026_WINTER_SING.getDisplayName())
+                .isEqualTo("새 힘을 노래하라");
+        assertThat(PostSubCategory.RETREAT_2026_WINTER_SING.getCategory())
+                .isEqualTo(PostCategory.RETREAT);
+        assertThat(PostSubCategory.RETREAT_2026_WINTER_SING.isTopLevel()).isFalse();
     }
 
     @Test
