@@ -229,7 +229,7 @@ class PostServiceTest {
                 createPostImage(1L, "uploads/a.jpg")
         );
         given(postImageRepository.findGalleryImagesBySubCategories(
-                PostStatus.APPROVED, List.of(PostSubCategory.RETREAT_2026_WINTER), Long.MAX_VALUE, 21))
+                PostStatus.APPROVED, List.of(PostSubCategory.RETREAT_2026_WINTER, PostSubCategory.RETREAT_2026_WINTER_SING), Long.MAX_VALUE, 21))
                 .willReturn(postImages);
 
         // when
@@ -315,7 +315,7 @@ class PostServiceTest {
                 createPostImage(1L, "uploads/a.jpg")
         );
         given(postImageRepository.findGalleryImagesBySubCategoriesAndChurch(
-                PostStatus.APPROVED, List.of(PostSubCategory.RETREAT_2026_WINTER), ChurchId.ANYANG, Long.MAX_VALUE, 21))
+                PostStatus.APPROVED, List.of(PostSubCategory.RETREAT_2026_WINTER, PostSubCategory.RETREAT_2026_WINTER_SING), ChurchId.ANYANG, Long.MAX_VALUE, 21))
                 .willReturn(postImages);
 
         // when
@@ -529,7 +529,7 @@ class PostServiceTest {
         Post post = createPost(10L, author, PostSubCategory.RETREAT_2026_WINTER);
 
         given(postRepository.findFeedBySubCategoriesAndChurch(
-                PostStatus.APPROVED, List.of(PostSubCategory.RETREAT_2026_WINTER), ChurchId.ANYANG, Long.MAX_VALUE, 5))
+                PostStatus.APPROVED, List.of(PostSubCategory.RETREAT_2026_WINTER, PostSubCategory.RETREAT_2026_WINTER_SING), ChurchId.ANYANG, Long.MAX_VALUE, 5))
                 .willReturn(List.of(post));
         given(postCommentRepository.countByPostIds(List.of(10L)))
                 .willReturn(List.of());

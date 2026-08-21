@@ -19,6 +19,7 @@ public enum PostSubCategory {
     RETREAT_2026_WINTER("2026 겨울 수련회 (새 힘을 얻으라)", PostCategory.RETREAT,
             LocalDate.of(2026, 1, 29), LocalDate.of(2026, 1, 31), "assets/2026-winter-poster.webp",
             BookName.ISAIAH, 40, 31),
+    RETREAT_2026_WINTER_SING("새 힘을 노래하라", RETREAT_2026_WINTER),
     NONE("기타", PostCategory.NONE);
 
     private final String displayName;
