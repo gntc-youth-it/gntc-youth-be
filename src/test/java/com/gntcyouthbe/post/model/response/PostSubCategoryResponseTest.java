@@ -22,7 +22,8 @@ class PostSubCategoryResponseTest {
         assertThat(response.endDate()).isEqualTo(PostSubCategory.RETREAT_2026_WINTER.getEndDate());
         assertThat(response.children())
                 .extracting(PostSubCategoryResponse.ChildInfo::name)
-                .containsExactly("RETREAT_2026_WINTER_SING");
+                .containsExactly("RETREAT_2026_WINTER_PRESERVICE",
+                        "RETREAT_2026_WINTER_SPECIAL", "RETREAT_2026_WINTER_SING");
     }
 
     @Test

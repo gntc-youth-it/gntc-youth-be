@@ -59,7 +59,10 @@ class VideoServiceTest {
         // given
         Video video = createVideo(1L, "수련회 영상", "https://youtube.com/watch?v=1", PostSubCategory.RETREAT_2026_WINTER);
 
-        given(videoRepository.findBySubCategoryInOrderByIdDesc(List.of(PostSubCategory.RETREAT_2026_WINTER, PostSubCategory.RETREAT_2026_WINTER_SING)))
+        given(videoRepository.findBySubCategoryInOrderByIdDesc(List.of(PostSubCategory.RETREAT_2026_WINTER,
+                        PostSubCategory.RETREAT_2026_WINTER_PRESERVICE,
+                        PostSubCategory.RETREAT_2026_WINTER_SPECIAL,
+                        PostSubCategory.RETREAT_2026_WINTER_SING)))
                 .willReturn(List.of(video));
 
         // when
