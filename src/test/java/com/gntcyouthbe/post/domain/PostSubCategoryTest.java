@@ -36,16 +36,21 @@ class PostSubCategoryTest {
     }
 
     @Test
-    @DisplayName("겨울 수련회는 하위 프로그램으로 새 힘을 노래하라를 가진다")
-    void winterRetreat_hasSingProgram() {
+    @DisplayName("겨울 수련회는 순서별 하위 프로그램 세 개를 가진다")
+    void winterRetreat_hasThreePrograms() {
         assertThat(PostSubCategory.RETREAT_2026_WINTER.withChildren()).containsExactly(
                 PostSubCategory.RETREAT_2026_WINTER,
+                PostSubCategory.RETREAT_2026_WINTER_PRESERVICE,
+                PostSubCategory.RETREAT_2026_WINTER_SPECIAL,
                 PostSubCategory.RETREAT_2026_WINTER_SING);
-        assertThat(PostSubCategory.RETREAT_2026_WINTER_SING.getDisplayName())
-                .isEqualTo("새 힘을 노래하라");
-        assertThat(PostSubCategory.RETREAT_2026_WINTER_SING.getCategory())
-                .isEqualTo(PostCategory.RETREAT);
-        assertThat(PostSubCategory.RETREAT_2026_WINTER_SING.isTopLevel()).isFalse();
+        assertThat(PostSubCategory.RETREAT_2026_WINTER.getChildren())
+                .extracting(PostSubCategory::getDisplayName)
+                .containsExactly("예배 전 찬양", "특송&헌금송", "새 힘을 노래하라");
+        assertThat(PostSubCategory.RETREAT_2026_WINTER.getChildren())
+                .allSatisfy(child -> {
+                    assertThat(child.getCategory()).isEqualTo(PostCategory.RETREAT);
+                    assertThat(child.isTopLevel()).isFalse();
+                });
     }
 
     @Test
