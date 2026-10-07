@@ -47,6 +47,15 @@ public enum ExceptionCode {
     // 41xx: 영상 관련 예외
     VIDEO_NOT_FOUND(4100, "해당 영상이 존재하지 않습니다."),
 
+    // 50xx: 동물원 나들이 조 관련 예외 (프론트가 message를 그대로 보여준다)
+    ZOO_TEAM_NOT_FOUND(5001, "조를 찾을 수 없어요."),
+    ZOO_ALREADY_IN_TEAM(5002, "이미 다른 조에 참여 중이에요."),
+    ZOO_TEAM_ALREADY_STARTED(5003, "이미 출발한 조예요."),
+    ZOO_NOT_TEAM_LEADER(5004, "조장만 할 수 있어요."),
+    ZOO_TEAM_NOT_STARTED(5005, "출발한 뒤에 도착을 기록할 수 있어요."),
+    ZOO_LEADER_CANNOT_LEAVE(5006, "조장은 나갈 수 없어요. 조장을 넘기거나 조를 삭제해 주세요."),
+    ZOO_NOT_TEAM_MEMBER(5007, "이 조의 조원이 아니에요."),
+
     INTERNAL_SERVER_ERROR(9999, "서버에서 알 수 없는 오류가 발생했습니다.");
 
     private final int code;
