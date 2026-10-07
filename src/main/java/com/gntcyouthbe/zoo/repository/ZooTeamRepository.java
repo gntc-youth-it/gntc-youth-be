@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface ZooTeamRepository extends JpaRepository<ZooTeam, Long> {
 
-    @Query("SELECT t FROM ZooTeam t JOIN FETCH t.leader")
+    @Query("SELECT t FROM ZooTeam t JOIN FETCH t.leader ORDER BY t.id")
     List<ZooTeam> findAllWithLeader();
 
     // 같은 조를 바꾸는 요청(두 번 탭, 참여와 마감 동시 등)이 차례로 처리되도록 조 행을 잠근다
