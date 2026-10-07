@@ -55,6 +55,7 @@ public enum ExceptionCode {
     ZOO_TEAM_NOT_STARTED(5005, "출발한 뒤에 도착을 기록할 수 있어요."),
     ZOO_LEADER_CANNOT_LEAVE(5006, "조장은 나갈 수 없어요. 조장을 넘기거나 조를 삭제해 주세요."),
     ZOO_NOT_TEAM_MEMBER(5007, "이 조의 조원이 아니에요."),
+    ZOO_ADMIN_ONLY(5008, "운영자만 볼 수 있어요."),
 
     INTERNAL_SERVER_ERROR(9999, "서버에서 알 수 없는 오류가 발생했습니다.");
 

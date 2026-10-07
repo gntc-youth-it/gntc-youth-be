@@ -236,7 +236,7 @@
     그리고 "마스터유저"가 "사자팀" 조에 AFRICA_1 도착을 기록했다
     만일 "수원유저"가 "사자팀" 조를 조회한다
     그러면 응답 상태 코드는 200이다
-    그리고 응답한 조의 키는 정확히 "id, name, course, status, leaderUserId, members, arrivals, createdAt, startedAt"이다
+    그리고 응답한 조의 키는 정확히 "id, name, course, status, leaderUserId, members, arrivals, missions, createdAt, startedAt"이다
     그리고 응답한 조의 조원 정보 키는 정확히 "userId, name, profileImagePath, isLeader, joinedAt"이다
     그리고 응답한 조의 도착 기록 키는 정확히 "stopId, arrivedAt"이다
     그리고 응답한 조의 조장은 "마스터유저"이다

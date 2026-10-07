@@ -22,6 +22,9 @@ public interface ZooTeamMemberRepository extends JpaRepository<ZooTeamMember, Lo
     @Query("SELECT m FROM ZooTeamMember m JOIN FETCH m.user WHERE m.team.id = :teamId ORDER BY m.id")
     List<ZooTeamMember> findByTeamIdWithUser(@Param("teamId") Long teamId);
 
+    @Query("SELECT m FROM ZooTeamMember m JOIN FETCH m.user ORDER BY m.id")
+    List<ZooTeamMember> findAllWithUser();
+
     @Query("SELECT m.team.id, COUNT(m) FROM ZooTeamMember m GROUP BY m.team.id")
     List<Object[]> countGroupByTeamId();
 

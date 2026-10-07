@@ -6,6 +6,7 @@ import com.gntcyouthbe.zoo.domain.ZooStop;
 import com.gntcyouthbe.zoo.domain.ZooTeam;
 import com.gntcyouthbe.zoo.domain.ZooTeamArrival;
 import com.gntcyouthbe.zoo.domain.ZooTeamMember;
+import com.gntcyouthbe.zoo.domain.ZooTeamMission;
 import com.gntcyouthbe.zoo.domain.ZooTeamStatus;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,6 +20,8 @@ public record ZooTeamDetailResponse(
         Long leaderUserId,
         List<MemberInfo> members,
         List<ArrivalInfo> arrivals,
+        // 다른 조가 답을 보지 못하도록 조원과 MASTER가 아니면 빈 배열이다
+        List<ZooMissionResponse> missions,
         LocalDateTime createdAt,
         LocalDateTime startedAt
 ) {
@@ -53,7 +56,7 @@ public record ZooTeamDetailResponse(
     }
 
     public static ZooTeamDetailResponse of(ZooTeam team, List<ZooTeamMember> members,
-            Map<Long, String> profileImagePaths, List<ZooTeamArrival> arrivals) {
+            Map<Long, String> profileImagePaths, List<ZooTeamArrival> arrivals, List<ZooTeamMission> missions) {
         Long leaderUserId = team.getLeader().getId();
         return new ZooTeamDetailResponse(
                 team.getId(),
@@ -66,6 +69,7 @@ public record ZooTeamDetailResponse(
                                 profileImagePaths.get(member.getUser().getId())))
                         .toList(),
                 arrivals.stream().map(ArrivalInfo::from).toList(),
+                missions.stream().map(ZooMissionResponse::from).toList(),
                 team.getCreatedAt(),
                 team.getStartedAt()
         );

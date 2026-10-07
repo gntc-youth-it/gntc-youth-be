@@ -103,6 +103,21 @@ public class ZooTeamApi {
                 .then().extract();
     }
 
+    public ExtractableResponse<Response> submitMission(String authToken, Long teamId, String stopId,
+            Map<String, Object> body) {
+        return authorized(authToken)
+                .contentType("application/json")
+                .body(body)
+                .when().put("/zoo/teams/" + teamId + "/missions/" + stopId)
+                .then().extract();
+    }
+
+    public ExtractableResponse<Response> getMissionResults(String authToken) {
+        return authorized(authToken)
+                .when().get("/zoo/missions")
+                .then().extract();
+    }
+
     private RequestSpecification authorized(String authToken) {
         return given().header("Authorization", "Bearer " + authToken);
     }

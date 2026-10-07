@@ -4,33 +4,43 @@ import com.gntcyouthbe.common.exception.BadRequestException;
 import com.gntcyouthbe.common.exception.EntityNotFoundException;
 import com.gntcyouthbe.common.exception.ForbiddenException;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
+import com.gntcyouthbe.file.domain.UploadedFile;
+import com.gntcyouthbe.file.repository.UploadedFileRepository;
 import com.gntcyouthbe.user.domain.Role;
 import com.gntcyouthbe.user.domain.User;
 import com.gntcyouthbe.user.repository.UserProfileRepository;
 import com.gntcyouthbe.user.repository.UserRepository;
+import com.gntcyouthbe.zoo.domain.ZooMissionAnswer;
 import com.gntcyouthbe.zoo.domain.ZooStop;
 import com.gntcyouthbe.zoo.domain.ZooTeam;
 import com.gntcyouthbe.zoo.domain.ZooTeamArrival;
 import com.gntcyouthbe.zoo.domain.ZooTeamMember;
+import com.gntcyouthbe.zoo.domain.ZooTeamMission;
+import com.gntcyouthbe.zoo.model.request.ZooMissionSubmitRequest;
 import com.gntcyouthbe.zoo.model.request.ZooTeamCourseUpdateRequest;
 import com.gntcyouthbe.zoo.model.request.ZooTeamCreateRequest;
 import com.gntcyouthbe.zoo.model.request.ZooTeamLeaderTransferRequest;
 import com.gntcyouthbe.zoo.model.response.MyZooTeamResponse;
+import com.gntcyouthbe.zoo.model.response.ZooMissionResultResponse;
 import com.gntcyouthbe.zoo.model.response.ZooTeamDetailResponse;
 import com.gntcyouthbe.zoo.model.response.ZooTeamListResponse;
 import com.gntcyouthbe.zoo.model.response.ZooTeamSummaryResponse;
 import com.gntcyouthbe.zoo.repository.ZooTeamArrivalRepository;
 import com.gntcyouthbe.zoo.repository.ZooTeamMemberRepository;
+import com.gntcyouthbe.zoo.repository.ZooTeamMissionRepository;
 import com.gntcyouthbe.zoo.repository.ZooTeamRepository;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.gntcyouthbe.common.exception.model.ExceptionCode.FILE_NOT_FOUND;
 import static com.gntcyouthbe.common.exception.model.ExceptionCode.USER_NOT_FOUND;
+import static com.gntcyouthbe.common.exception.model.ExceptionCode.ZOO_ADMIN_ONLY;
 import static com.gntcyouthbe.common.exception.model.ExceptionCode.ZOO_ALREADY_IN_TEAM;
 import static com.gntcyouthbe.common.exception.model.ExceptionCode.ZOO_LEADER_CANNOT_LEAVE;
 import static com.gntcyouthbe.common.exception.model.ExceptionCode.ZOO_NOT_TEAM_LEADER;
@@ -47,8 +57,10 @@ public class ZooTeamService {
     private final ZooTeamRepository zooTeamRepository;
     private final ZooTeamMemberRepository zooTeamMemberRepository;
     private final ZooTeamArrivalRepository zooTeamArrivalRepository;
+    private final ZooTeamMissionRepository zooTeamMissionRepository;
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
+    private final UploadedFileRepository uploadedFileRepository;
 
     @Transactional(readOnly = true)
     public ZooTeamListResponse getTeams() {
@@ -67,16 +79,16 @@ public class ZooTeamService {
     @Transactional(readOnly = true)
     public MyZooTeamResponse getMyTeam(UserPrincipal userPrincipal) {
         ZooTeamDetailResponse team = zooTeamMemberRepository.findByUserIdWithTeam(userPrincipal.getUserId())
-                .map(member -> buildDetailResponse(member.getTeam()))
+                .map(member -> buildDetailResponse(member.getTeam(), userPrincipal))
                 .orElse(null);
         return new MyZooTeamResponse(team);
     }
 
     @Transactional(readOnly = true)
-    public ZooTeamDetailResponse getTeam(Long teamId) {
+    public ZooTeamDetailResponse getTeam(UserPrincipal userPrincipal, Long teamId) {
         ZooTeam team = zooTeamRepository.findById(teamId)
                 .orElseThrow(() -> new EntityNotFoundException(ZOO_TEAM_NOT_FOUND));
-        return buildDetailResponse(team);
+        return buildDetailResponse(team, userPrincipal);
     }
 
     @Transactional
@@ -89,7 +101,7 @@ public class ZooTeamService {
         ZooTeam team = zooTeamRepository.save(new ZooTeam(request.name(), request.course(), leader));
         addMember(team, leader);
 
-        return buildDetailResponse(team);
+        return buildDetailResponse(team, userPrincipal);
     }
 
     @Transactional
@@ -98,7 +110,7 @@ public class ZooTeamService {
         Long userId = userPrincipal.getUserId();
 
         if (zooTeamMemberRepository.existsByTeamIdAndUserId(teamId, userId)) {
-            return buildDetailResponse(team);
+            return buildDetailResponse(team, userPrincipal);
         }
         validateNotStarted(team);
         if (zooTeamMemberRepository.existsByUserId(userId)) {
@@ -106,7 +118,7 @@ public class ZooTeamService {
         }
 
         addMember(team, findUser(userId));
-        return buildDetailResponse(team);
+        return buildDetailResponse(team, userPrincipal);
     }
 
     @Transactional
@@ -132,6 +144,7 @@ public class ZooTeamService {
             validateNotStarted(team);
         }
 
+        zooTeamMissionRepository.deleteAll(zooTeamMissionRepository.findByTeamId(teamId));
         zooTeamArrivalRepository.deleteByTeamId(teamId);
         zooTeamMemberRepository.deleteByTeamId(teamId);
         zooTeamRepository.delete(team);
@@ -145,7 +158,7 @@ public class ZooTeamService {
         validateNotStarted(team);
 
         team.changeCourse(request.course());
-        return buildDetailResponse(team);
+        return buildDetailResponse(team, userPrincipal);
     }
 
     @Transactional
@@ -154,7 +167,7 @@ public class ZooTeamService {
         validateLeaderAccess(userPrincipal, team);
 
         team.start();
-        return buildDetailResponse(team);
+        return buildDetailResponse(team, userPrincipal);
     }
 
     // 코스 순서는 검사하지 않는다. 문 닫은 곳을 건너뛰고 아무 장소나 기록할 수 있다.
@@ -164,10 +177,8 @@ public class ZooTeamService {
         validateLeaderAccess(userPrincipal, team);
         validateStarted(team);
 
-        if (!zooTeamArrivalRepository.existsByTeamIdAndStop(teamId, stop)) {
-            zooTeamArrivalRepository.save(new ZooTeamArrival(team, stop));
-        }
-        return buildDetailResponse(team);
+        recordArrival(team, stop);
+        return buildDetailResponse(team, userPrincipal);
     }
 
     @Transactional
@@ -177,7 +188,30 @@ public class ZooTeamService {
         validateStarted(team);
 
         zooTeamArrivalRepository.deleteByTeamIdAndStop(teamId, stop);
-        return buildDetailResponse(team);
+        return buildDetailResponse(team, userPrincipal);
+    }
+
+    // 미션을 내면 그 장소가 도착 처리된다. 다시 내면 답과 사진을 바꾸고, 도착 시각과 처음 제출 시각은 그대로 둔다.
+    @Transactional
+    public ZooTeamDetailResponse submitMission(UserPrincipal userPrincipal, Long teamId, ZooStop stop,
+            ZooMissionSubmitRequest request) {
+        ZooTeam team = findTeamForUpdate(teamId);
+        validateLeaderAccess(userPrincipal, team);
+        validateStarted(team);
+
+        Optional<ZooTeamMission> submitted = zooTeamMissionRepository.findByTeamIdAndStop(teamId, stop);
+        UploadedFile photo = findMissionPhoto(userPrincipal, request.photoFileId(), submitted.orElse(null));
+        List<ZooMissionAnswer> answers = request.answers().stream()
+                .map(answer -> new ZooMissionAnswer(answer.questionId(), answer.answer()))
+                .toList();
+
+        submitted.ifPresentOrElse(
+                mission -> mission.resubmit(photo, answers),
+                () -> zooTeamMissionRepository.save(new ZooTeamMission(team, stop, photo, answers))
+        );
+        recordArrival(team, stop);
+
+        return buildDetailResponse(team, userPrincipal);
     }
 
     @Transactional
@@ -190,7 +224,31 @@ public class ZooTeamService {
                 .orElseThrow(() -> new BadRequestException(ZOO_NOT_TEAM_MEMBER));
         team.changeLeader(newLeader.getUser());
 
-        return buildDetailResponse(team);
+        return buildDetailResponse(team, userPrincipal);
+    }
+
+    // 운영자 권한 오류도 401로 바뀌지 않도록 @PreAuthorize가 아니라 여기서 403으로 던진다
+    @Transactional(readOnly = true)
+    public ZooMissionResultResponse getMissionResults(UserPrincipal userPrincipal) {
+        if (!isMaster(userPrincipal)) {
+            throw new ForbiddenException(ZOO_ADMIN_ONLY);
+        }
+
+        Map<Long, List<String>> memberNames = zooTeamMemberRepository.findAllWithUser().stream()
+                .collect(Collectors.groupingBy(
+                        member -> member.getTeam().getId(),
+                        Collectors.mapping(member -> member.getUser().getName(), Collectors.toList())
+                ));
+        Map<Long, List<ZooTeamMission>> missions = zooTeamMissionRepository.findAllWithPhotoAndAnswers().stream()
+                .collect(Collectors.groupingBy(mission -> mission.getTeam().getId()));
+
+        List<ZooMissionResultResponse.TeamResult> teams = zooTeamRepository.findAllWithLeader().stream()
+                .map(team -> ZooMissionResultResponse.TeamResult.of(
+                        team,
+                        memberNames.getOrDefault(team.getId(), List.of()),
+                        missions.getOrDefault(team.getId(), List.of())))
+                .toList();
+        return new ZooMissionResultResponse(teams);
     }
 
     private ZooTeam findTeamForUpdate(Long teamId) {
@@ -211,6 +269,27 @@ public class ZooTeamService {
         } catch (DataIntegrityViolationException e) {
             throw new BadRequestException(ZOO_ALREADY_IN_TEAM);
         }
+    }
+
+    // 이미 도착한 장소면 처음 도착 시각을 그대로 둔다
+    private void recordArrival(ZooTeam team, ZooStop stop) {
+        if (!zooTeamArrivalRepository.existsByTeamIdAndStop(team.getId(), stop)) {
+            zooTeamArrivalRepository.save(new ZooTeamArrival(team, stop));
+        }
+    }
+
+    // 다른 사람이 올린 파일을 미션 사진으로 붙여 그 경로를 알아내지 못하게 한다.
+    // 본인이 올린 파일, 이 미션에 이미 붙은 사진(답만 고칠 때), MASTER 요청만 허용하고 나머지는 없는 파일로 본다.
+    private UploadedFile findMissionPhoto(UserPrincipal userPrincipal, Long photoFileId, ZooTeamMission submitted) {
+        UploadedFile photo = uploadedFileRepository.findById(photoFileId)
+                .orElseThrow(() -> new EntityNotFoundException(FILE_NOT_FOUND));
+
+        boolean isOwnUpload = userPrincipal.getUserId().equals(photo.getCreatedBy());
+        boolean isCurrentPhoto = submitted != null && submitted.getPhoto().getId().equals(photoFileId);
+        if (!isOwnUpload && !isCurrentPhoto && !isMaster(userPrincipal)) {
+            throw new EntityNotFoundException(FILE_NOT_FOUND);
+        }
+        return photo;
     }
 
     // 조장 권한 오류는 403으로 보낸다. @PreAuthorize로 막으면 GlobalExceptionHandler가 401로 바꿔서 프론트가 세션 만료로 처리한다.
@@ -236,7 +315,8 @@ public class ZooTeamService {
         }
     }
 
-    private ZooTeamDetailResponse buildDetailResponse(ZooTeam team) {
+    // 조 상세는 초대 링크로 누구나 볼 수 있으므로, 미션은 조원과 MASTER에게만 채워 보낸다
+    private ZooTeamDetailResponse buildDetailResponse(ZooTeam team, UserPrincipal viewer) {
         List<ZooTeamMember> members = zooTeamMemberRepository.findByTeamIdWithUser(team.getId());
 
         List<Long> userIds = members.stream().map(member -> member.getUser().getId()).toList();
@@ -249,7 +329,12 @@ public class ZooTeamService {
 
         List<ZooTeamArrival> arrivals = zooTeamArrivalRepository.findByTeamIdOrderByIdAsc(team.getId());
 
-        return ZooTeamDetailResponse.of(team, members, profileImagePaths, arrivals);
+        boolean canSeeMissions = isMaster(viewer) || userIds.contains(viewer.getUserId());
+        List<ZooTeamMission> missions = canSeeMissions
+                ? zooTeamMissionRepository.findByTeamIdWithPhotoAndAnswers(team.getId())
+                : List.of();
+
+        return ZooTeamDetailResponse.of(team, members, profileImagePaths, arrivals, missions);
     }
 
     private Map<Long, Long> toCountMap(List<Object[]> rows) {

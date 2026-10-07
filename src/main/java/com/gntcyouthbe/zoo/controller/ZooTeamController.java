@@ -2,6 +2,7 @@ package com.gntcyouthbe.zoo.controller;
 
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.zoo.domain.ZooStop;
+import com.gntcyouthbe.zoo.model.request.ZooMissionSubmitRequest;
 import com.gntcyouthbe.zoo.model.request.ZooTeamCourseUpdateRequest;
 import com.gntcyouthbe.zoo.model.request.ZooTeamCreateRequest;
 import com.gntcyouthbe.zoo.model.request.ZooTeamLeaderTransferRequest;
@@ -47,8 +48,10 @@ public class ZooTeamController {
     // 초대 링크로 들어오므로 조원이 아니어도 조회할 수 있다
     @GetMapping("/{teamId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ZooTeamDetailResponse> getTeam(@PathVariable Long teamId) {
-        return ResponseEntity.ok(zooTeamService.getTeam(teamId));
+    public ResponseEntity<ZooTeamDetailResponse> getTeam(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable Long teamId) {
+        return ResponseEntity.ok(zooTeamService.getTeam(userPrincipal, teamId));
     }
 
     @PostMapping
@@ -119,6 +122,16 @@ public class ZooTeamController {
             @PathVariable Long teamId,
             @PathVariable ZooStop stopId) {
         return ResponseEntity.ok(zooTeamService.cancelArrival(userPrincipal, teamId, stopId));
+    }
+
+    @PutMapping("/{teamId}/missions/{stopId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ZooTeamDetailResponse> submitMission(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable Long teamId,
+            @PathVariable ZooStop stopId,
+            @Valid @RequestBody ZooMissionSubmitRequest request) {
+        return ResponseEntity.ok(zooTeamService.submitMission(userPrincipal, teamId, stopId, request));
     }
 
     @PostMapping("/{teamId}/leader")
