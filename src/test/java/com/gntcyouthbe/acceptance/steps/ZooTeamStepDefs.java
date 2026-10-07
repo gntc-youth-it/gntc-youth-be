@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.gntcyouthbe.acceptance.support.api.ZooTeamApi;
 import com.gntcyouthbe.acceptance.support.context.World;
 import com.gntcyouthbe.acceptance.support.context.ZooScenarioContext;
+import com.gntcyouthbe.zoo.repository.ZooPhotoVoteRepository;
 import com.gntcyouthbe.zoo.repository.ZooTeamArrivalRepository;
 import com.gntcyouthbe.zoo.repository.ZooTeamMemberRepository;
 import com.gntcyouthbe.zoo.repository.ZooTeamMissionRepository;
@@ -33,6 +34,7 @@ public class ZooTeamStepDefs {
     private final ZooTeamMemberRepository zooTeamMemberRepository;
     private final ZooTeamArrivalRepository zooTeamArrivalRepository;
     private final ZooTeamMissionRepository zooTeamMissionRepository;
+    private final ZooPhotoVoteRepository zooPhotoVoteRepository;
 
     private LocalDateTime firstStartedAt;
 
@@ -40,7 +42,8 @@ public class ZooTeamStepDefs {
             ZooTeamRepository zooTeamRepository,
             ZooTeamMemberRepository zooTeamMemberRepository,
             ZooTeamArrivalRepository zooTeamArrivalRepository,
-            ZooTeamMissionRepository zooTeamMissionRepository) {
+            ZooTeamMissionRepository zooTeamMissionRepository,
+            ZooPhotoVoteRepository zooPhotoVoteRepository) {
         this.world = world;
         this.zoo = zoo;
         this.zooTeamApi = zooTeamApi;
@@ -48,11 +51,13 @@ public class ZooTeamStepDefs {
         this.zooTeamMemberRepository = zooTeamMemberRepository;
         this.zooTeamArrivalRepository = zooTeamArrivalRepository;
         this.zooTeamMissionRepository = zooTeamMissionRepository;
+        this.zooPhotoVoteRepository = zooPhotoVoteRepository;
     }
 
     // 시나리오끼리 DB를 같이 쓰므로, 한 사람은 한 조에만 들어갈 수 있는 제약에 걸리지 않게 매번 비운다
     @Before("@zoo")
     public void 동물원_조_데이터를_비운다() {
+        zooPhotoVoteRepository.deleteAllInBatch();
         zooTeamMissionRepository.deleteAll(); // 답(@ElementCollection)까지 지우려면 일괄 삭제가 아니라 엔티티로 지운다
         zooTeamArrivalRepository.deleteAllInBatch();
         zooTeamMemberRepository.deleteAllInBatch();

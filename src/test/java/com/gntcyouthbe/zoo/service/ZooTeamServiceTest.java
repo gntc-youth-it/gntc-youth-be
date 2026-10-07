@@ -35,6 +35,7 @@ import com.gntcyouthbe.zoo.model.request.ZooMissionSubmitRequest;
 import com.gntcyouthbe.zoo.model.request.ZooTeamCreateRequest;
 import com.gntcyouthbe.zoo.model.request.ZooTeamLeaderTransferRequest;
 import com.gntcyouthbe.zoo.model.response.ZooTeamDetailResponse;
+import com.gntcyouthbe.zoo.repository.ZooPhotoVoteRepository;
 import com.gntcyouthbe.zoo.repository.ZooTeamArrivalRepository;
 import com.gntcyouthbe.zoo.repository.ZooTeamMemberRepository;
 import com.gntcyouthbe.zoo.repository.ZooTeamMissionRepository;
@@ -66,6 +67,9 @@ class ZooTeamServiceTest {
 
     @Mock
     private ZooTeamMissionRepository zooTeamMissionRepository;
+
+    @Mock
+    private ZooPhotoVoteRepository zooPhotoVoteRepository;
 
     @Mock
     private UserRepository userRepository;
@@ -211,7 +215,7 @@ class ZooTeamServiceTest {
     }
 
     @Test
-    @DisplayName("MASTER는 출발한 조도 미션, 도착 기록, 조원과 함께 삭제할 수 있다")
+    @DisplayName("MASTER는 출발한 조도 사진 투표, 미션, 도착 기록, 조원과 함께 삭제할 수 있다")
     void deleteTeam_startedByMaster() {
         // given
         ZooTeam team = createTeam(leader);
@@ -222,6 +226,7 @@ class ZooTeamServiceTest {
         zooTeamService.deleteTeam(principalOf(master), TEAM_ID);
 
         // then
+        then(zooPhotoVoteRepository).should().deleteByTeamId(TEAM_ID);
         then(zooTeamMissionRepository).should().deleteAll(any());
         then(zooTeamArrivalRepository).should().deleteByTeamId(TEAM_ID);
         then(zooTeamMemberRepository).should().deleteByTeamId(TEAM_ID);

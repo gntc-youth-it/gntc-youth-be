@@ -19,6 +19,9 @@ public interface ZooTeamMemberRepository extends JpaRepository<ZooTeamMember, Lo
     @Query("SELECT m FROM ZooTeamMember m JOIN FETCH m.team WHERE m.user.id = :userId")
     Optional<ZooTeamMember> findByUserIdWithTeam(@Param("userId") Long userId);
 
+    @Query("SELECT m.team.id FROM ZooTeamMember m WHERE m.user.id = :userId")
+    Optional<Long> findTeamIdByUserId(@Param("userId") Long userId);
+
     @Query("SELECT m FROM ZooTeamMember m JOIN FETCH m.user WHERE m.team.id = :teamId ORDER BY m.id")
     List<ZooTeamMember> findByTeamIdWithUser(@Param("teamId") Long teamId);
 
