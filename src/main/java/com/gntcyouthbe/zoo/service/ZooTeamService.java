@@ -25,6 +25,7 @@ import com.gntcyouthbe.zoo.model.response.ZooMissionResultResponse;
 import com.gntcyouthbe.zoo.model.response.ZooTeamDetailResponse;
 import com.gntcyouthbe.zoo.model.response.ZooTeamListResponse;
 import com.gntcyouthbe.zoo.model.response.ZooTeamSummaryResponse;
+import com.gntcyouthbe.zoo.repository.ZooPhotoVoteRepository;
 import com.gntcyouthbe.zoo.repository.ZooTeamArrivalRepository;
 import com.gntcyouthbe.zoo.repository.ZooTeamMemberRepository;
 import com.gntcyouthbe.zoo.repository.ZooTeamMissionRepository;
@@ -58,6 +59,7 @@ public class ZooTeamService {
     private final ZooTeamMemberRepository zooTeamMemberRepository;
     private final ZooTeamArrivalRepository zooTeamArrivalRepository;
     private final ZooTeamMissionRepository zooTeamMissionRepository;
+    private final ZooPhotoVoteRepository zooPhotoVoteRepository;
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
     private final UploadedFileRepository uploadedFileRepository;
@@ -144,7 +146,10 @@ public class ZooTeamService {
             validateNotStarted(team);
         }
 
-        zooTeamMissionRepository.deleteAll(zooTeamMissionRepository.findByTeamId(teamId));
+        // 미션 사진에 달린 표 → 미션(답 포함) 순서로 지운다
+        List<ZooTeamMission> missions = zooTeamMissionRepository.findByTeamId(teamId);
+        zooPhotoVoteRepository.deleteByTeamId(teamId);
+        zooTeamMissionRepository.deleteAll(missions);
         zooTeamArrivalRepository.deleteByTeamId(teamId);
         zooTeamMemberRepository.deleteByTeamId(teamId);
         zooTeamRepository.delete(team);
