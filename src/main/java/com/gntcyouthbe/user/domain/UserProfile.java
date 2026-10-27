@@ -39,14 +39,15 @@ public class UserProfile extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private User user;
 
-    @Column(nullable = false)
+    // 이름과 사진만 저장한 프로필(PATCH /user/profile)은 기수·전화번호·성별이 비어 있다.
+    // ddl-auto: update는 이미 걸린 NOT NULL을 풀지 않으므로, 운영 DB는 직접 ALTER한다.
     private Integer generation;
 
-    @Column(nullable = false, length = 20)
+    @Column(length = 20)
     private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    @Column(length = 10)
     private Gender gender;
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -58,6 +59,11 @@ public class UserProfile extends BaseEntity {
         this.generation = generation;
         this.phoneNumber = phoneNumber;
         this.gender = gender;
+    }
+
+    // 프로필 행이 없는 사람이 사진만 저장할 때 쓴다
+    public UserProfile(User user) {
+        this.user = user;
     }
 
     public void update(UserProfileRequest request) {

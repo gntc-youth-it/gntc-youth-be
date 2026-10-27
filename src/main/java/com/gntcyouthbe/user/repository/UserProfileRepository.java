@@ -14,6 +14,8 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long> 
 
     List<UserProfile> findByUserIdIn(List<Long> userIds);
 
+    boolean existsByProfileImageId(Long fileId);
+
     @Query("SELECT up FROM UserProfile up LEFT JOIN FETCH up.profileImage WHERE up.user.id IN :userIds")
     List<UserProfile> findByUserIdInWithProfileImage(@Param("userIds") List<Long> userIds);
 }

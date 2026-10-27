@@ -16,6 +16,7 @@ public enum ExceptionCode {
     USER_NO_CHURCH(1103, "성전이 지정되지 않은 사용자는 회장 또는 담당자로 임명할 수 없습니다."),
     INVALID_ROLE(1104, "유효하지 않은 권한입니다."),
     SAME_ROLE(1105, "이미 해당 권한을 가지고 있습니다."),
+    PROFILE_IMAGE_NOT_ATTACHABLE(1106, "이 사진은 프로필로 쓸 수 없어요."),
 
     // 12xx: 구역 관련 예외
     CELL_NOT_FOUND(1201, "해당 구역이 존재하지 않습니다."),

@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.util.Locale;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -43,5 +44,14 @@ public class UploadedFile extends BaseEntity {
         this.filePath = filePath;
         this.contentType = contentType;
         this.fileSize = fileSize;
+    }
+
+    // presigned URL을 요청한 사용자가 createdBy로 남는다
+    public boolean isUploadedBy(Long userId) {
+        return userId.equals(createdBy);
+    }
+
+    public boolean isImage() {
+        return contentType.toLowerCase(Locale.ROOT).startsWith("image/");
     }
 }
