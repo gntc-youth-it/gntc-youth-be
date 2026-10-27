@@ -21,6 +21,9 @@ public class AcceptanceTestSupport {
     @Autowired
     private World world;
 
+    @Autowired
+    private TestClock testClock;
+
     @Before
     public void setUp() {
         RestAssured.port = port;
@@ -29,5 +32,6 @@ public class AcceptanceTestSupport {
     @After
     public void tearDown() {
         world.clear();
+        testClock.reset();
     }
 }
