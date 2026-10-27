@@ -21,4 +21,11 @@ public class AuthApi {
     public String getAccessToken(String email) {
         return testLogin(email).jsonPath().getString("accessToken");
     }
+
+    public ExtractableResponse<Response> refresh(String refreshToken) {
+        return given()
+                .cookie("refreshToken", refreshToken)
+                .when().post("/api/auth/refresh")
+                .then().extract();
+    }
 }

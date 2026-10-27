@@ -14,17 +14,20 @@ import org.springframework.stereotype.Component;
 @ScenarioScope
 public class ThanksScenarioContext {
 
+    // 새내기유저는 data.sql에 없고, 감사로그 프로필 시나리오(ThanksProfileStepDefs)가 그때그때 만든다
     private static final Map<String, String> EMAILS = Map.of(
             "테스트유저", "test@example.com",
             "리더유저", "leader@example.com",
             "마스터유저", "master@example.com",
             "수원유저", "suwon-user@example.com",
             "안양유저", "anyang-user@example.com",
-            "담당자유저", "manager@example.com"
+            "담당자유저", "manager@example.com",
+            "새내기유저", "newcomer@example.com"
     );
 
     private final AuthApi authApi;
     private final Map<String, String> tokens = new HashMap<>();
+    private final Map<String, String> refreshTokens = new HashMap<>();
     private final Map<String, Long> userIds = new HashMap<>();
     private final Map<String, String> userNames = new HashMap<>();
     private final Map<String, Long> fileIds = new HashMap<>();
@@ -40,8 +43,15 @@ public class ThanksScenarioContext {
             ExtractableResponse<Response> response = authApi.testLogin(email);
             userIds.put(name, response.jsonPath().getLong("userId"));
             userNames.put(name, response.jsonPath().getString("name"));
+            refreshTokens.put(name, response.cookie("refreshToken"));
             return response.jsonPath().getString("accessToken");
         });
+    }
+
+    // 로그인할 때 쿠키로 받은 refresh token
+    public String refreshTokenOf(String userName) {
+        tokenOf(userName);
+        return refreshTokens.get(userName);
     }
 
     public Long userIdOf(String userName) {

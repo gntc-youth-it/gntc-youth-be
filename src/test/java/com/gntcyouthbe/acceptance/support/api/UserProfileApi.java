@@ -26,6 +26,32 @@ public class UserProfileApi {
                 .then().extract();
     }
 
+    public ExtractableResponse<Response> saveProfile(String authToken, Map<String, Object> body) {
+        return given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + authToken)
+                .body(body)
+                .when().put("/user/profile")
+                .then().extract();
+    }
+
+    public ExtractableResponse<Response> updateProfile(String authToken, Map<String, Object> body) {
+        return given()
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + authToken)
+                .body(body)
+                .when().patch("/user/profile")
+                .then().extract();
+    }
+
+    public ExtractableResponse<Response> updateProfileWithoutAuth(Map<String, Object> body) {
+        return given()
+                .contentType("application/json")
+                .body(body)
+                .when().patch("/user/profile")
+                .then().extract();
+    }
+
     public ExtractableResponse<Response> getProfile(String authToken) {
         return given()
                 .header("Authorization", "Bearer " + authToken)

@@ -79,7 +79,11 @@ public class User extends BaseEntity {
     }
 
     public void updateName(UserNameUpdateRequest request) {
-        this.name = request.getNewName();
+        updateName(request.getNewName());
+    }
+
+    public void updateName(String name) {
+        this.name = name;
     }
 
     public void updateNameAndChurch(String name, Church church) {

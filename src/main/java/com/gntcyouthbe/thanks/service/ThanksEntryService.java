@@ -91,7 +91,8 @@ public class ThanksEntryService {
         return ThanksEntryResponse.of(entry, findProfileImagePaths(List.of(userId)).get(userId), userId);
     }
 
-    // 갤러리 게시글을 지울 때처럼 붙인 파일의 기록과 S3 파일도 함께 지운다
+    // 갤러리 게시글을 지울 때처럼 붙인 파일의 기록과 S3 파일도 함께 지운다.
+    // 다만 같은 파일을 프로필 사진으로도 쓰고 있으면 남긴다. 지우면 로그인·토큰 갱신 때 프로필 사진을 읽다가 실패한다.
     @Transactional
     public void deleteEntry(UserPrincipal userPrincipal, Long entryId) {
         ThanksEntry entry = thanksEntryRepository.findById(entryId)
@@ -104,8 +105,10 @@ public class ThanksEntryService {
         UploadedFile file = entry.getFile();
         String filePath = file.getFilePath();
         thanksEntryRepository.delete(entry);
-        uploadedFileRepository.delete(file);
-        fileStorageService.deleteFiles(List.of(filePath));
+        if (!userProfileRepository.existsByProfileImageId(file.getId())) {
+            uploadedFileRepository.delete(file);
+            fileStorageService.deleteFiles(List.of(filePath));
+        }
     }
 
     // 같은 칸에 동시에 두 번 올리면 unique 제약에 걸린다. IDENTITY라 INSERT가 바로 실행되므로 여기서 잡을 수 있고, 트랜잭션은 롤백된다.
@@ -136,7 +139,7 @@ public class ThanksEntryService {
                 .flatMap(uploadedFileRepository::findById)
                 .orElseThrow(() -> new EntityNotFoundException(FILE_NOT_FOUND));
 
-        boolean isOwnUpload = userId.equals(file.getCreatedBy());
+        boolean isOwnUpload = file.isUploadedBy(userId);
         boolean isMedia = ThanksMediaType.from(file.getContentType()).isPresent();
         if (!isOwnUpload || !isMedia || thanksEntryRepository.existsByFileId(fileId)) {
             throw new BadRequestException(THANKS_FILE_NOT_ATTACHABLE);

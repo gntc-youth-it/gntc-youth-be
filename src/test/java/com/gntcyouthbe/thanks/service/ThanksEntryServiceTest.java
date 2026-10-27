@@ -321,6 +321,24 @@ class ThanksEntryServiceTest {
     }
 
     @Test
+    @DisplayName("붙인 파일을 프로필 사진으로도 쓰고 있으면 감사만 지우고 파일 기록과 S3 파일은 남긴다")
+    void deleteEntry_fileUsedAsProfileImage() {
+        // given
+        UploadedFile photo = createFile(FILE_ID, "image/webp", author.getId());
+        ThanksEntry entry = createEntry(ENTRY_ID, author, ThanksSlot.AFTERNOON, photo);
+        given(thanksEntryRepository.findById(ENTRY_ID)).willReturn(Optional.of(entry));
+        given(userProfileRepository.existsByProfileImageId(FILE_ID)).willReturn(true);
+
+        // when
+        thanksEntryService.deleteEntry(principalOf(author), ENTRY_ID);
+
+        // then
+        then(thanksEntryRepository).should().delete(entry);
+        then(uploadedFileRepository).shouldHaveNoInteractions();
+        then(fileStorageService).shouldHaveNoInteractions();
+    }
+
+    @Test
     @DisplayName("MASTER는 남이 올린 감사도 지울 수 있다")
     void deleteEntry_byMaster() {
         // given
