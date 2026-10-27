@@ -47,6 +47,13 @@ public enum ExceptionCode {
     // 41xx: 영상 관련 예외
     VIDEO_NOT_FOUND(4100, "해당 영상이 존재하지 않습니다."),
 
+    // 60xx: 범사에 감사로그 관련 예외 (프론트는 HTTP 상태가 아니라 code로 구분한다)
+    THANKS_SLOT_CLOSED(6001, "지금은 감사를 올릴 수 있는 시간이 아니에요."),
+    THANKS_ALREADY_POSTED(6002, "이 시간 감사는 이미 올렸어요."),
+    THANKS_ENTRY_NOT_FOUND(6003, "감사 기록을 찾을 수 없어요."),
+    THANKS_ENTRY_ACCESS_DENIED(6004, "내가 올린 감사만 지울 수 있어요."),
+    THANKS_FILE_NOT_ATTACHABLE(6005, "이 파일은 붙일 수 없어요."),
+
     INTERNAL_SERVER_ERROR(9999, "서버에서 알 수 없는 오류가 발생했습니다.");
 
     private final int code;
