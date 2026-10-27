@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.exception.ConstraintViolationException.ConstraintKind;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -106,14 +108,25 @@ public class ThanksEntryService {
         fileStorageService.deleteFiles(List.of(filePath));
     }
 
-    // 같은 칸에 동시에 두 번 올리면 uk_thanks_entry_user_date_slot에 걸린다.
-    // IDENTITY라 INSERT가 바로 실행되므로 여기서 잡을 수 있고, 트랜잭션은 롤백된다.
+    // 같은 칸에 동시에 두 번 올리면 unique 제약에 걸린다. IDENTITY라 INSERT가 바로 실행되므로 여기서 잡을 수 있고, 트랜잭션은 롤백된다.
+    // 같은 파일이면 두 unique 제약(날짜·칸, 파일)에 함께 걸리는데, DB가 어느 쪽을 알려 줄지는 정해져 있지 않다.
+    // 파일은 올린 사람만 붙이고 칸은 서버 시각으로 정하므로 어느 쪽이든 같은 칸의 중복 요청이라 6002로 본다.
+    // NOT NULL 같은 다른 무결성 오류는 버그이므로 그대로 던진다.
     private ThanksEntry save(ThanksEntry entry) {
         try {
             return thanksEntryRepository.saveAndFlush(entry);
         } catch (DataIntegrityViolationException e) {
-            throw new BadRequestException(THANKS_ALREADY_POSTED);
+            if (isUniqueViolation(e)) {
+                throw new BadRequestException(THANKS_ALREADY_POSTED);
+            }
+            throw e;
         }
+    }
+
+    // Spring은 unique 위반을 DuplicateKeyException이 아니라, Hibernate 예외를 감싼 DataIntegrityViolationException으로 던진다
+    private boolean isUniqueViolation(DataIntegrityViolationException e) {
+        return e.getCause() instanceof ConstraintViolationException violation
+                && violation.getKind() == ConstraintKind.UNIQUE;
     }
 
     // 다른 사람이 올린 파일을 붙여 그 경로를 알아내지 못하게 본인이 올린 파일만 받는다.

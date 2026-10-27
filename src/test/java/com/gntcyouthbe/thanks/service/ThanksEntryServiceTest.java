@@ -37,6 +37,7 @@ import com.gntcyouthbe.user.domain.User;
 import com.gntcyouthbe.user.domain.UserProfile;
 import com.gntcyouthbe.user.repository.UserProfileRepository;
 import com.gntcyouthbe.user.repository.UserRepository;
+import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -45,6 +46,8 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
+import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.exception.ConstraintViolationException.ConstraintKind;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -166,19 +169,35 @@ class ThanksEntryServiceTest {
         then(thanksEntryRepository).should(never()).saveAndFlush(any());
     }
 
-    @Test
-    @DisplayName("같은 칸에 동시에 올려 유니크 제약에 걸리면 6002로 바꾼다")
-    void createEntry_concurrentRequest_uniqueViolation() {
+    // 같은 파일로 두 번 누르면 두 제약에 함께 걸리고, DB는 그중 하나만 알려 준다
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"uk_thanks_entry_user_date_slot", "uk_thanks_entry_file_id"})
+    @DisplayName("같은 칸에 동시에 올려 unique 제약에 걸리면 어느 제약이든 6002로 바꾼다")
+    void createEntry_concurrentRequest_uniqueViolation(String constraintName) {
         // given
         givenPostable(MISSION_DATE, ThanksSlot.AFTERNOON, createFile(FILE_ID, "image/webp", author.getId()));
         given(thanksEntryRepository.saveAndFlush(any(ThanksEntry.class)))
-                .willThrow(new DataIntegrityViolationException("uk_thanks_entry_user_date_slot"));
+                .willThrow(integrityViolation(ConstraintKind.UNIQUE, constraintName, "23505"));
 
         // when & then
         assertThatThrownBy(() -> thanksEntryService.createEntry(
                 principalOf(author), new ThanksEntryCreateRequest("점심 감사", FILE_ID)))
                 .isInstanceOf(BadRequestException.class)
                 .hasFieldOrPropertyWithValue("code", THANKS_ALREADY_POSTED.getCode());
+    }
+
+    @Test
+    @DisplayName("unique 위반이 아닌 무결성 오류는 6002로 바꾸지 않고 그대로 던진다")
+    void createEntry_otherIntegrityViolation() {
+        // given
+        givenPostable(MISSION_DATE, ThanksSlot.AFTERNOON, createFile(FILE_ID, "image/webp", author.getId()));
+        DataIntegrityViolationException notNullViolation = integrityViolation(ConstraintKind.NOT_NULL, "content", "23502");
+        given(thanksEntryRepository.saveAndFlush(any(ThanksEntry.class))).willThrow(notNullViolation);
+
+        // when & then
+        assertThatThrownBy(() -> thanksEntryService.createEntry(
+                principalOf(author), new ThanksEntryCreateRequest("점심 감사", FILE_ID)))
+                .isSameAs(notNullViolation);
     }
 
     @Test
@@ -402,6 +421,13 @@ class ThanksEntryServiceTest {
         given(uploadedFileRepository.findById(file.getId())).willReturn(Optional.of(file));
         given(thanksEntryRepository.existsByFileId(file.getId())).willReturn(false);
         given(userRepository.findById(author.getId())).willReturn(Optional.of(author));
+    }
+
+    // 실제 DB에서도 Spring이 Hibernate의 ConstraintViolationException을 이렇게 감싸서 던진다(ThanksEntryRepositoryTest)
+    private DataIntegrityViolationException integrityViolation(ConstraintKind kind, String constraintName, String sqlState) {
+        SQLException sqlException = new SQLException("constraint violation", sqlState);
+        return new DataIntegrityViolationException("could not execute statement", new ConstraintViolationException(
+                "could not execute statement", sqlException, "insert into thanks_entry", kind, constraintName));
     }
 
     private void givenSaveAssignsId() {
