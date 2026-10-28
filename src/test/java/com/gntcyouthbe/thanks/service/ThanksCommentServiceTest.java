@@ -24,7 +24,6 @@ import com.gntcyouthbe.thanks.model.response.ThanksCommentResponse;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryResponse.AuthorInfo;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryResponse.CommentSummary;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryResponse.LatestCommentInfo;
-import com.gntcyouthbe.thanks.repository.ThanksCommentCount;
 import com.gntcyouthbe.thanks.repository.ThanksCommentRepository;
 import com.gntcyouthbe.thanks.repository.ThanksEntryRepository;
 import com.gntcyouthbe.user.domain.AuthProvider;
@@ -215,12 +214,9 @@ class ThanksCommentServiceTest {
     void summarize() {
         // given
         ThanksEntry otherEntry = createEntry(13L, entryAuthor);
-        given(thanksCommentRepository.countByEntryIds(List.of(ENTRY_ID, 13L, 14L))).willReturn(List.of(
-                new ThanksCommentCount(ENTRY_ID, 2L),
-                new ThanksCommentCount(13L, 1L)));
-        given(thanksCommentRepository.findLatestByEntryIds(List.of(ENTRY_ID, 13L, 14L))).willReturn(List.of(
-                createComment(2L, master, "아멘"),
-                createComment(3L, otherEntry, commenter, "축복해요")));
+        given(thanksCommentRepository.findLatestWithCountByEntryIds(List.of(ENTRY_ID, 13L, 14L))).willReturn(List.of(
+                new Object[]{createComment(2L, master, "아멘"), 2L},
+                new Object[]{createComment(3L, otherEntry, commenter, "축복해요"), 1L}));
         given(userProfileRepository.findProfileImagePaths(List.of(3L, 5L))).willReturn(Map.of(3L, "uploads/master.jpeg"));
 
         // when

@@ -10,7 +10,6 @@ import com.gntcyouthbe.thanks.model.response.ThanksCommentListResponse;
 import com.gntcyouthbe.thanks.model.response.ThanksCommentResponse;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryResponse.CommentSummary;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryResponse.LatestCommentInfo;
-import com.gntcyouthbe.thanks.repository.ThanksCommentCount;
 import com.gntcyouthbe.thanks.repository.ThanksCommentRepository;
 import com.gntcyouthbe.thanks.repository.ThanksEntryRepository;
 import com.gntcyouthbe.user.domain.Role;
@@ -77,24 +76,33 @@ public class ThanksCommentService {
     }
 
     // 목록 카드용 감사별 댓글 수와 가장 최근 댓글. 감사마다 따로 조회하지 않는다.
+    // 두 값을 한 쿼리로 가져온다. 따로 조회하면 그사이 달린 첫 댓글이 개수 없이 최근 댓글로만 잡혀서 목록이 500이 될 수 있다.
     // 댓글이 없는 감사는 결과에 넣지 않는다.
     @Transactional(readOnly = true)
     public Map<Long, CommentSummary> summarize(List<Long> entryIds) {
         if (entryIds.isEmpty()) {
             return Map.of();
         }
-        Map<Long, Long> counts = thanksCommentRepository.countByEntryIds(entryIds).stream()
-                .collect(Collectors.toMap(ThanksCommentCount::entryId, ThanksCommentCount::count));
-        List<ThanksComment> latestComments = thanksCommentRepository.findLatestByEntryIds(entryIds);
+        List<LatestComment> latestComments = thanksCommentRepository.findLatestWithCountByEntryIds(entryIds).stream()
+                .map(LatestComment::from)
+                .toList();
         Map<Long, String> profileImagePaths = userProfileRepository.findProfileImagePaths(
-                latestComments.stream().map(comment -> comment.getUser().getId()).distinct().toList());
+                latestComments.stream().map(latest -> latest.comment().getUser().getId()).distinct().toList());
 
         return latestComments.stream()
                 .collect(Collectors.toMap(
-                        comment -> comment.getEntry().getId(),
-                        comment -> new CommentSummary(
-                                counts.get(comment.getEntry().getId()),
-                                LatestCommentInfo.of(comment, profileImagePaths.get(comment.getUser().getId())))));
+                        latest -> latest.comment().getEntry().getId(),
+                        latest -> new CommentSummary(
+                                latest.count(),
+                                LatestCommentInfo.of(
+                                        latest.comment(), profileImagePaths.get(latest.comment().getUser().getId())))));
+    }
+
+    // findLatestWithCountByEntryIds의 한 줄: [가장 최근 댓글, 그 감사의 댓글 수]
+    private record LatestComment(ThanksComment comment, long count) {
+        static LatestComment from(Object[] row) {
+            return new LatestComment((ThanksComment) row[0], (Long) row[1]);
+        }
     }
 
     private ThanksCommentListResponse commentsOf(Long entryId, Long viewerId) {

@@ -14,17 +14,11 @@ public interface ThanksCommentRepository extends JpaRepository<ThanksComment, Lo
     @Query("SELECT c FROM ThanksComment c JOIN FETCH c.user WHERE c.entry.id = :entryId ORDER BY c.id")
     List<ThanksComment> findByEntryIdWithUser(@Param("entryId") Long entryId);
 
+    // 감사별로 가장 최근(id가 가장 큰) 댓글과 그 감사의 댓글 수. 결과는 [ThanksComment, Long] 배열이다.
+    // 한 쿼리라서 두 값이 같은 시점의 값이다.
     @Query("""
-            SELECT new com.gntcyouthbe.thanks.repository.ThanksCommentCount(c.entry.id, COUNT(c))
+            SELECT c, (SELECT COUNT(other) FROM ThanksComment other WHERE other.entry = c.entry)
             FROM ThanksComment c
-            WHERE c.entry.id IN :entryIds
-            GROUP BY c.entry.id
-            """)
-    List<ThanksCommentCount> countByEntryIds(@Param("entryIds") Collection<Long> entryIds);
-
-    // 감사별로 가장 최근(id가 가장 큰) 댓글 하나씩
-    @Query("""
-            SELECT c FROM ThanksComment c
             JOIN FETCH c.user
             WHERE c.id IN (
                 SELECT MAX(latest.id) FROM ThanksComment latest
@@ -32,7 +26,7 @@ public interface ThanksCommentRepository extends JpaRepository<ThanksComment, Lo
                 GROUP BY latest.entry.id
             )
             """)
-    List<ThanksComment> findLatestByEntryIds(@Param("entryIds") Collection<Long> entryIds);
+    List<Object[]> findLatestWithCountByEntryIds(@Param("entryIds") Collection<Long> entryIds);
 
     @Modifying
     @Query("DELETE FROM ThanksComment c WHERE c.entry.id = :entryId")
