@@ -76,4 +76,9 @@ public class ThanksEntry extends BaseEntity {
     public boolean isWrittenBy(Long userId) {
         return user.getId().equals(userId);
     }
+
+    // 고칠 수 있는 것은 감사제목뿐이다. 사진·날짜·칸은 그대로 둔다.
+    public void updateContent(String content) {
+        this.content = content;
+    }
 }

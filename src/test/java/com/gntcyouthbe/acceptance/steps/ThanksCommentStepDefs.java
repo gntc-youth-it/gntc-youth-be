@@ -172,6 +172,16 @@ public class ThanksCommentStepDefs {
         assertThat(latestComment.get("content")).isEqualTo(comment);
     }
 
+    // 감사 하나를 돌려주는 응답(감사제목 고치기 등)의 댓글 수와 최근 댓글
+    @그러면("응답한 감사의 댓글은 {int}개이고, 최근 댓글은 {string}가 쓴 {string}이다")
+    public void 응답한_감사의_댓글_수와_최근_댓글(int count, String userName, String comment) {
+        Map<String, Object> entry = world.response.jsonPath().getMap("$");
+        assertThat(((Number) entry.get("commentCount")).intValue()).isEqualTo(count);
+        Map<String, Object> latestComment = latestCommentOf(entry);
+        assertAuthor(authorOf(latestComment), userName);
+        assertThat(latestComment.get("content")).isEqualTo(comment);
+    }
+
     @그러면("감사 목록에서 감사 {string}의 최근 댓글 작성자 프로필 사진은 {string}이다")
     public void 감사_목록의_최근_댓글_작성자_프로필_사진(String content, String profileImageUrl) {
         assertThat(authorOf(latestCommentOf(listedEntryOf(content))).get("profileImageUrl")).isEqualTo(profileImageUrl);

@@ -1,6 +1,7 @@
 package com.gntcyouthbe.acceptance.steps;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 
 import com.gntcyouthbe.acceptance.support.api.FileApi;
 import com.gntcyouthbe.acceptance.support.api.ThanksApi;
@@ -17,7 +18,9 @@ import io.cucumber.java.ko.먼저;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -35,6 +38,9 @@ public class ThanksStepDefs {
     private final ThanksReactionRepository thanksReactionRepository;
     private final ThanksCommentRepository thanksCommentRepository;
     private final UploadedFileRepository uploadedFileRepository;
+
+    // 올릴 때 받은 createdAt. 감사제목을 고친 뒤에도 그대로인지 비교한다.
+    private final Map<Long, String> createdAtByEntryId = new HashMap<>();
 
     public ThanksStepDefs(World world, ThanksScenarioContext thanks, ThanksApi thanksApi, FileApi fileApi,
             ThanksEntryRepository thanksEntryRepository, ThanksReactionRepository thanksReactionRepository,
@@ -186,6 +192,16 @@ public class ThanksStepDefs {
         assertThat(world.response.jsonPath().getString("content")).isEqualTo(content);
     }
 
+    // 올릴 때 응답의 createdAt은 메모리에 있던 값이라 OS에 따라 나노초까지 나오고(Linux),
+    // DB(timestamp(6))에서 다시 읽은 값은 마이크로초까지다. 그래서 문자열이 아니라 1마이크로초 안쪽으로 비교한다.
+    @그러면("응답한 감사의 올린 시각은 처음 올렸을 때와 같다")
+    public void 응답한_감사의_올린_시각은_그대로다() {
+        Long entryId = world.response.jsonPath().getLong("id");
+        LocalDateTime createdAt = LocalDateTime.parse(world.response.jsonPath().getString("createdAt"));
+        LocalDateTime postedAt = LocalDateTime.parse(createdAtByEntryId.get(entryId));
+        assertThat(createdAt).isCloseTo(postedAt, within(1, ChronoUnit.MICROS));
+    }
+
     @그러면("응답한 감사의 감사제목은 {int}자이다")
     public void 응답한_감사의_감사제목_길이(int length) {
         assertThat(world.response.jsonPath().getString("content")).hasSize(length);
@@ -284,6 +300,11 @@ public class ThanksStepDefs {
         assertMedia((Map<String, Object>) listedEntryOf(content).get("media"), fileName, type);
     }
 
+    @그러면("감사 목록에서 감사 {string}의 감사제목은 {string}이다")
+    public void 목록에서_감사제목(String content, String expectedContent) {
+        assertThat(listedEntryOf(content).get("content")).isEqualTo(expectedContent);
+    }
+
     @그러면("감사 목록 항목의 키는 정확히 {string}이다")
     public void 감사_목록_항목의_키(String keys) {
         assertThat(entries()).isNotEmpty();
@@ -317,7 +338,9 @@ public class ThanksStepDefs {
     private void post(String userName, Map<String, Object> body) {
         world.response = thanksApi.createEntry(thanks.tokenOf(userName), body);
         if (world.response.statusCode() == HttpStatus.CREATED.value()) {
-            thanks.saveEntryId(world.response.jsonPath().getString("content"), world.response.jsonPath().getLong("id"));
+            Long entryId = world.response.jsonPath().getLong("id");
+            thanks.saveEntryId(world.response.jsonPath().getString("content"), entryId);
+            createdAtByEntryId.put(entryId, world.response.jsonPath().getString("createdAt"));
         }
     }
 
