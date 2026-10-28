@@ -13,7 +13,9 @@ import com.gntcyouthbe.thanks.domain.ThanksSlot;
 import com.gntcyouthbe.thanks.model.request.ThanksEntryCreateRequest;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryListResponse;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryResponse;
+import com.gntcyouthbe.thanks.model.response.ThanksEntryResponse.CommentSummary;
 import com.gntcyouthbe.thanks.model.response.ThanksReactionResponse;
+import com.gntcyouthbe.thanks.repository.ThanksCommentRepository;
 import com.gntcyouthbe.thanks.repository.ThanksEntryRepository;
 import com.gntcyouthbe.thanks.repository.ThanksReactionRepository;
 import com.gntcyouthbe.user.domain.Role;
@@ -27,7 +29,6 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.ConstraintViolationException.ConstraintKind;
@@ -52,6 +53,8 @@ public class ThanksEntryService {
     private final ThanksEntryRepository thanksEntryRepository;
     private final ThanksReactionRepository thanksReactionRepository;
     private final ThanksReactionService thanksReactionService;
+    private final ThanksCommentRepository thanksCommentRepository;
+    private final ThanksCommentService thanksCommentService;
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
     private final UploadedFileRepository uploadedFileRepository;
@@ -61,18 +64,23 @@ public class ThanksEntryService {
     @Transactional(readOnly = true)
     public ThanksEntryListResponse getEntries(UserPrincipal userPrincipal, LocalDate date) {
         List<ThanksEntry> entries = thanksEntryRepository.findByMissionDateWithUserAndFile(date);
+        if (entries.isEmpty()) {
+            return new ThanksEntryListResponse(date, List.of());
+        }
 
         List<Long> authorIds = entries.stream().map(entry -> entry.getUser().getId()).distinct().toList();
-        Map<Long, String> profileImagePaths = findProfileImagePaths(authorIds);
+        Map<Long, String> profileImagePaths = userProfileRepository.findProfileImagePaths(authorIds);
         List<Long> entryIds = entries.stream().map(ThanksEntry::getId).toList();
         Map<Long, List<ThanksReactionResponse>> reactions = thanksReactionService.summarize(entryIds, userPrincipal.getUserId());
+        Map<Long, CommentSummary> comments = thanksCommentService.summarize(entryIds);
 
         List<ThanksEntryResponse> responses = entries.stream()
                 .map(entry -> ThanksEntryResponse.of(
                         entry,
                         profileImagePaths.get(entry.getUser().getId()),
                         userPrincipal.getUserId(),
-                        reactions.getOrDefault(entry.getId(), List.of())))
+                        reactions.getOrDefault(entry.getId(), List.of()),
+                        comments.getOrDefault(entry.getId(), CommentSummary.EMPTY)))
                 .toList();
         return new ThanksEntryListResponse(date, responses);
     }
@@ -95,11 +103,12 @@ public class ThanksEntryService {
                 .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
 
         ThanksEntry entry = save(new ThanksEntry(user, missionDate, slot, request.content(), file));
-        // 방금 만든 감사라 반응이 없다
-        return ThanksEntryResponse.of(entry, findProfileImagePaths(List.of(userId)).get(userId), userId, List.of());
+        // 방금 만든 감사라 반응과 댓글이 없다
+        String profileImagePath = userProfileRepository.findProfileImagePaths(List.of(userId)).get(userId);
+        return ThanksEntryResponse.of(entry, profileImagePath, userId, List.of(), CommentSummary.EMPTY);
     }
 
-    // 감사 행을 잠근 뒤 반응 → 감사 순서로 지운다. 잠가 두면 지우는 도중에 들어온 반응은 지운 뒤에 처리되어(6003) 짝 잃은 반응이 남지 않는다.
+    // 감사 행을 잠근 뒤 반응·댓글 → 감사 순서로 지운다. 잠가 두면 지우는 도중에 들어온 반응은 지운 뒤에 처리되어(6003) 짝 잃은 반응이 남지 않는다.
     // 갤러리 게시글을 지울 때처럼 붙인 파일의 기록과 S3 파일도 함께 지운다.
     // 다만 같은 파일을 프로필 사진으로도 쓰고 있으면 남긴다. 지우면 로그인·토큰 갱신 때 프로필 사진을 읽다가 실패한다.
     @Transactional
@@ -114,6 +123,7 @@ public class ThanksEntryService {
         UploadedFile file = entry.getFile();
         String filePath = file.getFilePath();
         thanksReactionRepository.deleteByEntryId(entryId);
+        thanksCommentRepository.deleteByEntryId(entryId);
         thanksEntryRepository.delete(entry);
         if (!userProfileRepository.existsByProfileImageId(file.getId())) {
             uploadedFileRepository.delete(file);
@@ -155,17 +165,5 @@ public class ThanksEntryService {
             throw new BadRequestException(THANKS_FILE_NOT_ATTACHABLE);
         }
         return file;
-    }
-
-    private Map<Long, String> findProfileImagePaths(List<Long> userIds) {
-        if (userIds.isEmpty()) {
-            return Map.of();
-        }
-        return userProfileRepository.findByUserIdInWithProfileImage(userIds).stream()
-                .filter(profile -> profile.getProfileImage() != null)
-                .collect(Collectors.toMap(
-                        profile -> profile.getUser().getId(),
-                        profile -> profile.getProfileImage().getFilePath()
-                ));
     }
 }

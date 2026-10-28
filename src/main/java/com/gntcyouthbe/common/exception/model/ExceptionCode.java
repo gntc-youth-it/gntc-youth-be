@@ -54,6 +54,8 @@ public enum ExceptionCode {
     THANKS_ENTRY_NOT_FOUND(6003, "감사 기록을 찾을 수 없어요."),
     THANKS_ENTRY_ACCESS_DENIED(6004, "내가 올린 감사만 지울 수 있어요."),
     THANKS_FILE_NOT_ATTACHABLE(6005, "이 파일은 붙일 수 없어요."),
+    THANKS_COMMENT_NOT_FOUND(6006, "댓글을 찾을 수 없어요."),
+    THANKS_COMMENT_ACCESS_DENIED(6007, "내가 쓴 댓글만 지울 수 있어요."),
 
     INTERNAL_SERVER_ERROR(9999, "서버에서 알 수 없는 오류가 발생했습니다.");
 

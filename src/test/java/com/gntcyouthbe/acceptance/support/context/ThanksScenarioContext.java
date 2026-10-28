@@ -32,6 +32,7 @@ public class ThanksScenarioContext {
     private final Map<String, String> userNames = new HashMap<>();
     private final Map<String, Long> fileIds = new HashMap<>();
     private final Map<String, Long> entryIds = new HashMap<>();
+    private final Map<String, Long> commentIds = new HashMap<>();
 
     public ThanksScenarioContext(AuthApi authApi) {
         this.authApi = authApi;
@@ -76,6 +77,15 @@ public class ThanksScenarioContext {
     // 감사는 시나리오 안에서 감사제목으로 구분한다
     public void saveEntryId(String content, Long entryId) {
         entryIds.put(content, entryId);
+    }
+
+    // 댓글도 시나리오 안에서 내용으로 구분한다
+    public void saveCommentId(String content, Long commentId) {
+        commentIds.put(content, commentId);
+    }
+
+    public Long commentIdOf(String content) {
+        return Objects.requireNonNull(commentIds.get(content), "시나리오에서 달지 않은 댓글: " + content);
     }
 
     public Long entryIdOf(String content) {

@@ -83,6 +83,46 @@ public class ThanksApi {
                 .then().extract();
     }
 
+    public ExtractableResponse<Response> getComments(String authToken, Long entryId) {
+        return authorized(authToken)
+                .when().get("/thanks/entries/" + entryId + "/comments")
+                .then().extract();
+    }
+
+    public ExtractableResponse<Response> getCommentsWithoutAuth(Long entryId) {
+        return given()
+                .when().get("/thanks/entries/" + entryId + "/comments")
+                .then().extract();
+    }
+
+    public ExtractableResponse<Response> addComment(String authToken, Long entryId, Map<String, Object> body) {
+        return authorized(authToken)
+                .contentType("application/json")
+                .body(body)
+                .when().post("/thanks/entries/" + entryId + "/comments")
+                .then().extract();
+    }
+
+    public ExtractableResponse<Response> addCommentWithoutAuth(Long entryId, Map<String, Object> body) {
+        return given()
+                .contentType("application/json")
+                .body(body)
+                .when().post("/thanks/entries/" + entryId + "/comments")
+                .then().extract();
+    }
+
+    public ExtractableResponse<Response> deleteComment(String authToken, Long commentId) {
+        return authorized(authToken)
+                .when().delete("/thanks/comments/" + commentId)
+                .then().extract();
+    }
+
+    public ExtractableResponse<Response> deleteCommentWithoutAuth(Long commentId) {
+        return given()
+                .when().delete("/thanks/comments/" + commentId)
+                .then().extract();
+    }
+
     private RequestSpecification authorized(String authToken) {
         return given().header("Authorization", "Bearer " + authToken);
     }
