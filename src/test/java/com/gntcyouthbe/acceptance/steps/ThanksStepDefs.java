@@ -8,6 +8,7 @@ import com.gntcyouthbe.acceptance.support.context.ThanksScenarioContext;
 import com.gntcyouthbe.acceptance.support.context.World;
 import com.gntcyouthbe.file.repository.UploadedFileRepository;
 import com.gntcyouthbe.thanks.repository.ThanksEntryRepository;
+import com.gntcyouthbe.thanks.repository.ThanksReactionRepository;
 import io.cucumber.java.Before;
 import io.cucumber.java.ko.그러면;
 import io.cucumber.java.ko.만일;
@@ -30,21 +31,25 @@ public class ThanksStepDefs {
     private final ThanksApi thanksApi;
     private final FileApi fileApi;
     private final ThanksEntryRepository thanksEntryRepository;
+    private final ThanksReactionRepository thanksReactionRepository;
     private final UploadedFileRepository uploadedFileRepository;
 
     public ThanksStepDefs(World world, ThanksScenarioContext thanks, ThanksApi thanksApi, FileApi fileApi,
-            ThanksEntryRepository thanksEntryRepository, UploadedFileRepository uploadedFileRepository) {
+            ThanksEntryRepository thanksEntryRepository, ThanksReactionRepository thanksReactionRepository,
+            UploadedFileRepository uploadedFileRepository) {
         this.world = world;
         this.thanks = thanks;
         this.thanksApi = thanksApi;
         this.fileApi = fileApi;
         this.thanksEntryRepository = thanksEntryRepository;
+        this.thanksReactionRepository = thanksReactionRepository;
         this.uploadedFileRepository = uploadedFileRepository;
     }
 
     // 시나리오끼리 DB를 같이 쓰므로, 날짜·칸마다 하나만 올릴 수 있는 제약에 걸리지 않게 매번 비운다
     @Before("@thanks")
     public void 감사_기록을_비운다() {
+        thanksReactionRepository.deleteAllInBatch();
         thanksEntryRepository.deleteAllInBatch();
     }
 

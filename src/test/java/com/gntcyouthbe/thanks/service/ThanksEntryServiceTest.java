@@ -12,6 +12,7 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 
 import com.gntcyouthbe.common.exception.BadRequestException;
@@ -21,6 +22,7 @@ import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.file.domain.UploadedFile;
 import com.gntcyouthbe.file.repository.UploadedFileRepository;
 import com.gntcyouthbe.file.service.FileStorageService;
+import com.gntcyouthbe.thanks.domain.ThanksEmoji;
 import com.gntcyouthbe.thanks.domain.ThanksEntry;
 import com.gntcyouthbe.thanks.domain.ThanksMediaType;
 import com.gntcyouthbe.thanks.domain.ThanksSlot;
@@ -29,7 +31,9 @@ import com.gntcyouthbe.thanks.model.response.ThanksEntryListResponse;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryResponse;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryResponse.AuthorInfo;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryResponse.MediaInfo;
+import com.gntcyouthbe.thanks.model.response.ThanksReactionResponse;
 import com.gntcyouthbe.thanks.repository.ThanksEntryRepository;
+import com.gntcyouthbe.thanks.repository.ThanksReactionRepository;
 import com.gntcyouthbe.user.domain.AuthProvider;
 import com.gntcyouthbe.user.domain.Gender;
 import com.gntcyouthbe.user.domain.Role;
@@ -45,6 +49,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.ConstraintViolationException.ConstraintKind;
@@ -54,6 +59,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -69,6 +75,12 @@ class ThanksEntryServiceTest {
 
     @Mock
     private ThanksEntryRepository thanksEntryRepository;
+
+    @Mock
+    private ThanksReactionRepository thanksReactionRepository;
+
+    @Mock
+    private ThanksReactionService thanksReactionService;
 
     @Mock
     private UserRepository userRepository;
@@ -304,18 +316,20 @@ class ThanksEntryServiceTest {
     // --- 삭제 ---
 
     @Test
-    @DisplayName("올린 사람이 지우면 감사와 함께 파일 기록과 S3 파일도 지운다")
+    @DisplayName("올린 사람이 지우면 반응을 먼저 지우고, 감사와 함께 파일 기록과 S3 파일도 지운다")
     void deleteEntry_byAuthor() {
         // given
         UploadedFile photo = createFile(FILE_ID, "image/webp", author.getId());
         ThanksEntry entry = createEntry(ENTRY_ID, author, ThanksSlot.AFTERNOON, photo);
-        given(thanksEntryRepository.findById(ENTRY_ID)).willReturn(Optional.of(entry));
+        given(thanksEntryRepository.findByIdForUpdate(ENTRY_ID)).willReturn(Optional.of(entry));
 
         // when
         thanksEntryService.deleteEntry(principalOf(author), ENTRY_ID);
 
         // then
-        then(thanksEntryRepository).should().delete(entry);
+        InOrder inOrder = inOrder(thanksReactionRepository, thanksEntryRepository);
+        inOrder.verify(thanksReactionRepository).deleteByEntryId(ENTRY_ID);
+        inOrder.verify(thanksEntryRepository).delete(entry);
         then(uploadedFileRepository).should().delete(photo);
         then(fileStorageService).should().deleteFiles(List.of(photo.getFilePath()));
     }
@@ -326,7 +340,7 @@ class ThanksEntryServiceTest {
         // given
         UploadedFile photo = createFile(FILE_ID, "image/webp", author.getId());
         ThanksEntry entry = createEntry(ENTRY_ID, author, ThanksSlot.AFTERNOON, photo);
-        given(thanksEntryRepository.findById(ENTRY_ID)).willReturn(Optional.of(entry));
+        given(thanksEntryRepository.findByIdForUpdate(ENTRY_ID)).willReturn(Optional.of(entry));
         given(userProfileRepository.existsByProfileImageId(FILE_ID)).willReturn(true);
 
         // when
@@ -344,7 +358,7 @@ class ThanksEntryServiceTest {
         // given
         UploadedFile photo = createFile(FILE_ID, "image/webp", author.getId());
         ThanksEntry entry = createEntry(ENTRY_ID, author, ThanksSlot.AFTERNOON, photo);
-        given(thanksEntryRepository.findById(ENTRY_ID)).willReturn(Optional.of(entry));
+        given(thanksEntryRepository.findByIdForUpdate(ENTRY_ID)).willReturn(Optional.of(entry));
 
         // when
         thanksEntryService.deleteEntry(principalOf(master), ENTRY_ID);
@@ -361,7 +375,7 @@ class ThanksEntryServiceTest {
         // given
         ThanksEntry entry = createEntry(ENTRY_ID, author, ThanksSlot.AFTERNOON,
                 createFile(FILE_ID, "image/webp", author.getId()));
-        given(thanksEntryRepository.findById(ENTRY_ID)).willReturn(Optional.of(entry));
+        given(thanksEntryRepository.findByIdForUpdate(ENTRY_ID)).willReturn(Optional.of(entry));
 
         // when & then
         assertThatThrownBy(() -> thanksEntryService.deleteEntry(principalOf(other), ENTRY_ID))
@@ -369,6 +383,7 @@ class ThanksEntryServiceTest {
                 .hasFieldOrPropertyWithValue("code", THANKS_ENTRY_ACCESS_DENIED.getCode());
 
         then(thanksEntryRepository).should(never()).delete(any());
+        then(thanksReactionRepository).shouldHaveNoInteractions();
         then(uploadedFileRepository).shouldHaveNoInteractions();
         then(fileStorageService).shouldHaveNoInteractions();
     }
@@ -377,7 +392,7 @@ class ThanksEntryServiceTest {
     @DisplayName("없는 감사는 6003으로 거절한다")
     void deleteEntry_notFound() {
         // given
-        given(thanksEntryRepository.findById(99L)).willReturn(Optional.empty());
+        given(thanksEntryRepository.findByIdForUpdate(99L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> thanksEntryService.deleteEntry(principalOf(author), 99L))
@@ -415,6 +430,27 @@ class ThanksEntryServiceTest {
                         tuple(1L, false, "uploads/profile.jpeg"),
                         tuple(2L, true, null),
                         tuple(3L, false, "uploads/profile.jpeg"));
+    }
+
+    @Test
+    @DisplayName("목록의 반응은 감사별 반응 요약으로 채우고, 반응이 없는 감사는 빈 배열이다")
+    void getEntries_fillsReactions() {
+        // given
+        ThanksEntry reacted = createEntry(1L, author, ThanksSlot.MORNING, createFile(31L, "image/webp", 1L));
+        ThanksEntry notReacted = createEntry(2L, other, ThanksSlot.MORNING, createFile(32L, "image/webp", 5L));
+        List<ThanksReactionResponse> reactions = List.of(
+                new ThanksReactionResponse(ThanksEmoji.PRAY, 2, true),
+                new ThanksReactionResponse(ThanksEmoji.HEART, 1, false));
+        given(thanksEntryRepository.findByMissionDateWithUserAndFile(MISSION_DATE)).willReturn(List.of(reacted, notReacted));
+        given(thanksReactionService.summarize(List.of(1L, 2L), 5L)).willReturn(Map.of(1L, reactions));
+
+        // when
+        ThanksEntryListResponse response = thanksEntryService.getEntries(principalOf(other), MISSION_DATE);
+
+        // then
+        assertThat(response.entries())
+                .extracting(ThanksEntryResponse::id, ThanksEntryResponse::reactions)
+                .containsExactly(tuple(1L, reactions), tuple(2L, List.of()));
     }
 
     @Test
@@ -463,8 +499,8 @@ class ThanksEntryServiceTest {
     }
 
     private ThanksEntryService serviceWith(Clock clock) {
-        return new ThanksEntryService(thanksEntryRepository, userRepository, userProfileRepository,
-                uploadedFileRepository, fileStorageService, clock);
+        return new ThanksEntryService(thanksEntryRepository, thanksReactionRepository, thanksReactionService,
+                userRepository, userProfileRepository, uploadedFileRepository, fileStorageService, clock);
     }
 
     private ThanksEntry createEntry(Long id, User user, ThanksSlot slot, UploadedFile file) {

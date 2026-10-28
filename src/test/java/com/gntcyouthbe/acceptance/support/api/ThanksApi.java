@@ -59,6 +59,30 @@ public class ThanksApi {
                 .then().extract();
     }
 
+    public ExtractableResponse<Response> addReaction(String authToken, Long entryId, String emoji) {
+        return authorized(authToken)
+                .when().put("/thanks/entries/" + entryId + "/reactions/" + emoji)
+                .then().extract();
+    }
+
+    public ExtractableResponse<Response> addReactionWithoutAuth(Long entryId, String emoji) {
+        return given()
+                .when().put("/thanks/entries/" + entryId + "/reactions/" + emoji)
+                .then().extract();
+    }
+
+    public ExtractableResponse<Response> removeReaction(String authToken, Long entryId, String emoji) {
+        return authorized(authToken)
+                .when().delete("/thanks/entries/" + entryId + "/reactions/" + emoji)
+                .then().extract();
+    }
+
+    public ExtractableResponse<Response> removeReactionWithoutAuth(Long entryId, String emoji) {
+        return given()
+                .when().delete("/thanks/entries/" + entryId + "/reactions/" + emoji)
+                .then().extract();
+    }
+
     private RequestSpecification authorized(String authToken) {
         return given().header("Authorization", "Bearer " + authToken);
     }

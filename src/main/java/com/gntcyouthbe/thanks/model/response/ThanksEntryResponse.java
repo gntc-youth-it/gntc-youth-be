@@ -17,8 +17,8 @@ public record ThanksEntryResponse(
         String content,
         MediaInfo media,
         AuthorInfo author,
-        // 반응은 3단계, 댓글은 4단계에서 채운다. FE 타입이 이 모양이라 필드는 지금부터 빈 값으로 내려 준다.
-        List<Object> reactions,
+        List<ThanksReactionResponse> reactions,
+        // 댓글은 4단계에서 채운다. FE 타입이 이 모양이라 필드는 지금부터 빈 값으로 내려 준다.
         long commentCount,
         Object latestComment,
         boolean isMine,
@@ -52,7 +52,8 @@ public record ThanksEntryResponse(
         }
     }
 
-    public static ThanksEntryResponse of(ThanksEntry entry, String authorProfileImageUrl, Long viewerId) {
+    public static ThanksEntryResponse of(ThanksEntry entry, String authorProfileImageUrl, Long viewerId,
+            List<ThanksReactionResponse> reactions) {
         return new ThanksEntryResponse(
                 entry.getId(),
                 entry.getMissionDate(),
@@ -60,7 +61,7 @@ public record ThanksEntryResponse(
                 entry.getContent(),
                 MediaInfo.from(entry.getFile()),
                 AuthorInfo.of(entry.getUser(), authorProfileImageUrl),
-                List.of(),
+                reactions,
                 0,
                 null,
                 entry.isWrittenBy(viewerId),

@@ -13,7 +13,9 @@ import com.gntcyouthbe.thanks.domain.ThanksSlot;
 import com.gntcyouthbe.thanks.model.request.ThanksEntryCreateRequest;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryListResponse;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryResponse;
+import com.gntcyouthbe.thanks.model.response.ThanksReactionResponse;
 import com.gntcyouthbe.thanks.repository.ThanksEntryRepository;
+import com.gntcyouthbe.thanks.repository.ThanksReactionRepository;
 import com.gntcyouthbe.user.domain.Role;
 import com.gntcyouthbe.user.domain.User;
 import com.gntcyouthbe.user.repository.UserProfileRepository;
@@ -48,6 +50,8 @@ public class ThanksEntryService {
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     private final ThanksEntryRepository thanksEntryRepository;
+    private final ThanksReactionRepository thanksReactionRepository;
+    private final ThanksReactionService thanksReactionService;
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
     private final UploadedFileRepository uploadedFileRepository;
@@ -60,12 +64,15 @@ public class ThanksEntryService {
 
         List<Long> authorIds = entries.stream().map(entry -> entry.getUser().getId()).distinct().toList();
         Map<Long, String> profileImagePaths = findProfileImagePaths(authorIds);
+        List<Long> entryIds = entries.stream().map(ThanksEntry::getId).toList();
+        Map<Long, List<ThanksReactionResponse>> reactions = thanksReactionService.summarize(entryIds, userPrincipal.getUserId());
 
         List<ThanksEntryResponse> responses = entries.stream()
                 .map(entry -> ThanksEntryResponse.of(
                         entry,
                         profileImagePaths.get(entry.getUser().getId()),
-                        userPrincipal.getUserId()))
+                        userPrincipal.getUserId(),
+                        reactions.getOrDefault(entry.getId(), List.of())))
                 .toList();
         return new ThanksEntryListResponse(date, responses);
     }
@@ -88,14 +95,16 @@ public class ThanksEntryService {
                 .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
 
         ThanksEntry entry = save(new ThanksEntry(user, missionDate, slot, request.content(), file));
-        return ThanksEntryResponse.of(entry, findProfileImagePaths(List.of(userId)).get(userId), userId);
+        // 방금 만든 감사라 반응이 없다
+        return ThanksEntryResponse.of(entry, findProfileImagePaths(List.of(userId)).get(userId), userId, List.of());
     }
 
+    // 감사 행을 잠근 뒤 반응 → 감사 순서로 지운다. 잠가 두면 지우는 도중에 들어온 반응은 지운 뒤에 처리되어(6003) 짝 잃은 반응이 남지 않는다.
     // 갤러리 게시글을 지울 때처럼 붙인 파일의 기록과 S3 파일도 함께 지운다.
     // 다만 같은 파일을 프로필 사진으로도 쓰고 있으면 남긴다. 지우면 로그인·토큰 갱신 때 프로필 사진을 읽다가 실패한다.
     @Transactional
     public void deleteEntry(UserPrincipal userPrincipal, Long entryId) {
-        ThanksEntry entry = thanksEntryRepository.findById(entryId)
+        ThanksEntry entry = thanksEntryRepository.findByIdForUpdate(entryId)
                 .orElseThrow(() -> new EntityNotFoundException(THANKS_ENTRY_NOT_FOUND));
         // 권한 오류는 401로 바뀌지 않도록 @PreAuthorize가 아니라 여기서 403으로 던진다
         if (!entry.isWrittenBy(userPrincipal.getUserId()) && userPrincipal.getRole() != Role.MASTER) {
@@ -104,6 +113,7 @@ public class ThanksEntryService {
 
         UploadedFile file = entry.getFile();
         String filePath = file.getFilePath();
+        thanksReactionRepository.deleteByEntryId(entryId);
         thanksEntryRepository.delete(entry);
         if (!userProfileRepository.existsByProfileImageId(file.getId())) {
             uploadedFileRepository.delete(file);
