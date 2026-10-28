@@ -1,6 +1,7 @@
 package com.gntcyouthbe.acceptance.steps;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 
 import com.gntcyouthbe.acceptance.support.api.FileApi;
 import com.gntcyouthbe.acceptance.support.api.ThanksApi;
@@ -17,6 +18,7 @@ import io.cucumber.java.ko.먼저;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -190,10 +192,14 @@ public class ThanksStepDefs {
         assertThat(world.response.jsonPath().getString("content")).isEqualTo(content);
     }
 
+    // 올릴 때 응답의 createdAt은 메모리에 있던 값이라 OS에 따라 나노초까지 나오고(Linux),
+    // DB(timestamp(6))에서 다시 읽은 값은 마이크로초까지다. 그래서 문자열이 아니라 1마이크로초 안쪽으로 비교한다.
     @그러면("응답한 감사의 올린 시각은 처음 올렸을 때와 같다")
     public void 응답한_감사의_올린_시각은_그대로다() {
         Long entryId = world.response.jsonPath().getLong("id");
-        assertThat(world.response.jsonPath().getString("createdAt")).isEqualTo(createdAtByEntryId.get(entryId));
+        LocalDateTime createdAt = LocalDateTime.parse(world.response.jsonPath().getString("createdAt"));
+        LocalDateTime postedAt = LocalDateTime.parse(createdAtByEntryId.get(entryId));
+        assertThat(createdAt).isCloseTo(postedAt, within(1, ChronoUnit.MICROS));
     }
 
     @그러면("응답한 감사의 감사제목은 {int}자이다")
