@@ -30,15 +30,16 @@ import com.gntcyouthbe.thanks.model.request.ThanksEntryCreateRequest;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryListResponse;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryResponse;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryResponse.AuthorInfo;
+import com.gntcyouthbe.thanks.model.response.ThanksEntryResponse.CommentSummary;
+import com.gntcyouthbe.thanks.model.response.ThanksEntryResponse.LatestCommentInfo;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryResponse.MediaInfo;
 import com.gntcyouthbe.thanks.model.response.ThanksReactionResponse;
+import com.gntcyouthbe.thanks.repository.ThanksCommentRepository;
 import com.gntcyouthbe.thanks.repository.ThanksEntryRepository;
 import com.gntcyouthbe.thanks.repository.ThanksReactionRepository;
 import com.gntcyouthbe.user.domain.AuthProvider;
-import com.gntcyouthbe.user.domain.Gender;
 import com.gntcyouthbe.user.domain.Role;
 import com.gntcyouthbe.user.domain.User;
-import com.gntcyouthbe.user.domain.UserProfile;
 import com.gntcyouthbe.user.repository.UserProfileRepository;
 import com.gntcyouthbe.user.repository.UserRepository;
 import java.sql.SQLException;
@@ -83,6 +84,12 @@ class ThanksEntryServiceTest {
     private ThanksReactionService thanksReactionService;
 
     @Mock
+    private ThanksCommentRepository thanksCommentRepository;
+
+    @Mock
+    private ThanksCommentService thanksCommentService;
+
+    @Mock
     private UserRepository userRepository;
 
     @Mock
@@ -114,8 +121,8 @@ class ThanksEntryServiceTest {
         UploadedFile photo = createFile(FILE_ID, "image/webp", author.getId());
         givenPostable(MISSION_DATE, ThanksSlot.AFTERNOON, photo);
         givenSaveAssignsId();
-        given(userProfileRepository.findByUserIdInWithProfileImage(List.of(1L)))
-                .willReturn(List.of(createProfile(author, "uploads/profile.jpeg")));
+        given(userProfileRepository.findProfileImagePaths(List.of(1L)))
+                .willReturn(Map.of(1L, "uploads/profile.jpeg"));
 
         // when
         ThanksEntryResponse response = thanksEntryService.createEntry(
@@ -316,7 +323,7 @@ class ThanksEntryServiceTest {
     // --- 삭제 ---
 
     @Test
-    @DisplayName("올린 사람이 지우면 반응을 먼저 지우고, 감사와 함께 파일 기록과 S3 파일도 지운다")
+    @DisplayName("올린 사람이 지우면 반응과 댓글을 먼저 지우고, 감사와 함께 파일 기록과 S3 파일도 지운다")
     void deleteEntry_byAuthor() {
         // given
         UploadedFile photo = createFile(FILE_ID, "image/webp", author.getId());
@@ -327,8 +334,9 @@ class ThanksEntryServiceTest {
         thanksEntryService.deleteEntry(principalOf(author), ENTRY_ID);
 
         // then
-        InOrder inOrder = inOrder(thanksReactionRepository, thanksEntryRepository);
+        InOrder inOrder = inOrder(thanksReactionRepository, thanksCommentRepository, thanksEntryRepository);
         inOrder.verify(thanksReactionRepository).deleteByEntryId(ENTRY_ID);
+        inOrder.verify(thanksCommentRepository).deleteByEntryId(ENTRY_ID);
         inOrder.verify(thanksEntryRepository).delete(entry);
         then(uploadedFileRepository).should().delete(photo);
         then(fileStorageService).should().deleteFiles(List.of(photo.getFilePath()));
@@ -384,6 +392,7 @@ class ThanksEntryServiceTest {
 
         then(thanksEntryRepository).should(never()).delete(any());
         then(thanksReactionRepository).shouldHaveNoInteractions();
+        then(thanksCommentRepository).shouldHaveNoInteractions();
         then(uploadedFileRepository).shouldHaveNoInteractions();
         then(fileStorageService).shouldHaveNoInteractions();
     }
@@ -413,8 +422,8 @@ class ThanksEntryServiceTest {
         ThanksEntry authorAfternoon = createEntry(3L, author, ThanksSlot.AFTERNOON, createFile(33L, "image/webp", 1L));
         given(thanksEntryRepository.findByMissionDateWithUserAndFile(MISSION_DATE))
                 .willReturn(List.of(authorMorning, otherMorning, authorAfternoon));
-        given(userProfileRepository.findByUserIdInWithProfileImage(List.of(1L, 5L)))
-                .willReturn(List.of(createProfile(author, "uploads/profile.jpeg")));
+        given(userProfileRepository.findProfileImagePaths(List.of(1L, 5L)))
+                .willReturn(Map.of(1L, "uploads/profile.jpeg"));
 
         // when
         ThanksEntryListResponse response = thanksEntryService.getEntries(principalOf(other), MISSION_DATE);
@@ -454,7 +463,26 @@ class ThanksEntryServiceTest {
     }
 
     @Test
-    @DisplayName("아무도 올리지 않은 날짜는 빈 목록이고 프로필을 조회하지 않는다")
+    @DisplayName("목록의 댓글 수와 최근 댓글은 감사별 댓글 요약으로 채우고, 댓글이 없는 감사는 0과 null이다")
+    void getEntries_fillsComments() {
+        // given
+        ThanksEntry commented = createEntry(1L, author, ThanksSlot.MORNING, createFile(31L, "image/webp", 1L));
+        ThanksEntry notCommented = createEntry(2L, other, ThanksSlot.MORNING, createFile(32L, "image/webp", 5L));
+        LatestCommentInfo latest = new LatestCommentInfo(new AuthorInfo(5L, "안양유저", null), "기도할게요");
+        given(thanksEntryRepository.findByMissionDateWithUserAndFile(MISSION_DATE)).willReturn(List.of(commented, notCommented));
+        given(thanksCommentService.summarize(List.of(1L, 2L))).willReturn(Map.of(1L, new CommentSummary(2, latest)));
+
+        // when
+        ThanksEntryListResponse response = thanksEntryService.getEntries(principalOf(other), MISSION_DATE);
+
+        // then
+        assertThat(response.entries())
+                .extracting(ThanksEntryResponse::id, ThanksEntryResponse::commentCount, ThanksEntryResponse::latestComment)
+                .containsExactly(tuple(1L, 2L, latest), tuple(2L, 0L, null));
+    }
+
+    @Test
+    @DisplayName("아무도 올리지 않은 날짜는 빈 목록이고 프로필·반응·댓글을 조회하지 않는다")
     void getEntries_empty() {
         // given
         given(thanksEntryRepository.findByMissionDateWithUserAndFile(MISSION_DATE)).willReturn(List.of());
@@ -466,6 +494,8 @@ class ThanksEntryServiceTest {
         assertThat(response.date()).isEqualTo(MISSION_DATE);
         assertThat(response.entries()).isEmpty();
         then(userProfileRepository).shouldHaveNoInteractions();
+        then(thanksReactionService).shouldHaveNoInteractions();
+        then(thanksCommentService).shouldHaveNoInteractions();
     }
 
     // 지금 칸이 비어 있고, 작성자가 올린 사진이나 영상이라 저장까지 가는 경우
@@ -500,6 +530,7 @@ class ThanksEntryServiceTest {
 
     private ThanksEntryService serviceWith(Clock clock) {
         return new ThanksEntryService(thanksEntryRepository, thanksReactionRepository, thanksReactionService,
+                thanksCommentRepository, thanksCommentService,
                 userRepository, userProfileRepository, uploadedFileRepository, fileStorageService, clock);
     }
 
@@ -515,13 +546,6 @@ class ThanksEntryServiceTest {
         ReflectionTestUtils.setField(file, "id", id);
         ReflectionTestUtils.setField(file, "createdBy", uploadedBy);
         return file;
-    }
-
-    private UserProfile createProfile(User user, String profileImagePath) {
-        UserProfile profile = new UserProfile(user, 45, "010-1234-5678", Gender.MALE);
-        profile.updateProfileImage(
-                new UploadedFile("profile.jpeg", "stored_profile.jpeg", profileImagePath, "image/jpeg", 512L));
-        return profile;
     }
 
     private UserPrincipal principalOf(User user) {

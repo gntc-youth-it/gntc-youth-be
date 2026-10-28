@@ -1,6 +1,7 @@
 package com.gntcyouthbe.thanks.model.response;
 
 import com.gntcyouthbe.file.domain.UploadedFile;
+import com.gntcyouthbe.thanks.domain.ThanksComment;
 import com.gntcyouthbe.thanks.domain.ThanksEntry;
 import com.gntcyouthbe.thanks.domain.ThanksMediaType;
 import com.gntcyouthbe.thanks.domain.ThanksSlot;
@@ -18,9 +19,9 @@ public record ThanksEntryResponse(
         MediaInfo media,
         AuthorInfo author,
         List<ThanksReactionResponse> reactions,
-        // 댓글은 4단계에서 채운다. FE 타입이 이 모양이라 필드는 지금부터 빈 값으로 내려 준다.
         long commentCount,
-        Object latestComment,
+        // 댓글이 없으면 null이다
+        LatestCommentInfo latestComment,
         boolean isMine,
         LocalDateTime createdAt
 ) {
@@ -52,8 +53,26 @@ public record ThanksEntryResponse(
         }
     }
 
+    // 목록 카드에 말풍선으로 붙는 가장 최근 댓글
+    public record LatestCommentInfo(
+            AuthorInfo author,
+            String content
+    ) {
+        public static LatestCommentInfo of(ThanksComment comment, String authorProfileImageUrl) {
+            return new LatestCommentInfo(AuthorInfo.of(comment.getUser(), authorProfileImageUrl), comment.getContent());
+        }
+    }
+
+    // 감사 하나의 댓글 수와 가장 최근 댓글
+    public record CommentSummary(
+            long count,
+            LatestCommentInfo latestComment
+    ) {
+        public static final CommentSummary EMPTY = new CommentSummary(0, null);
+    }
+
     public static ThanksEntryResponse of(ThanksEntry entry, String authorProfileImageUrl, Long viewerId,
-            List<ThanksReactionResponse> reactions) {
+            List<ThanksReactionResponse> reactions, CommentSummary comments) {
         return new ThanksEntryResponse(
                 entry.getId(),
                 entry.getMissionDate(),
@@ -62,8 +81,8 @@ public record ThanksEntryResponse(
                 MediaInfo.from(entry.getFile()),
                 AuthorInfo.of(entry.getUser(), authorProfileImageUrl),
                 reactions,
-                0,
-                null,
+                comments.count(),
+                comments.latestComment(),
                 entry.isWrittenBy(viewerId),
                 entry.getCreatedAt()
         );

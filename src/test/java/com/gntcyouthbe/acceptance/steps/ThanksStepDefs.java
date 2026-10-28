@@ -7,6 +7,7 @@ import com.gntcyouthbe.acceptance.support.api.ThanksApi;
 import com.gntcyouthbe.acceptance.support.context.ThanksScenarioContext;
 import com.gntcyouthbe.acceptance.support.context.World;
 import com.gntcyouthbe.file.repository.UploadedFileRepository;
+import com.gntcyouthbe.thanks.repository.ThanksCommentRepository;
 import com.gntcyouthbe.thanks.repository.ThanksEntryRepository;
 import com.gntcyouthbe.thanks.repository.ThanksReactionRepository;
 import io.cucumber.java.Before;
@@ -32,17 +33,19 @@ public class ThanksStepDefs {
     private final FileApi fileApi;
     private final ThanksEntryRepository thanksEntryRepository;
     private final ThanksReactionRepository thanksReactionRepository;
+    private final ThanksCommentRepository thanksCommentRepository;
     private final UploadedFileRepository uploadedFileRepository;
 
     public ThanksStepDefs(World world, ThanksScenarioContext thanks, ThanksApi thanksApi, FileApi fileApi,
             ThanksEntryRepository thanksEntryRepository, ThanksReactionRepository thanksReactionRepository,
-            UploadedFileRepository uploadedFileRepository) {
+            ThanksCommentRepository thanksCommentRepository, UploadedFileRepository uploadedFileRepository) {
         this.world = world;
         this.thanks = thanks;
         this.thanksApi = thanksApi;
         this.fileApi = fileApi;
         this.thanksEntryRepository = thanksEntryRepository;
         this.thanksReactionRepository = thanksReactionRepository;
+        this.thanksCommentRepository = thanksCommentRepository;
         this.uploadedFileRepository = uploadedFileRepository;
     }
 
@@ -50,6 +53,7 @@ public class ThanksStepDefs {
     @Before("@thanks")
     public void 감사_기록을_비운다() {
         thanksReactionRepository.deleteAllInBatch();
+        thanksCommentRepository.deleteAllInBatch();
         thanksEntryRepository.deleteAllInBatch();
     }
 
