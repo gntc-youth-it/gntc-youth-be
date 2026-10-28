@@ -12,6 +12,7 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 
@@ -27,6 +28,7 @@ import com.gntcyouthbe.thanks.domain.ThanksEntry;
 import com.gntcyouthbe.thanks.domain.ThanksMediaType;
 import com.gntcyouthbe.thanks.domain.ThanksSlot;
 import com.gntcyouthbe.thanks.model.request.ThanksEntryCreateRequest;
+import com.gntcyouthbe.thanks.model.request.ThanksEntryUpdateRequest;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryListResponse;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryResponse;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryResponse.AuthorInfo;
@@ -64,6 +66,7 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -318,6 +321,100 @@ class ThanksEntryServiceTest {
 
         // then
         assertThat(response.media().type()).isEqualTo(ThanksMediaType.VIDEO);
+    }
+
+    // --- 감사제목 고치기 ---
+
+    @Test
+    @DisplayName("올린 사람이 고치면 감사제목만 바꾸고, 지금 반응·댓글을 채운 감사를 돌려준다")
+    void updateEntry_byAuthor() {
+        // given
+        ThanksEntry entry = createEntry(ENTRY_ID, author, ThanksSlot.AFTERNOON, createFile(FILE_ID, "image/webp", 1L));
+        List<ThanksReactionResponse> reactions = List.of(new ThanksReactionResponse(ThanksEmoji.PRAY, 1, false));
+        CommentSummary comments = new CommentSummary(1,
+                new LatestCommentInfo(new AuthorInfo(5L, "안양유저", null), "기도할게요"));
+        given(thanksEntryRepository.findById(ENTRY_ID)).willReturn(Optional.of(entry));
+        given(thanksReactionService.summarize(List.of(ENTRY_ID), 1L)).willReturn(Map.of(ENTRY_ID, reactions));
+        given(thanksCommentService.summarize(List.of(ENTRY_ID))).willReturn(Map.of(ENTRY_ID, comments));
+
+        // when
+        ThanksEntryResponse response = thanksEntryService.updateEntry(
+                principalOf(author), ENTRY_ID, new ThanksEntryUpdateRequest("  점심 사 준 동기와 선배에게 감사  "));
+
+        // then
+        assertThat(entry.getContent()).isEqualTo("점심 사 준 동기와 선배에게 감사");
+        then(thanksEntryRepository).should().flush();
+        assertThat(response.content()).isEqualTo("점심 사 준 동기와 선배에게 감사");
+        assertThat(response.missionDate()).isEqualTo(MISSION_DATE);
+        assertThat(response.slot()).isEqualTo(ThanksSlot.AFTERNOON);
+        assertThat(response.isMine()).isTrue();
+        assertThat(response.reactions()).isEqualTo(reactions);
+        assertThat(response.commentCount()).isEqualTo(1);
+        assertThat(response.latestComment()).isEqualTo(comments.latestComment());
+    }
+
+    @Test
+    @DisplayName("올리기와 달리 시각을 보지 않아서, 열린 칸이 없는 시간에도 고칠 수 있다")
+    void updateEntry_whenNoSlotIsOpen() {
+        // given
+        ThanksEntry entry = createEntry(ENTRY_ID, author, ThanksSlot.AFTERNOON, createFile(FILE_ID, "image/webp", 1L));
+        given(thanksEntryRepository.findById(ENTRY_ID)).willReturn(Optional.of(entry));
+
+        // when
+        ThanksEntryResponse response = serviceAt("2026-11-11T03:00").updateEntry(
+                principalOf(author), ENTRY_ID, new ThanksEntryUpdateRequest("새벽에 고친 감사"));
+
+        // then
+        assertThat(response.content()).isEqualTo("새벽에 고친 감사");
+    }
+
+    @Test
+    @DisplayName("올린 사람이 아니면 MASTER라도 6004로 거절하고 고치지 않는다")
+    void updateEntry_notAuthor() {
+        // given
+        ThanksEntry entry = createEntry(ENTRY_ID, author, ThanksSlot.AFTERNOON, createFile(FILE_ID, "image/webp", 1L));
+        given(thanksEntryRepository.findById(ENTRY_ID)).willReturn(Optional.of(entry));
+
+        // when & then
+        for (User requester : List.of(other, master)) {
+            assertThatThrownBy(() -> thanksEntryService.updateEntry(
+                    principalOf(requester), ENTRY_ID, new ThanksEntryUpdateRequest("남이 고친 감사")))
+                    .isInstanceOf(ForbiddenException.class)
+                    .hasFieldOrPropertyWithValue("code", THANKS_ENTRY_ACCESS_DENIED.getCode());
+        }
+        assertThat(entry.getContent()).isEqualTo("감사합니다");
+        then(thanksEntryRepository).should(never()).flush();
+    }
+
+    @Test
+    @DisplayName("없는 감사는 6003으로 거절한다")
+    void updateEntry_notFound() {
+        // given
+        given(thanksEntryRepository.findById(99L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> thanksEntryService.updateEntry(
+                principalOf(author), 99L, new ThanksEntryUpdateRequest("고친 감사")))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasFieldOrPropertyWithValue("code", THANKS_ENTRY_NOT_FOUND.getCode());
+
+        then(thanksEntryRepository).should(never()).flush();
+    }
+
+    @Test
+    @DisplayName("고치는 사이 다른 기기에서 지워져 UPDATE가 0행이 되면 6003으로 바꾼다")
+    void updateEntry_deletedMeanwhile() {
+        // given
+        ThanksEntry entry = createEntry(ENTRY_ID, author, ThanksSlot.AFTERNOON, createFile(FILE_ID, "image/webp", 1L));
+        given(thanksEntryRepository.findById(ENTRY_ID)).willReturn(Optional.of(entry));
+        willThrow(new ObjectOptimisticLockingFailureException(ThanksEntry.class, ENTRY_ID))
+                .given(thanksEntryRepository).flush();
+
+        // when & then
+        assertThatThrownBy(() -> thanksEntryService.updateEntry(
+                principalOf(author), ENTRY_ID, new ThanksEntryUpdateRequest("고친 감사")))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasFieldOrPropertyWithValue("code", THANKS_ENTRY_NOT_FOUND.getCode());
     }
 
     // --- 삭제 ---

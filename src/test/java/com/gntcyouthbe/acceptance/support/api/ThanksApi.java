@@ -47,6 +47,22 @@ public class ThanksApi {
                 .then().extract();
     }
 
+    public ExtractableResponse<Response> updateEntry(String authToken, Long entryId, Map<String, Object> body) {
+        return authorized(authToken)
+                .contentType("application/json")
+                .body(body)
+                .when().patch("/thanks/entries/" + entryId)
+                .then().extract();
+    }
+
+    public ExtractableResponse<Response> updateEntryWithoutAuth(Long entryId, Map<String, Object> body) {
+        return given()
+                .contentType("application/json")
+                .body(body)
+                .when().patch("/thanks/entries/" + entryId)
+                .then().extract();
+    }
+
     public ExtractableResponse<Response> deleteEntry(String authToken, Long entryId) {
         return authorized(authToken)
                 .when().delete("/thanks/entries/" + entryId)

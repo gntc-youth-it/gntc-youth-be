@@ -2,6 +2,7 @@ package com.gntcyouthbe.thanks.controller;
 
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.thanks.model.request.ThanksEntryCreateRequest;
+import com.gntcyouthbe.thanks.model.request.ThanksEntryUpdateRequest;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryListResponse;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryResponse;
 import com.gntcyouthbe.thanks.service.ThanksEntryService;
@@ -15,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,6 +46,16 @@ public class ThanksEntryController {
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @Valid @RequestBody ThanksEntryCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(thanksEntryService.createEntry(userPrincipal, request));
+    }
+
+    // 감사제목만 고친다. 쓴 사람 본인만 고칠 수 있고, 아니면 MASTER라도 서비스에서 403(6004)으로 거절한다
+    @PatchMapping("/{entryId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ThanksEntryResponse> updateEntry(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable Long entryId,
+            @Valid @RequestBody ThanksEntryUpdateRequest request) {
+        return ResponseEntity.ok(thanksEntryService.updateEntry(userPrincipal, entryId, request));
     }
 
     // 본인이나 MASTER만 지울 수 있다. 아니면 서비스에서 403(6004)으로 거절한다

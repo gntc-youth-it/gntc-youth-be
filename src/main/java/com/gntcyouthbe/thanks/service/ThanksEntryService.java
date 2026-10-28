@@ -11,6 +11,7 @@ import com.gntcyouthbe.thanks.domain.ThanksEntry;
 import com.gntcyouthbe.thanks.domain.ThanksMediaType;
 import com.gntcyouthbe.thanks.domain.ThanksSlot;
 import com.gntcyouthbe.thanks.model.request.ThanksEntryCreateRequest;
+import com.gntcyouthbe.thanks.model.request.ThanksEntryUpdateRequest;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryListResponse;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryResponse;
 import com.gntcyouthbe.thanks.model.response.ThanksEntryResponse.CommentSummary;
@@ -33,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.ConstraintViolationException.ConstraintKind;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,22 +69,23 @@ public class ThanksEntryService {
         if (entries.isEmpty()) {
             return new ThanksEntryListResponse(date, List.of());
         }
+        return new ThanksEntryListResponse(date, responsesOf(entries, userPrincipal.getUserId()));
+    }
 
-        List<Long> authorIds = entries.stream().map(entry -> entry.getUser().getId()).distinct().toList();
-        Map<Long, String> profileImagePaths = userProfileRepository.findProfileImagePaths(authorIds);
-        List<Long> entryIds = entries.stream().map(ThanksEntry::getId).toList();
-        Map<Long, List<ThanksReactionResponse>> reactions = thanksReactionService.summarize(entryIds, userPrincipal.getUserId());
-        Map<Long, CommentSummary> comments = thanksCommentService.summarize(entryIds);
+    // 감사제목만 고친다. 쓴 사람 본인만 고칠 수 있고, 지우기와 달리 MASTER도 남의 감사는 고칠 수 없다.
+    // 올리기와 달리 시각을 보지 않아서 지난 날 감사나 열린 칸이 없는 시간에도 고칠 수 있다.
+    @Transactional
+    public ThanksEntryResponse updateEntry(UserPrincipal userPrincipal, Long entryId, ThanksEntryUpdateRequest request) {
+        ThanksEntry entry = thanksEntryRepository.findById(entryId)
+                .orElseThrow(() -> new EntityNotFoundException(THANKS_ENTRY_NOT_FOUND));
+        Long userId = userPrincipal.getUserId();
+        if (!entry.isWrittenBy(userId)) {
+            throw new ForbiddenException(THANKS_ENTRY_ACCESS_DENIED);
+        }
 
-        List<ThanksEntryResponse> responses = entries.stream()
-                .map(entry -> ThanksEntryResponse.of(
-                        entry,
-                        profileImagePaths.get(entry.getUser().getId()),
-                        userPrincipal.getUserId(),
-                        reactions.getOrDefault(entry.getId(), List.of()),
-                        comments.getOrDefault(entry.getId(), CommentSummary.EMPTY)))
-                .toList();
-        return new ThanksEntryListResponse(date, responses);
+        entry.updateContent(request.content());
+        flushUpdatedContent();
+        return responsesOf(List.of(entry), userId).getFirst();
     }
 
     // 날짜와 칸은 요청을 받은 시각으로 서버가 정한다. 그래서 지난 칸을 나중에 채울 수 없다.
@@ -128,6 +131,34 @@ public class ThanksEntryService {
         if (!userProfileRepository.existsByProfileImageId(file.getId())) {
             uploadedFileRepository.delete(file);
             fileStorageService.deleteFiles(List.of(filePath));
+        }
+    }
+
+    // 목록과 고친 감사가 같이 쓴다. 감사마다 따로 조회하지 않고, 작성자 사진·반응·댓글을 한 번씩만 조회한다.
+    private List<ThanksEntryResponse> responsesOf(List<ThanksEntry> entries, Long viewerId) {
+        List<Long> authorIds = entries.stream().map(entry -> entry.getUser().getId()).distinct().toList();
+        Map<Long, String> profileImagePaths = userProfileRepository.findProfileImagePaths(authorIds);
+        List<Long> entryIds = entries.stream().map(ThanksEntry::getId).toList();
+        Map<Long, List<ThanksReactionResponse>> reactions = thanksReactionService.summarize(entryIds, viewerId);
+        Map<Long, CommentSummary> comments = thanksCommentService.summarize(entryIds);
+
+        return entries.stream()
+                .map(entry -> ThanksEntryResponse.of(
+                        entry,
+                        profileImagePaths.get(entry.getUser().getId()),
+                        viewerId,
+                        reactions.getOrDefault(entry.getId(), List.of()),
+                        comments.getOrDefault(entry.getId(), CommentSummary.EMPTY)))
+                .toList();
+    }
+
+    // 감사 행은 잠그지 않는다. 다른 기기에서 지우는 중에 고치면 UPDATE가 0행이 되어 flush가 실패하는데,
+    // 그때는 지워진 감사로 보고 6003을 준다. 같은 내용으로 고치면 UPDATE 자체가 없다.
+    private void flushUpdatedContent() {
+        try {
+            thanksEntryRepository.flush();
+        } catch (OptimisticLockingFailureException e) {
+            throw new EntityNotFoundException(THANKS_ENTRY_NOT_FOUND);
         }
     }
 

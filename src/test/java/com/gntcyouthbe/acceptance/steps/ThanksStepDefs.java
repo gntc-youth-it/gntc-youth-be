@@ -18,6 +18,7 @@ import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -35,6 +36,9 @@ public class ThanksStepDefs {
     private final ThanksReactionRepository thanksReactionRepository;
     private final ThanksCommentRepository thanksCommentRepository;
     private final UploadedFileRepository uploadedFileRepository;
+
+    // 올릴 때 받은 createdAt. 감사제목을 고친 뒤에도 그대로인지 비교한다.
+    private final Map<Long, String> createdAtByEntryId = new HashMap<>();
 
     public ThanksStepDefs(World world, ThanksScenarioContext thanks, ThanksApi thanksApi, FileApi fileApi,
             ThanksEntryRepository thanksEntryRepository, ThanksReactionRepository thanksReactionRepository,
@@ -186,6 +190,12 @@ public class ThanksStepDefs {
         assertThat(world.response.jsonPath().getString("content")).isEqualTo(content);
     }
 
+    @그러면("응답한 감사의 올린 시각은 처음 올렸을 때와 같다")
+    public void 응답한_감사의_올린_시각은_그대로다() {
+        Long entryId = world.response.jsonPath().getLong("id");
+        assertThat(world.response.jsonPath().getString("createdAt")).isEqualTo(createdAtByEntryId.get(entryId));
+    }
+
     @그러면("응답한 감사의 감사제목은 {int}자이다")
     public void 응답한_감사의_감사제목_길이(int length) {
         assertThat(world.response.jsonPath().getString("content")).hasSize(length);
@@ -284,6 +294,11 @@ public class ThanksStepDefs {
         assertMedia((Map<String, Object>) listedEntryOf(content).get("media"), fileName, type);
     }
 
+    @그러면("감사 목록에서 감사 {string}의 감사제목은 {string}이다")
+    public void 목록에서_감사제목(String content, String expectedContent) {
+        assertThat(listedEntryOf(content).get("content")).isEqualTo(expectedContent);
+    }
+
     @그러면("감사 목록 항목의 키는 정확히 {string}이다")
     public void 감사_목록_항목의_키(String keys) {
         assertThat(entries()).isNotEmpty();
@@ -317,7 +332,9 @@ public class ThanksStepDefs {
     private void post(String userName, Map<String, Object> body) {
         world.response = thanksApi.createEntry(thanks.tokenOf(userName), body);
         if (world.response.statusCode() == HttpStatus.CREATED.value()) {
-            thanks.saveEntryId(world.response.jsonPath().getString("content"), world.response.jsonPath().getLong("id"));
+            Long entryId = world.response.jsonPath().getLong("id");
+            thanks.saveEntryId(world.response.jsonPath().getString("content"), entryId);
+            createdAtByEntryId.put(entryId, world.response.jsonPath().getString("createdAt"));
         }
     }
 
