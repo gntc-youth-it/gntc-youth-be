@@ -52,6 +52,21 @@ class ThanksCellRepositoryTest {
     }
 
     @Test
+    @DisplayName("구역원을 찾으면 그 구역 사람만 나오고, 사용자가 함께 읽혀서 트랜잭션 밖에서도 이름을 볼 수 있다")
+    void findByCellIdWithUser() {
+        ThanksCell first = thanksCellRepository.save(new ThanksCell("첫째구역", 1));
+        ThanksCell second = thanksCellRepository.save(new ThanksCell("둘째구역", 2));
+        thanksCellMemberRepository.save(new ThanksCellMember(userRepository.findById(1L).orElseThrow(), first));
+        thanksCellMemberRepository.save(new ThanksCellMember(userRepository.findById(2L).orElseThrow(), first));
+        thanksCellMemberRepository.save(new ThanksCellMember(userRepository.findById(5L).orElseThrow(), second));
+
+        List<ThanksCellMember> members = thanksCellMemberRepository.findByCellIdWithUser(first.getId());
+
+        assertThat(members).extracting(member -> member.getUser().getId()).containsExactlyInAnyOrder(1L, 2L);
+        assertThat(members).extracting(member -> member.getUser().getName()).doesNotContainNull();
+    }
+
+    @Test
     @DisplayName("한 사람은 구역 행을 하나만 가질 수 있어서, 다른 구역이라도 또 저장하면 무결성 오류가 난다")
     void saveSecondCellOfSameUser() {
         User user = userRepository.findById(1L).orElseThrow();

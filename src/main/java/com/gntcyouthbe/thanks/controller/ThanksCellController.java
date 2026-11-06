@@ -3,6 +3,7 @@ package com.gntcyouthbe.thanks.controller;
 import com.gntcyouthbe.common.security.domain.UserPrincipal;
 import com.gntcyouthbe.thanks.model.request.ThanksMyCellUpdateRequest;
 import com.gntcyouthbe.thanks.model.response.ThanksCellListResponse;
+import com.gntcyouthbe.thanks.model.response.ThanksCellStatsResponse;
 import com.gntcyouthbe.thanks.service.ThanksCellService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +29,14 @@ public class ThanksCellController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ThanksCellListResponse> getCells(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         return ResponseEntity.ok(thanksCellService.getCells(userPrincipal));
+    }
+
+    // 그 구역을 고른 사람과 MASTER만 볼 수 있다
+    @GetMapping("/cells/{cellId}/stats")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ThanksCellStatsResponse> getCellStats(@AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable Long cellId) {
+        return ResponseEntity.ok(thanksCellService.getCellStats(userPrincipal, cellId));
     }
 
     // 이미 있으면 바꾸고, 같은 구역을 다시 보내도 200이다

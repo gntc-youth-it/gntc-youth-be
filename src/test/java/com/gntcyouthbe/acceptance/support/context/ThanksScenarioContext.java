@@ -33,6 +33,7 @@ public class ThanksScenarioContext {
     private final Map<String, Long> fileIds = new HashMap<>();
     private final Map<String, Long> entryIds = new HashMap<>();
     private final Map<String, Long> commentIds = new HashMap<>();
+    private final Map<String, Long> cellIds = new HashMap<>();
 
     public ThanksScenarioContext(AuthApi authApi) {
         this.authApi = authApi;
@@ -90,5 +91,14 @@ public class ThanksScenarioContext {
 
     public Long entryIdOf(String content) {
         return Objects.requireNonNull(entryIds.get(content), "시나리오에서 올리지 않은 감사: " + content);
+    }
+
+    // 구역도 시나리오 안에서 이름으로 구분한다
+    public void saveCellId(String name, Long cellId) {
+        cellIds.put(name, cellId);
+    }
+
+    public Long cellIdOf(String name) {
+        return Objects.requireNonNull(cellIds.get(name), "시나리오에 없는 구역: " + name);
     }
 }
