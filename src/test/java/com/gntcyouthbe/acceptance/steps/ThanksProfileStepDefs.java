@@ -48,7 +48,7 @@ public class ThanksProfileStepDefs {
 
     // 프로필 행이 없는 사람으로 시작해야 하므로 시나리오마다 새내기유저를 새로 만들고, 끝나면 그 사람이 남긴 것과 함께 지운다.
     // data.sql에 넣으면 사용자 수를 세는 관리자 기능 테스트가 깨진다.
-    @Before("@thanks-profile")
+    @Before("@thanks-profile or @thanks-newcomer")
     public void 새내기유저를_만든다() {
         jdbcTemplate.update("""
                 INSERT INTO app_user (id, email, name, provider, provider_user_id, role, created_at, updated_at)
@@ -56,8 +56,9 @@ public class ThanksProfileStepDefs {
                 """, NEWCOMER_ID);
     }
 
-    @After("@thanks-profile")
+    @After("@thanks-profile or @thanks-newcomer")
     public void 새내기유저를_지운다() {
+        jdbcTemplate.update("DELETE FROM thanks_cell_member WHERE user_id = ?", NEWCOMER_ID);
         jdbcTemplate.update("DELETE FROM thanks_entry WHERE user_id = ?", NEWCOMER_ID);
         jdbcTemplate.update("DELETE FROM user_profile WHERE user_id = ?", NEWCOMER_ID);
         jdbcTemplate.update("DELETE FROM app_user WHERE id = ?", NEWCOMER_ID);

@@ -139,6 +139,46 @@ public class ThanksApi {
                 .then().extract();
     }
 
+    public ExtractableResponse<Response> getCells(String authToken) {
+        return authorized(authToken)
+                .when().get("/thanks/cells")
+                .then().extract();
+    }
+
+    public ExtractableResponse<Response> getCellsWithoutAuth() {
+        return given()
+                .when().get("/thanks/cells")
+                .then().extract();
+    }
+
+    public ExtractableResponse<Response> updateMyCell(String authToken, Long cellId) {
+        return updateMyCell(authToken, "{\"cellId\": " + cellId + "}");
+    }
+
+    // 없는 값이나 틀린 형식도 보내 볼 수 있게 본문을 그대로 보낸다
+    public ExtractableResponse<Response> updateMyCell(String authToken, String body) {
+        return authorized(authToken)
+                .contentType("application/json")
+                .body(body)
+                .when().put("/thanks/my-cell")
+                .then().extract();
+    }
+
+    public ExtractableResponse<Response> updateMyCellWithoutBody(String authToken) {
+        return authorized(authToken)
+                .contentType("application/json")
+                .when().put("/thanks/my-cell")
+                .then().extract();
+    }
+
+    public ExtractableResponse<Response> updateMyCellWithoutAuth(Long cellId) {
+        return given()
+                .contentType("application/json")
+                .body(Map.of("cellId", cellId))
+                .when().put("/thanks/my-cell")
+                .then().extract();
+    }
+
     private RequestSpecification authorized(String authToken) {
         return given().header("Authorization", "Bearer " + authToken);
     }

@@ -15,6 +15,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -68,6 +69,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleTypeMismatch(
             @NonNull final TypeMismatchException e,
+            @NonNull final HttpHeaders headers,
+            @NonNull final HttpStatusCode status,
+            @NonNull final WebRequest request
+    ) {
+        log.warn(e.getMessage(), e);
+        return ResponseEntity.badRequest()
+                .body(new ExceptionResponse(INVALID_REQUEST.getCode(), INVALID_REQUEST.getMessage()));
+    }
+
+    // 본문이 없거나, JSON이 깨졌거나, 값의 형식이 틀려서 읽을 수 없을 때도 1001로 응답한다
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(
+            @NonNull final HttpMessageNotReadableException e,
             @NonNull final HttpHeaders headers,
             @NonNull final HttpStatusCode status,
             @NonNull final WebRequest request
