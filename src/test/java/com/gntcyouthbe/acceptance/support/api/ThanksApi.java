@@ -151,6 +151,18 @@ public class ThanksApi {
                 .then().extract();
     }
 
+    public ExtractableResponse<Response> getCellStats(String authToken, Long cellId) {
+        return authorized(authToken)
+                .when().get("/thanks/cells/" + cellId + "/stats")
+                .then().extract();
+    }
+
+    public ExtractableResponse<Response> getCellStatsWithoutAuth(Long cellId) {
+        return given()
+                .when().get("/thanks/cells/" + cellId + "/stats")
+                .then().extract();
+    }
+
     public ExtractableResponse<Response> updateMyCell(String authToken, Long cellId) {
         return updateMyCell(authToken, "{\"cellId\": " + cellId + "}");
     }

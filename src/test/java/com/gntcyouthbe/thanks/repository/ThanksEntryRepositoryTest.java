@@ -10,6 +10,7 @@ import com.gntcyouthbe.thanks.domain.ThanksSlot;
 import com.gntcyouthbe.user.domain.User;
 import com.gntcyouthbe.user.repository.UserRepository;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.hibernate.exception.ConstraintViolationException;
@@ -53,6 +54,8 @@ class ThanksEntryRepositoryTest {
     private User user;
     private UploadedFile firstPhoto;
     private UploadedFile secondPhoto;
+    private UploadedFile thirdPhoto;
+    private UploadedFile fourthPhoto;
     private ThanksEntry lunchEntry;
 
     @BeforeEach
@@ -60,6 +63,8 @@ class ThanksEntryRepositoryTest {
         user = userRepository.findById(1L).orElseThrow();
         firstPhoto = uploadedFileRepository.save(createPhoto("first"));
         secondPhoto = uploadedFileRepository.save(createPhoto("second"));
+        thirdPhoto = uploadedFileRepository.save(createPhoto("third"));
+        fourthPhoto = uploadedFileRepository.save(createPhoto("fourth"));
         lunchEntry = thanksEntryRepository.saveAndFlush(
                 new ThanksEntry(user, MISSION_DATE, ThanksSlot.AFTERNOON, "점심 감사", firstPhoto));
     }
@@ -67,7 +72,7 @@ class ThanksEntryRepositoryTest {
     @AfterEach
     void tearDown() {
         thanksEntryRepository.deleteAllInBatch();
-        uploadedFileRepository.deleteAll(List.of(firstPhoto, secondPhoto));
+        uploadedFileRepository.deleteAll(List.of(firstPhoto, secondPhoto, thirdPhoto, fourthPhoto));
     }
 
     @Test
@@ -118,6 +123,29 @@ class ThanksEntryRepositoryTest {
             assertThatThrownBy(thanksEntryRepository::flush).isInstanceOf(OptimisticLockingFailureException.class);
             status.setRollbackOnly();
         });
+    }
+
+    @Test
+    @DisplayName("사람별·날짜별로 개수와 그날 가장 최근에 올린 시각을 세고, 주지 않은 사람은 빼며, 안 올린 사람은 결과에 없다")
+    void countDailyByUserIds() {
+        User other = userRepository.findById(5L).orElseThrow();
+        User noPost = userRepository.findById(2L).orElseThrow();
+        ThanksEntry dinner = thanksEntryRepository.saveAndFlush(
+                new ThanksEntry(user, MISSION_DATE, ThanksSlot.EVENING, "저녁 감사", secondPhoto));
+        ThanksEntry nextDay = thanksEntryRepository.saveAndFlush(
+                new ThanksEntry(user, MISSION_DATE.plusDays(1), ThanksSlot.MORNING, "다음 날 감사", thirdPhoto));
+        thanksEntryRepository.saveAndFlush(new ThanksEntry(other, MISSION_DATE, ThanksSlot.MORNING, "다른 사람 감사", fourthPhoto));
+
+        List<ThanksDailyCount> counts = thanksEntryRepository.countDailyByUserIds(List.of(user.getId(), noPost.getId()));
+
+        assertThat(counts).containsExactlyInAnyOrder(
+                new ThanksDailyCount(user.getId(), MISSION_DATE, 2L, savedCreatedAtOf(dinner)),
+                new ThanksDailyCount(user.getId(), MISSION_DATE.plusDays(1), 1L, savedCreatedAtOf(nextDay)));
+    }
+
+    // 저장할 때의 값은 Linux에서 나노초까지 있어서 DB에 저장된 값을 읽어 비교한다
+    private LocalDateTime savedCreatedAtOf(ThanksEntry entry) {
+        return thanksEntryRepository.findById(entry.getId()).orElseThrow().getCreatedAt();
     }
 
     private UploadedFile createPhoto(String name) {
